@@ -19,9 +19,7 @@
 <br>
 
 <p align="center">
-  <img src="https://placeholder.pics/svg/800x450/0D0D0D/D4A040/friday%20dashboard" alt="Friday Dashboard" width="800">
-  <br>
-  <em>— replace with your actual screenshot or GIF —</em>
+  <img src="desktop/public/dashboard.png" alt="Friday Dashboard" width="800">
 </p>
 
 <br>

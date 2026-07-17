@@ -78,7 +78,6 @@ npm run dev
 <p align="center">
   <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHU2cnRkb25qb3MxemtnMm53c2xwNnhwcGt5c3dqb2NnOXRybGJpZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Lny6Rw04nsOOc/giphy.gif" alt="Terminal" width="600">
   <br>
-  <em>— terminal screenshot placeholder —</em>
 </p>
 
 <br>
@@ -199,11 +198,7 @@ desktop/
 ## Screenshots
 
 <p align="center">
-  <img src="https://placeholder.pics/svg/600x380/0D0D0D/D4A040/main%20dashboard" width="400" alt="Dashboard">
-  <img src="https://placeholder.pics/svg/600x380/0D0D0D/D4A040/chat%20view" width="400" alt="Chat">
-  <br>
-  <img src="https://placeholder.pics/svg/600x380/0D0D0D/D4A040/intelligence%20panel" width="400" alt="Intelligence Panel">
-  <img src="https://placeholder.pics/svg/600x380/0D0D0D/D4A040/command%20palette" width="400" alt="Command Palette">
+  <img src="desktop/public/dashboard.png" width="400" alt="Dashboard">
   <br>
   <em>— replace placeholder SVGs with actual screenshots —</em>
 </p>

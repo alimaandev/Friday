@@ -76,7 +76,7 @@ npm run dev
 <br>
 
 <p align="center">
-  <img src="https://placeholder.pics/svg/800x300/0D0D0D/666666/quick%20start%20terminal%20screenshot" alt="Terminal" width="600">
+  <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHU2cnRkb25qb3MxemtnMm53c2xwNnhwcGt5c3dqb2NnOXRybGJpZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Lny6Rw04nsOOc/giphy.gif" alt="Terminal" width="600">
   <br>
   <em>— terminal screenshot placeholder —</em>
 </p>

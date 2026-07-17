@@ -95,6 +95,24 @@ Output lands in `dist/`. Serve with any static file server.
 |----------|---------|-------------|
 | `API_BASE` (in `src/App.tsx`) | `http://localhost:8080` | Backend URL |
 
+### API Keys
+
+Copy the example config and add your keys:
+
+```bash
+cp config/providers.toml.example config/providers.toml
+```
+
+Then edit `config/providers.toml` and set your API keys:
+
+| Provider | Key needed | Get it at |
+|----------|-----------|-----------|
+| **OpenRouter** (default) | `api_key` | https://openrouter.ai/keys |
+| **OpenAI** | `api_key` | https://platform.openai.com/api-keys |
+| **Ollama** (local) | none | Runs on `localhost:11434` |
+
+The file is in `.gitignore` so your keys stay local.
+
 ### Backend endpoints (auto-detected)
 
 | Endpoint | Cache | Source |

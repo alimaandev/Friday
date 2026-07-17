@@ -9,6 +9,14 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/react-19-%2300D8FF?logo=react&style=flat-square" alt="React">
+  <img src="https://img.shields.io/badge/three.js-0.185-%23000000?logo=threedotjs&style=flat-square" alt="Three.js">
+  <img src="https://img.shields.io/badge/python-3.11-%233776AB?logo=python&style=flat-square" alt="Python">
+  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
+  <img src="https://img.shields.io/github/stars/alimaandev/Friday?style=social" alt="Stars">
+</p>
+
+<p align="center">
   <a href="#features">Features</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#configuration">Configuration</a> •

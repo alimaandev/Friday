@@ -59,7 +59,15 @@ python api_server.py
 
 > Runs on `http://localhost:8080`. The frontend connects here automatically.
 
-### 3. Start the frontend
+### 3. Add your API key
+
+```bash
+cp config/providers.toml.example config/providers.toml
+```
+
+Edit `config/providers.toml` and set your `api_key` (get one free at [openrouter.ai/keys](https://openrouter.ai/keys)).
+
+### 4. Start the frontend
 
 ```bash
 npm run dev

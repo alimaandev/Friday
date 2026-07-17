@@ -9,6 +9,8 @@ dist/
 
 # Runtime
 friday_memory.json
+memory_store/
+config/providers.toml
 config/providers.toml
 logs/
 chrome_profile/

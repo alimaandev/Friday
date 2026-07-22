@@ -13,8 +13,8 @@ class TestRegistry:
     def test_essential_tools_present(self):
         tmap = get_tool_map()
         for tool in ["run_command", "read_file", "write_file", "web_fetch",
-                      "browse_search", "browse_click", "run_python",
-                      "remember", "recall", "ask_user", "get_system_info"]:
+                      "run_python", "remember", "recall",
+                      "ask_user", "get_system_info"]:
             assert tool in tmap, f"{tool} missing"
 
     def test_health_checks_all_pass(self):

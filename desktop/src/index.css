@@ -107,41 +107,13 @@ input::placeholder, textarea::placeholder {
 
 :root { --spring: cubic-bezier(0.22, 1, 0.36, 1); --spring-out: cubic-bezier(0.5, 0, 0.5, 1); }
 
-@keyframes fadeScaleIn {
-  from { opacity: 0; transform: scale(0.97); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(12px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
 @keyframes slideInUp {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-scale-in {
-  animation: fadeScaleIn 0.3s var(--spring) both;
-}
-
-.animate-slide-in-right {
-  animation: slideInRight 0.25s var(--spring) both;
-}
-
 .animate-slide-in-up {
   animation: slideInUp 0.25s var(--spring) both;
-}
-
-@keyframes pingSlow {
-  0% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.3); opacity: 0.2; }
-  100% { transform: scale(1); opacity: 0.8; }
-}
-
-.animate-ping-slow {
-  animation: pingSlow 2s ease-in-out infinite;
 }
 
 @keyframes fadeSlideIn {
@@ -169,32 +141,10 @@ input::placeholder, textarea::placeholder {
   50%      { opacity: 0.5; transform: scale(1.4); }
 }
 
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-@keyframes spinSlow {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-@keyframes breathe {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50%      { opacity: 0.8; transform: scale(1.05); }
-}
-
 @keyframes gradientSlide {
   0%   { background-position: 0% 50%; }
   50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
-}
-
-@keyframes jarvisScan {
-  0%   { transform: translateY(-100%); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { transform: translateY(100vh); opacity: 0; }
 }
 
 .animate-fade-slide-in {
@@ -217,28 +167,10 @@ input::placeholder, textarea::placeholder {
   animation: pulseGlow 2s ease-in-out infinite;
 }
 
-.animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
-  background-size: 200% 100%;
-  animation: shimmer 2s ease-in-out infinite;
-}
-
-.animate-spin-slow {
-  animation: spinSlow 8s linear infinite;
-}
-
-.animate-breathe {
-  animation: breathe 3s ease-in-out infinite;
-}
-
 .animate-gradient {
   background: linear-gradient(270deg, var(--blue), var(--blue-bright), var(--blue));
   background-size: 200% 100%;
   animation: gradientSlide 3s ease infinite;
-}
-
-.animate-jarvis-scan {
-  animation: jarvisScan 4s ease-in-out infinite;
 }
 
 .glass {

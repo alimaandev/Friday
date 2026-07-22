@@ -14,9 +14,9 @@ import { useVoiceOutput } from './hooks/useVoiceOutput'
 import { useWakeWord } from './hooks/useWakeWord'
 import type { SystemInfo, NewsItem, WeatherData, Earthquake, CryptoData, SpaceData, CveItem, WorldClock, MemoryData, ScreenData, CalendarEvent, EmailMessage, ProactiveAlert } from './types'
 import { AlertToast } from './components/chat/AlertToast'
-const IntelligencePanel = lazy(() => import('./components/sidebar/IntelligencePanel'))
-const CommandPalette = lazy(() => import('./components/command/CommandPalette'))
-const SettingsPanel = lazy(() => import('./components/settings/SettingsPanel'))
+const IntelligencePanel = lazy(() => import('./components/sidebar/IntelligencePanel').then(m => ({ default: m.IntelligencePanel })))
+const CommandPalette = lazy(() => import('./components/command/CommandPalette').then(m => ({ default: m.CommandPalette })))
+const SettingsPanel = lazy(() => import('./components/settings/SettingsPanel').then(m => ({ default: m.SettingsPanel })))
 import { fetchApi, streamChat, checkHealth, getSessions, getGoogleAuth, connectEventSource } from './core/api'
 import type { ServerEvent } from './core/api'
 

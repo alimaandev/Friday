@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo, memo } from 'react'
+import { useState, useRef, useCallback, memo } from 'react'
 import { QuickActions } from './QuickActions'
 
 const LANG_LABELS: Record<string, string> = { 'en-US': 'EN', 'hi-IN': 'HI', 'ur-PK': 'UR' }

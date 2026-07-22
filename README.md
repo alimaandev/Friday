@@ -1,230 +1,315 @@
-<p align="center">
-  <img src="desktop/public/favicon.svg" width="64" height="64" alt="Friday">
-</p>
+<div align="center">
+  <img src="desktop/public/favicon.svg" width="80" height="80" alt="Friday AI">
+  
+  <h1 align="center">Friday — AI Command Center</h1>
 
-<h1 align="center">Friday</h1>
+  <p align="center">
+    <strong>Your open‑source desktop intelligence hub.</strong><br>
+    Talk, type, or gesture — Friday sees everything, knows everything, acts on everything.
+  </p>
+
+  <p align="center">
+    <a href="https://github.com/alimaandev/Friday/stargazers"><img src="https://img.shields.io/github/stars/alimaandev/Friday?style=for-the-badge&logo=github&color=gold" alt="Stars"></a>
+    <a href="https://github.com/alimaandev/Friday/issues"><img src="https://img.shields.io/github/issues/alimaandev/Friday?style=for-the-badge&logo=github" alt="Issues"></a>
+    <a href="https://github.com/alimaandev/Friday/actions"><img src="https://img.shields.io/github/actions/workflow/status/alimaandev/Friday/ci.yml?style=for-the-badge&logo=githubactions" alt="CI"></a>
+    <a href="https://github.com/alimaandev/Friday/blob/main/LICENSE"><img src="https://img.shields.io/github/license/alimaandev/Friday?style=for-the-badge&color=green" alt="License"></a>
+    <br>
+    <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react" alt="React 19"></a>
+    <a href="https://threejs.org"><img src="https://img.shields.io/badge/Three.js-0.185-000000?style=for-the-badge&logo=threedotjs" alt="Three.js"></a>
+    <a href="https://www.python.org"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python" alt="Python 3.11+"></a>
+    <a href="https://vite.dev"><img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite" alt="Vite 8"></a>
+    <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss" alt="Tailwind CSS v4"></a>
+    <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript 6"></a>
+  </p>
+</div>
+
+<br>
 
 <p align="center">
-  <strong>AI Command Center — Your Desktop Intelligence Hub</strong>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/react-19-%2300D8FF?logo=react&style=flat-square" alt="React">
-  <img src="https://img.shields.io/badge/three.js-0.185-%23000000?logo=threedotjs&style=flat-square" alt="Three.js">
-  <img src="https://img.shields.io/badge/python-3.11-%233776AB?logo=python&style=flat-square" alt="Python">
-  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
-  <img src="https://img.shields.io/github/stars/alimaandev/Friday?style=social" alt="Stars">
-</p>
-
-<p align="center">
-  <a href="#features">Features</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#configuration">Configuration</a> •
-  <a href="#gesture-controls">Gesture Controls</a> •
-  <a href="#project-structure">Project Structure</a>
+  <img src="desktop/public/dashboard.png" alt="Friday AI Dashboard — live intelligence panel with 3D orb, weather, news, stocks, crypto, space, and chat interface" width="900">
 </p>
 
 <br>
 
+---
+
+## ✨ What is Friday?
+
+**Friday** is a fully open‑source AI command center that runs on your **desktop**. It combines a real‑time **3D reactive orb** (Three.js), a **live intelligence panel** (news, weather, stocks, crypto, earthquakes, space, CVE, GitHub trending, world clocks), **voice input/output**, **wake‑word activation**, **webcam hand‑gesture control**, **Google Calendar & Gmail integration**, and a **streaming chat** backed by any OpenAI‑compatible LLM — all in one polished dark‑mode interface.
+
+No cloud lock‑in. No subscriptions. Your data, your machine, your AI.
+
+<br>
+
+---
+
+## 🚀 Features
+
+### 🧠 AI Core
+- **Streaming chat** — real‑time token‑by‑token responses with plan visualization and tool‑call tracking
+- **Multi‑session** — create, switch, and delete conversations; each session keeps its own memory
+- **Command palette** — `⌘K` (or `Ctrl+K`) for instant actions: new session, toggle voice, camera, wake word
+- **Context‑aware suggestions** — one‑click prompt chips: *Explain*, *Search*, *Code*, *Summarize*
+
+### 🎨 3D Reactive Orb (Three.js)
+- **State‑driven animations** — the orb shifts form for *idle*, *listening*, *thinking*, *reasoning*, *executing*, *searching*, *coding*, *speaking*, *error*, and *offline* states
+- **Hand‑tracking follow** — orb gently follows your hand when camera is active
+- **Auto‑pause** — rAF loop pauses when the browser tab is hidden (zero CPU when you're not looking)
+- **Procedural shaders** — noise‑based energy core, Fresnel glow, holographic hex shell, orbital rings, drifting particles, orbiting nodes
+
+### 🌍 Live Intelligence Panel
+| Module | Data Source | Refresh |
+|--------|-------------|---------|
+| 📰 World News | Hacker News + RSS feeds | 5 min |
+| 🌤 Weather | Open‑Meteo (default: Islamabad) | 5 min |
+| 📈 Markets | Yahoo Finance (AAPL, GOOG, MSFT, NVDA, BTC‑USD) | 60 s |
+| 💻 GitHub Trending | GitHub trending scraper | 5 min |
+| 🌋 Earthquakes | USGS Earthquake API | 2 min |
+| ₿ Crypto | CoinGecko | 2 min |
+| 🛰 Space | Open Notify (ISS location + astronauts) | 60 s |
+| 🕐 World Clocks | London, New York, Tokyo, Dubai, Sydney | 30 s |
+| 🔐 Security | NVD CVE feed | 10 min |
+
+### 🎤 Voice & Gesture
+- **Voice input** — hold mic button, speak, release to send (browser SpeechRecognition)
+- **Voice output** — TTS reads assistant responses aloud
+- **Wake word** — "Hey Friday" activates listening (runs offline in-browser)
+- **Hand gestures** — open palm starts listening, closed fist sends, hand position controls orb parallax
+- **Multi‑language** — cycle between English, Hindi, Urdu
+
+### 🔌 Integrations
+- **Google Calendar** — OAuth 2.0, view upcoming events inline
+- **Gmail** — OAuth 2.0, unread count + inbox preview
+- **Screen capture** — periodic desktop screenshots viewed inside the panel
+- **Memory** — TF‑IDF + Jaccard + vector semantic search across past conversations
+- **Proactive alerts** — system anomalies, reminders, and notifications pushed via SSE
+
+### ⚡ Performance (v2)
+- All external API calls use **async HTTP** (httpx.AsyncClient with connection pooling)
+- **SSE push** replaces 18 polling loops — single EventSource connection for all live data
+- **Fine‑grained React state** (Zustand) — metrics updates re‑render only the StatusRibbon, not the whole tree
+- **Batched memory persistence** — dirty‑flag batching avoids synchronous I/O on every store()
+- **Bounded cache** — `cachetools.TTLCache` (max 500 entries) replaces unbounded dict
+- **Concurrent search** — memory search runs all 3 engines in parallel via ThreadPoolExecutor
+- **Lazy loading** — IntelligencePanel, SettingsPanel, CommandPalette loaded on demand
+
+<br>
+
+---
+
+## 🖥 Demo
+
 <p align="center">
-  <img src="desktop/public/dashboard.png" alt="Friday Dashboard" width="800">
+  <img src="desktop/public/dashboard.png" width="800" alt="Friday AI in action — dashboard showing live orb, intelligence panel, and chat">
+  <br>
+  <em>Friday dashboard — real‑time intelligence panel + 3D orb + streaming chat</em>
 </p>
 
 <br>
 
-## Features
+---
 
-- **Gold Orb AI Core** — Real-time 3D visual state indicator using Three.js; responds to mouse or hand gestures
-- **World Monitoring** — Live intelligence panel with earthquakes, crypto, space (ISS), global clocks, CVE security alerts, weather, news, stocks, and GitHub trending
-- **Gesture Control** — Webcam-based hand tracking; wave to interact with the orb (open/close fist for scaling, position tracking for movement)
-- **Chat Interface** — Streaming AI responses with tool call visualization, plan displays, and session management
-- **Command Palette** — ⌘K quick actions for session switching, gesture toggling, and theme changes
-- **Status Ribbon** — Compact system bar showing time, model, latency, RAM, CPU cores, uptime, and backend health
-- **Sessions Management** — Multiple AI conversations with local persistence and per-session output directories
+## ⚡ Quick Start
 
-<br>
+### Prerequisites
+- **Node.js** 20+ and **npm**
+- **Python** 3.11+
+- An **OpenRouter API key** (free at [openrouter.ai/keys](https://openrouter.ai/keys))
 
-## Quick Start
-
-### 1. Clone & install
+### 1. Clone
 
 ```bash
-# Frontend
-cd desktop
-npm install
-
-# Backend (Python 3.11+)
-pip install quart quart-cors hypercorn yfinance
+git clone https://github.com/alimaandev/Friday.git
+cd Friday
 ```
 
-### 2. Start the backend
+### 2. Backend
 
 ```bash
-python api_server.py
-```
-
-> Runs on `http://localhost:8080`. The frontend connects here automatically.
-
-### 3. Add your API key
-
-```bash
+pip install quart quart-cors hypercorn yfinance cachetools
 cp config/providers.toml.example config/providers.toml
 ```
 
-Edit `config/providers.toml` and set your `api_key` (get one free at [openrouter.ai/keys](https://openrouter.ai/keys)).
-
-### 4. Start the frontend
+Edit `config/providers.toml` and paste your API key.
 
 ```bash
+cd desktop
+python api_server.py
+```
+
+Backend runs on **`http://localhost:8080`**.
+
+### 3. Frontend
+
+In a second terminal:
+
+```bash
+cd desktop
+npm install
 npm run dev
 ```
 
-> Opens at `http://localhost:5173`. Done.
+Opens at **`http://localhost:5173`**.
 
-<br>
+### 4. Done
 
-<p align="center">
-  <img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHU2cnRkb25qb3MxemtnMm53c2xwNnhwcGt5c3dqb2NnOXRybGJpZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Lny6Rw04nsOOc/giphy.gif" alt="Terminal" width="600">
-  <br>
-</p>
+Start chatting. The orb pulses, the intelligence panel fills, and Friday is online.
 
-<br>
-
-### Build for production
+### Production build
 
 ```bash
-npm run build
+npm run build        # outputs to desktop/dist/
 ```
-
-Output lands in `dist/`. Serve with any static file server.
 
 <br>
 
-## Configuration
+---
+
+## 🧰 Configuration
+
+### LLM Providers
+
+| Provider | Config | Key required |
+|----------|--------|-------------|
+| **OpenRouter** (default) | `[openrouter]` | `api_key` |
+| **OpenAI** | `[openai]` | `api_key` |
+| **Ollama** (local) | `[ollama]` | — (runs on `localhost:11434`) |
+| **Custom** | `[openai_compat]` | `api_key` + `base_url` |
 
 ### Environment
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `API_BASE` (in `src/App.tsx`) | `http://localhost:8080` | Backend URL |
+| Backend bind | `127.0.0.1:8080` | Edit in `desktop/api_server.py` |
+| Frontend API URL | `http://localhost:8080` | Edit in `desktop/src/core/api.ts` |
 
-### API Keys
+### Voice Languages
 
-Copy the example config and add your keys:
+| Code | Language |
+|------|----------|
+| `en-US` | English (US) |
+| `hi-IN` | Hindi |
+| `ur-PK` | Urdu |
+
+Cycle with the mic‑lang button in the input bar.
+
+<br>
+
+---
+
+## 🖐 Gesture Controls
+
+Enable camera from the command palette (`⌘K` → *Gesture control*) or the camera button in the StatusRibbon.
+
+| Gesture | Action |
+|---------|--------|
+| ✋ Open palm | Start voice listening |
+| ✊ Closed fist | Send voice transcript |
+| 👆 Move left/right | Orb horizontal follow |
+| 👆 Move up/down | Orb vertical follow |
+
+The orb uses webcam‑based skin‑detection hand tracking — no external sensors needed.
+
+<br>
+
+---
+
+## 🏗 Project Structure
+
+```
+Friday/
+├── desktop/
+│   ├── api_server.py              # Python backend (Quart + Hypercorn)
+│   ├── src/
+│   │   ├── App.tsx                # Root orchestrator — SSE, data, layout
+│   │   ├── main.tsx               # Vite entry point
+│   │   ├── index.css              # Tailwind v4 + custom animations
+│   │   ├── core/
+│   │   │   ├── StateManager.ts    # Zustand fine‑grained state
+│   │   │   ├── api.ts             # HTTP client + SSE EventSource
+│   │   │   ├── ThemeEngine.ts     # Dark‑mode CSS variable manager
+│   │   │   └── EventBus.ts        # Lightweight pub/sub
+│   │   ├── components/
+│   │   │   ├── center/AiCore.tsx  # Three.js 3D orb + FRIDAY branding
+│   │   │   ├── chat/              # InputBar, MessageBubble, QuickActions, …
+│   │   │   ├── sidebar/           # IntelligencePanel, LeftSidebar, MemoryPanel, …
+│   │   │   ├── topbar/TopBar.tsx  # Status ribbon
+│   │   │   ├── command/           # ⌘K command palette
+│   │   │   ├── settings/          # Settings panel
+│   │   │   └── common/            # Skeleton, CameraIndicator
+│   │   ├── hooks/
+│   │   │   ├── useCamera.ts       # getUserMedia wrapper
+│   │   │   ├── useHandGesture.ts  # Skin‑detection hand tracker
+│   │   │   ├── useVoiceInput.ts   # SpeechRecognition
+│   │   │   ├── useVoiceOutput.ts  # SpeechSynthesis
+│   │   │   └── useWakeWord.ts     # Offline wake‑word detection
+│   │   └── types/index.ts         # All TypeScript interfaces
+│   └── package.json
+├── core/
+│   ├── memory/                    # Vector + TF‑IDF + keyword memory engines
+│   ├── auth/google.py             # Google OAuth 2.0
+│   ├── proactive.py               # Proactive alert engine
+│   └── system1.py                 # Fast‑path reflex system
+├── config/
+│   ├── providers.toml.example     # LLM config template
+│   └── providers.py               # Config loader
+├── plugins/builtins/              # Calendar, Email, Screen, Memory plugins
+└── tests/                         # 59 pytest tests
+```
+
+<br>
+
+---
+
+## 🧪 Tests
 
 ```bash
-cp config/providers.toml.example config/providers.toml
+python -m pytest tests/ -v
 ```
 
-Then edit `config/providers.toml` and set your API keys:
-
-| Provider | Key needed | Get it at |
-|----------|-----------|-----------|
-| **OpenRouter** (default) | `api_key` | https://openrouter.ai/keys |
-| **OpenAI** | `api_key` | https://platform.openai.com/api-keys |
-| **Ollama** (local) | none | Runs on `localhost:11434` |
-
-The file is in `.gitignore` so your keys stay local.
-
-### Backend endpoints (auto-detected)
-
-| Endpoint | Cache | Source |
-|----------|-------|--------|
-| `/api/health` | — | Backend status |
-| `/api/metrics` | — | LLM usage / latency |
-| `/api/system-info` | 30s | Host, CPU, Python version |
-| `/api/news` | 5m | Hacker News + RSS |
-| `/api/weather` | 5m | Open-Meteo |
-| `/api/stocks` | 60s | Yahoo Finance |
-| `/api/github-trending` | 5m | GitHub scraping |
-| `/api/earthquakes` | 2m | USGS |
-| `/api/crypto` | 2m | CoinGecko |
-| `/api/space` | 60s | Open Notify (ISS + astronauts) |
-| `/api/global-time` | 10s | ZoneInfo |
-| `/api/cve` | 10m | NVD |
-
-Weather location defaults to Islamabad. Override with `?lat=...&lon=...&location=...`.
+59 tests cover memory, security sandbox, rate limiter, planner, registry, logger, and long‑term memory decay.
 
 <br>
 
-## Gesture Controls
+---
 
-Enable camera from the command palette (`⌘K` → *Gesture control*) or the camera indicator button.
+## 🛣 Roadmap
 
-| Gesture | Effect |
-|---------|--------|
-| Open hand (palm) | Orb expands |
-| Closed fist | Orb contracts |
-| Move hand left/right | Orb follows horizontally |
-| Move hand up/down | Orb follows vertically |
-
-The orb floats behind the UI on a full-canvas Three.js scene — no clipping box.
+- [x] **v1** — Core chat, 3D orb, intelligence dashboard
+- [x] **v2** — Async backend, SSE push, voice/gesture, Google integration, performance overhaul
+- [ ] **v3** — Plugin marketplace, custom tool creation, local RAG pipeline
+- [ ] **v4** — Mobile companion app, multi‑user mode, proactive automation engine
+- [ ] **v5** — Native desktop app (Tauri), offline‑first, local LLM integration
 
 <br>
 
-## Project Structure
+---
 
-```
-desktop/
-├── api_server.py            # Python backend (Quart + Hypercorn)
-├── src/
-│   ├── App.tsx              # Root layout, data fetching, orchestrator
-│   ├── main.tsx             # Vite entry point
-│   ├── index.css            # Global styles + Tailwind v4
-│   ├── components/
-│   │   ├── center/
-│   │   │   └── AiCore.tsx   # Gold Three.js orb + FRIDAY branding + command cards
-│   │   ├── sidebar/
-│   │   │   ├── LeftSidebar.tsx        # Session list + output dir
-│   │   │   └── IntelligencePanel.tsx  # 640px, 2-column world monitoring
-│   │   ├── chat/
-│   │   │   ├── InputBar.tsx           # Message input (gold focus)
-│   │   │   ├── MessageBubble.tsx      # Streaming messages + tool calls
-│   │   │   ├── QuickActions.tsx       # Quick prompt chips
-│   │   │   └── TypingIndicator.tsx    # Animated dots
-│   │   ├── topbar/
-│   │   │   └── TopBar.tsx             # Status ribbon (h-9, compact)
-│   │   ├── command/
-│   │   │   └── CommandPalette.tsx     # ⌘K command menu
-│   │   └── common/
-│   │       ├── CameraIndicator.tsx    # Webcam feed overlay + openness
-│   │       └── Skeleton.tsx           # Shimmer loading placeholders
-│   ├── core/
-│   │   ├── StateManager.ts   # Central state (sessions, orb, metrics)
-│   │   ├── ThemeEngine.ts    # Dark/light mode (CSS variables)
-│   │   └── EventBus.ts       # Pub/sub for cross-component events
-│   ├── hooks/
-│   │   ├── useCamera.ts      # getUserMedia wrapper
-│   │   └── useHandGesture.ts # Skin-detection hand tracker
-│   └── types/
-│       └── index.ts          # All TypeScript types + WEATHER_CODES
-└── package.json
-```
+## 🤝 Contributing
+
+Contributions are welcome! Open an [issue](https://github.com/alimaandev/Friday/issues) or submit a PR.
+
+1. Fork the repo
+2. Create your feature branch (`git checkout -b feat/amazing`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push (`git push origin feat/amazing`)
+5. Open a Pull Request
+
+See the [open issues](https://github.com/alimaandev/Friday/issues) for things to work on.
 
 <br>
 
-## Screenshots
+---
+
+## 📄 License
+
+MIT — use it, modify it, ship it. See [LICENSE](LICENSE) for details.
+
+<br>
+
+---
 
 <p align="center">
-  <img src="desktop/public/dashboard.png" width="400" alt="Dashboard">
-  <br>
-  <em>— replace placeholder SVGs with actual screenshots —</em>
+  <strong>Star ⭐ the repo if you find Friday useful!</strong><br>
+  <sub>Made with ❤️ by <a href="https://github.com/alimaandev">alimaandev</a></sub>
 </p>
-
-<br>
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 19, TypeScript 6, Vite 8 |
-| **Styling** | Tailwind CSS v4 |
-| **3D** | Three.js 0.185 |
-| **Backend** | Python 3.11+, Quart, Hypercorn |
-| **LLM** | OpenRouter / any OpenAI-compatible API |
-
-<br>
-
-## License
-
-MIT

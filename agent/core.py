@@ -4,6 +4,17 @@ from core.registry import get_tool_definitions, get_tool_map
 from core.planner import Planner
 from core.executor import Executor
 from core.logger import info
+from core.memory import get_memory_manager
+from core.system1 import build_default_system1
+
+_system1 = None
+
+
+def _get_system1():
+    global _system1
+    if _system1 is None:
+        _system1 = build_default_system1()
+    return _system1
 
 
 _TRANSIENT_ERRORS = ["timeout", "not found", "connection", "rate limit"]
@@ -36,7 +47,19 @@ class Agent:
 
     def run(self, user_input: str):
         self._executor.output_dir = self._output_dir
+
+        memory = get_memory_manager()
+        context = memory.inject_context(user_input)
+        if context:
+            enhanced = get_system_prompt(self.language) + "\n\n" + context
+            self.messages.append({"role": "system", "content": enhanced})
         self.messages.append({"role": "user", "content": user_input})
+
+        fast = _get_system1().route(user_input)
+        if fast:
+            yield {"type": "fast", "reflex": fast["reflex"], "content": fast["content"]}
+            yield {"type": "done", "content": fast["content"], "final": True}
+            return
 
         plan = self._planner.create_plan(user_input, context=self.messages)
         info(f"Plan created: {len(plan)} tasks", tasks=[t.description for t in plan])
@@ -63,4 +86,8 @@ class Agent:
 
         last = self.messages[-1] if self.messages else {}
         final = last.get("content", "") if last.get("role") == "assistant" else ""
+
+        if final:
+            memory.store_conversation_memory(user_input, final)
+
         yield {"type": "done", "content": final or "Done.", "final": True}

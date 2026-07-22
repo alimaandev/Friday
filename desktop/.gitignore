@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 __pycache__/
 *.pyc
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/debug/
+src-tauri/release/

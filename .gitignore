@@ -11,10 +11,19 @@ dist/
 friday_memory.json
 memory_store/
 config/providers.toml
-config/providers.toml
 logs/
 chrome_profile/
 screenshots/
+
+# Secrets
+google_credentials.json
+*.pem
+*.key
+
+# Environment
+.env
+.env.local
+.env.*.local
 
 # Node
 node_modules/

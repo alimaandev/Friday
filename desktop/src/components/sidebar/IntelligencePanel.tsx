@@ -1,7 +1,11 @@
 import { memo } from 'react'
-import type { NewsItem, WeatherData, SystemInfo, Earthquake, CryptoData, SpaceData, CveItem, WorldClock } from '../../types'
+import type { MemoryData, NewsItem, WeatherData, SystemInfo, Earthquake, CryptoData, SpaceData, CveItem, WorldClock, ScreenData, CalendarEvent, EmailMessage } from '../../types'
 import { WEATHER_CODES } from '../../types'
 import { SkeletonSection } from '../common/Skeleton'
+import { MemoryPanel } from './MemoryPanel'
+import { ScreenPanel } from './ScreenPanel'
+import { CalendarPanel } from './CalendarPanel'
+import { EmailPanel } from './EmailPanel'
 
 interface StockData {
   symbol: string; price: number; change: number; change_pct: number; sparkline: number[]
@@ -26,6 +30,15 @@ interface IntelligencePanelProps {
   space?: SpaceData | null
   cve?: CveItem[]
   clocks?: WorldClock[]
+  memoryData?: MemoryData | null
+  screenData?: ScreenData | null
+  calendarEvents?: CalendarEvent[]
+  calendarAuth?: string
+  emailMessages?: EmailMessage[]
+  emailUnread?: number
+  emailAuth?: string
+  onCalendarConnect?: () => void
+  onEmailConnect?: () => void
 }
 
 const timeAgo = (dateStr: string) => {
@@ -325,10 +338,13 @@ const AgentActivitySection = memo(function AgentActivitySection({ tools }: { too
 })
 
 /* ─── Intelligence Panel ─── */
-
-function PanelCell({ children }: { children: React.ReactNode }) {
+function PanelCell({ children, index = 0 }: { children: React.ReactNode; index?: number }) {
+  const delay = Math.min(index * 40, 200)
   return (
-    <div className="rounded-lg py-3" style={{ background: 'rgba(255,255,255,0.015)' }}>
+    <div
+      className="rounded-lg py-3 glass animate-slide-in-up"
+      style={{ border: '1px solid var(--glass-border)', animationDelay: `${delay}ms` }}
+    >
       {children}
     </div>
   )
@@ -336,14 +352,15 @@ function PanelCell({ children }: { children: React.ReactNode }) {
 
 export const IntelligencePanel = memo(function IntelligencePanel({
   news, weather, stocks, repos, systemInfo, recentTools, loading,
-  earthquakes, crypto, space, cve, clocks,
+  earthquakes, crypto, space, cve, clocks, memoryData, screenData,
+  calendarEvents, calendarAuth, emailMessages, emailUnread, emailAuth,
+  onCalendarConnect, onEmailConnect,
 }: IntelligencePanelProps) {
   return (
     <div
-      className="w-[640px] flex flex-col h-full shrink-0 overflow-y-auto"
+      className="w-[640px] flex flex-col h-full shrink-0 overflow-y-auto glass"
       style={{
-        background: '#0D0D0D',
-        borderLeft: '1px solid rgba(255,255,255,0.06)',
+        borderLeft: '1px solid var(--glass-border)',
         scrollbarWidth: 'thin',
       }}
     >
@@ -353,13 +370,20 @@ export const IntelligencePanel = memo(function IntelligencePanel({
         </span>
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+      <div className="flex-1 p-4 overflow-y-auto intel-scroll" style={{ scrollbarWidth: 'thin' }}>
         {loading ? (
           <div className="grid grid-cols-2 gap-4">
             {Array.from({ length: 6 }).map((_, i) => <SkeletonSection key={i} />)}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
+            {!news.length && !weather && !stocks.length && !repos.length && !earthquakes?.length && !crypto?.length && !space && !cve?.length && !clocks?.length && (
+              <div className="col-span-2 flex flex-col items-center justify-center py-16 text-xs" style={{ color: '#666' }}>
+                <span className="text-2xl mb-2">📡</span>
+                <span>Connect backend on port 8080</span>
+                <span className="text-[10px] mt-1" style={{ color: '#444' }}>python api_server.py</span>
+              </div>
+            )}
             <div className="space-y-4">
               <PanelCell><ClocksSection clocks={clocks || []} /></PanelCell>
               <PanelCell><NewsSection news={news} /></PanelCell>
@@ -379,8 +403,24 @@ export const IntelligencePanel = memo(function IntelligencePanel({
                 <div className="h-3" />
                 <CveSection cve={cve || []} />
               </PanelCell>
+              <PanelCell>
+                <CalendarPanel events={calendarEvents || []} authStatus={calendarAuth || ''} onConnect={onCalendarConnect} />
+              </PanelCell>
+              <PanelCell>
+                <EmailPanel messages={emailMessages || []} unread={emailUnread || 0} authStatus={emailAuth || ''} onConnect={onEmailConnect} />
+              </PanelCell>
               <PanelCell><AgentActivitySection tools={recentTools} /></PanelCell>
             </div>
+          </div>
+        )}
+        {screenData !== undefined && (
+          <div className="mt-4">
+            <ScreenPanel data={screenData} />
+          </div>
+        )}
+        {memoryData !== undefined && (
+          <div className="mt-4">
+            <MemoryPanel data={memoryData} />
           </div>
         )}
       </div>

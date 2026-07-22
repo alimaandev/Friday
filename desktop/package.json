@@ -1,7 +1,7 @@
 {
-  "name": "desktop",
+  "name": "friday-desktop",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,17 +10,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
     "@tailwindcss/vite": "^4.3.2",
     "@types/three": "^0.185.1",
+    "highlight.js": "^11.11.1",
+    "marked": "^18.0.6",
+    "marked-highlight": "^2.2.4",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "tailwindcss": "^4.3.2",
-    "three": "^0.185.1"
+    "three": "^0.185.1",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@types/highlight.js": "^9.12.4",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

@@ -8,7 +8,6 @@ interface LeftSidebarProps {
   onNew: () => void
   onDelete: (id: string) => void
   onSettings: () => void
-  onToggleTheme: () => void
   outputDir: string
   onSetOutputDir: (path: string) => void
 }
@@ -29,10 +28,9 @@ export const LeftSidebar = memo(function LeftSidebar({
 
   return (
     <div
-      className="w-60 flex flex-col h-full shrink-0"
+      className="w-60 flex flex-col h-full shrink-0 glass"
       style={{
-        background: '#0D0D0D',
-        borderRight: '1px solid rgba(255,255,255,0.06)',
+        borderRight: '1px solid var(--glass-border)',
       }}
     >
       <div

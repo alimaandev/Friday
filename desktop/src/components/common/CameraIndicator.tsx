@@ -5,9 +5,13 @@ interface CameraIndicatorProps {
   active: boolean
   openness: number | null
   onToggle: () => void
+  voiceInputStatus: string
+  voiceOutputStatus: string
 }
 
-export const CameraIndicator = memo(function CameraIndicator({ stream, active, openness, onToggle }: CameraIndicatorProps) {
+export const CameraIndicator = memo(function CameraIndicator({
+  stream, active, openness, onToggle, voiceInputStatus, voiceOutputStatus,
+}: CameraIndicatorProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -15,6 +19,12 @@ export const CameraIndicator = memo(function CameraIndicator({ stream, active, o
   }, [stream])
 
   if (!active) return null
+
+  const voiceLabel = voiceInputStatus === 'listening'
+    ? 'LISTENING'
+    : voiceOutputStatus === 'speaking'
+      ? 'SPEAKING'
+      : null
 
   return (
     <div
@@ -43,7 +53,7 @@ export const CameraIndicator = memo(function CameraIndicator({ stream, active, o
         <span className="text-[7px] font-medium tracking-widest text-white/50">CAM</span>
       </div>
 
-      <div className="absolute bottom-1 right-1.5 flex items-center gap-1">
+      <div className="absolute bottom-1 left-1.5 flex items-center gap-1">
         <span
           className="text-[8px] font-bold tracking-wider"
           style={{ color: openness != null ? '#f59e0b' : '#444' }}
@@ -51,6 +61,17 @@ export const CameraIndicator = memo(function CameraIndicator({ stream, active, o
           {openness != null ? (openness > 0.5 ? 'OPEN' : 'FIST') : '--'}
         </span>
       </div>
+
+      {voiceLabel && (
+        <div className="absolute bottom-1 right-1.5 flex items-center gap-1">
+          <span
+            className="text-[8px] font-bold tracking-wider"
+            style={{ color: voiceInputStatus === 'listening' ? '#ef4444' : '#D4A040' }}
+          >
+            {voiceLabel}
+          </span>
+        </div>
+      )}
     </div>
   )
 })

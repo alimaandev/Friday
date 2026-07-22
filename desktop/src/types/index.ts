@@ -1,16 +1,6 @@
 export type OrbState = 'idle' | 'listening' | 'thinking' | 'reasoning' | 'executing' | 'searching' | 'coding' | 'speaking' | 'error' | 'offline'
 
-export type ThemeMode = 'dark' | 'light'
-
-export interface OrbConfig {
-  rings: number
-  particles: number
-  rotationSpeed: number
-  pulseFrequency: number
-  brightness: number
-  particleSpeed: number
-  colors: { primary: string; secondary: string; accent: string; glow: string }
-}
+export type ThemeMode = 'dark'
 
 export interface SystemMetrics {
   cpu: number
@@ -36,6 +26,7 @@ export interface Message {
   plan?: string
   toolCalls?: ToolCall[]
   streaming?: boolean
+  reflex?: string
 }
 
 export interface ToolCall {
@@ -122,6 +113,45 @@ export interface SpaceData {
   astronaut_names: string[]
 }
 
+export interface CalendarEvent {
+  summary: string
+  start: string
+  end: string
+  location?: string
+}
+
+export interface EmailMessage {
+  id: string
+  from: string
+  subject: string
+  date: string
+  snippet: string
+}
+
+export interface ScreenData {
+  image: string
+  width: number
+  height: number
+  timestamp: number
+}
+
+export interface MemoryItem {
+  id: string
+  text: string
+  score?: number
+  metadata?: Record<string, any>
+  created_at: number
+}
+
+export interface MemoryData {
+  vector_memories: MemoryItem[]
+  embedding_memories?: MemoryItem[]
+  key_memories: { key: string; importance: number; score: number; summary: string }[]
+  vector_count: number
+  embedding_count?: number
+  key_count: number
+}
+
 export interface CveItem {
   id: string
   severity: string
@@ -134,6 +164,16 @@ export interface WorldClock {
   zone: string
   time: string
   offset: string
+}
+
+export interface ProactiveAlert {
+  type: string
+  title: string
+  description: string
+  severity: string
+  action_label?: string
+  action_payload?: Record<string, any>
+  timestamp: number
 }
 
 export interface DesignTokens {

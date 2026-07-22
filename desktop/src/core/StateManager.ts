@@ -1,3 +1,4 @@
+import { create } from 'zustand'
 import type { OrbState, Session, Message, SystemMetrics } from '../types'
 import { EventBus } from './EventBus'
 
@@ -6,9 +7,10 @@ interface AppState {
   sessions: Session[]
   activeSessionId: string
   sidebarCollapsed: boolean
-  settingsOpen: boolean
   commandPaletteOpen: boolean
-  voiceActive: boolean
+  voiceOutputEnabled: boolean
+  wakeWordEnabled: boolean
+  voiceLanguage: string
   loading: boolean
   metrics: SystemMetrics
 }
@@ -23,73 +25,61 @@ const DEFAULT_METRICS: SystemMetrics = {
   provider: 'OpenRouter',
 }
 
+const initialState: AppState = {
+  orb: 'idle',
+  sessions: [{ id: 'default', title: 'New session', messages: [], createdAt: Date.now() }],
+  activeSessionId: 'default',
+  sidebarCollapsed: false,
+  commandPaletteOpen: false,
+  voiceOutputEnabled: false,
+  wakeWordEnabled: false,
+  voiceLanguage: 'en-US',
+  loading: false,
+  metrics: DEFAULT_METRICS,
+}
+
+export const useStore = create<AppState>()(() => initialState)
+
+/* ─── Imperative API (backward-compatible singleton) ─── */
 class StateManager {
-  private state: AppState
-  private listeners = new Set<() => void>()
-  private pending = false
-
-  constructor() {
-    this.state = {
-      orb: 'idle',
-      sessions: [{ id: 'default', title: 'New session', messages: [], createdAt: Date.now() }],
-      activeSessionId: 'default',
-      sidebarCollapsed: false,
-      settingsOpen: false,
-      commandPaletteOpen: false,
-      voiceActive: false,
-      loading: false,
-      metrics: DEFAULT_METRICS,
-    }
-  }
-
   get(): AppState {
-    return this.state
+    return useStore.getState()
   }
 
   get activeSession(): Session {
-    return this.state.sessions.find(s => s.id === this.state.activeSessionId) || this.state.sessions[0]
+    const s = useStore.getState()
+    return s.sessions.find(ses => ses.id === s.activeSessionId) || s.sessions[0]
   }
 
   set(partial: Partial<AppState>) {
-    Object.assign(this.state, partial)
-    this.schedule()
+    useStore.setState(partial)
   }
 
   updateMessages(fn: (msgs: Message[]) => Message[]) {
-    const s = this.activeSession
-    s.messages = fn(s.messages)
-    this.state.sessions = this.state.sessions.map(x => x.id === s.id ? s : x)
-    this.schedule()
+    const s = useStore.getState()
+    const active = s.sessions.find(ses => ses.id === s.activeSessionId) || s.sessions[0]
+    active.messages = fn(active.messages)
+    useStore.setState({
+      sessions: s.sessions.map(x => x.id === active.id ? active : x),
+    })
   }
 
-  setOrb(state: OrbState) {
-    this.state.orb = state
-    EventBus.get().emit('orb:state', state)
-    this.schedule()
+  setOrb(orb: OrbState) {
+    useStore.setState({ orb })
+    EventBus.get().emit('orb:state', orb)
   }
 
   setLoading(v: boolean) {
-    this.state.loading = v
-    this.schedule()
+    useStore.setState({ loading: v })
   }
 
   setMetrics(partial: Partial<SystemMetrics>) {
-    Object.assign(this.state.metrics, partial)
-    this.schedule()
+    const current = useStore.getState().metrics
+    useStore.setState({ metrics: { ...current, ...partial } })
   }
 
-  subscribe(fn: () => void): () => void {
-    this.listeners.add(fn)
-    return () => this.listeners.delete(fn)
-  }
-
-  private schedule() {
-    if (this.pending) return
-    this.pending = true
-    requestAnimationFrame(() => {
-      this.pending = false
-      this.listeners.forEach(fn => fn())
-    })
+  setVoiceLanguage(lang: string) {
+    useStore.setState({ voiceLanguage: lang })
   }
 }
 

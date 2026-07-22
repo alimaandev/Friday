@@ -1,11 +1,21 @@
 import time
 from typing import Any, Generator
 
-from openai import OpenAI
-from openai import APIError
+from openai import OpenAI, APIError, APIConnectionError, APITimeoutError, RateLimitError
+import httpx
 
 from providers.base import BaseProvider
 from providers.registry import register_provider
+
+
+def _is_retryable_err(e: Exception) -> bool:
+    msg = str(e).lower()
+    if any(x in msg for x in ["deadline", "timeout", "timed out", "too many requests", "rate limit"]):
+        return True
+    # curl error 16 = CURLE_HTTP2_ERROR — HTTP/2 framing failure
+    if "curl: (16)" in msg or "http2" in msg or "http/2" in msg:
+        return True
+    return False
 
 
 class OpenAICompatibleProvider(BaseProvider):
@@ -22,18 +32,14 @@ class OpenAICompatibleProvider(BaseProvider):
             return self._client
         api_key = self.config.get("api_key", "") or ""
         base_url = self.config.get("base_url", "https://api.openai.com/v1")
-        self._client = OpenAI(api_key=api_key, base_url=base_url)
+        timeout = self.config.get("timeout", 30)
+        http_client = httpx.Client(http2=False, timeout=httpx.Timeout(timeout))
+        self._client = OpenAI(api_key=api_key, base_url=base_url, http_client=http_client)
         return self._client
 
-    def chat(
-        self,
-        messages: list[dict],
-        tools: list[dict] | None = None,
+    def _stream(
+        self, model: str, messages: list[dict], tools: list[dict] | None, temperature: float, max_tokens: int,
     ) -> Generator[dict, None, None]:
-        model = self.config.get("model", "gpt-4o")
-        temperature = self.config.get("temperature", 0.7)
-        max_tokens = self.config.get("max_tokens", 4096)
-
         kwargs = dict(
             model=model,
             messages=messages,
@@ -99,6 +105,28 @@ class OpenAICompatibleProvider(BaseProvider):
             "content": "".join(content_parts),
             "tool_calls": tool_calls,
         }
+
+    def chat(
+        self,
+        messages: list[dict],
+        tools: list[dict] | None = None,
+    ) -> Generator[dict, None, None]:
+        model = self.config.get("model", "gpt-4o")
+        fallback = self.config.get("fallback_model", "openai/gpt-4o-mini")
+        temperature = self.config.get("temperature", 0.7)
+        max_tokens = self.config.get("max_tokens", 4096)
+
+        attempts = [(model, False), (fallback, True)]
+        for attempt_model, is_fallback in attempts:
+            try:
+                yield from self._stream(attempt_model, messages, tools, temperature, max_tokens)
+                return
+            except Exception as e:
+                err_msg = str(e)
+                if is_fallback or not _is_retryable_err(e):
+                    yield {"type": "done", "content": f"Error: {err_msg}", "final": True}
+                    return
+                yield {"type": "tokens", "content": f"[Primary model failed ({err_msg[:60]}), retrying with {fallback}…]\n\n"}
 
 
 register_provider("openai", OpenAICompatibleProvider)

@@ -67,3 +67,23 @@ class ListMemoriesPlugin(ToolPlugin):
 
     def execute(self) -> dict:
         return get_memory_manager().list_all()
+
+
+class SearchMemoryPlugin(ToolPlugin):
+    name = "search_memory"
+    description = "Semantic search across all memories. Finds relevant memories even without exact keyword matches."
+    category = "memory"
+
+    def get_parameters_schema(self):
+        return {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Search query to find relevant memories"},
+                "top_k": {"type": "integer", "description": "Number of results to return (default 5)", "default": 5},
+            },
+            "required": ["query"],
+        }
+
+    def execute(self, query: str, top_k: int = 5) -> dict:
+        results = get_memory_manager().search(query, top_k)
+        return {"results": results, "count": len(results)}

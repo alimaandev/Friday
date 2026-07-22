@@ -1,15 +1,13 @@
 import type { DesignTokens, ThemeMode } from '../types'
 import { darkTokens } from '../tokens/dark'
-import { lightTokens } from '../tokens/light'
 import { EventBus } from './EventBus'
 
 class ThemeEngine {
   private mode: ThemeMode = 'dark'
   private tokens: DesignTokens = darkTokens
 
-  init(preferred?: ThemeMode) {
-    const saved = (typeof window !== 'undefined' ? localStorage.getItem('friday-theme') : null) as ThemeMode | null
-    this.set(saved || preferred || 'dark')
+  init() {
+    this.set('dark')
   }
 
   get(): DesignTokens {
@@ -22,17 +20,13 @@ class ThemeEngine {
 
   set(mode: ThemeMode) {
     this.mode = mode
-    this.tokens = mode === 'dark' ? darkTokens : lightTokens
+    this.tokens = darkTokens
     if (typeof document !== 'undefined') {
-      document.documentElement.classList.toggle('dark', mode === 'dark')
+      document.documentElement.classList.add('dark')
       localStorage.setItem('friday-theme', mode)
     }
     this.applyCSSVariables()
     EventBus.get().emit('theme:change', mode)
-  }
-
-  toggle() {
-    this.set(this.mode === 'dark' ? 'light' : 'dark')
   }
 
   private applyCSSVariables() {

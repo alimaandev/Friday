@@ -49,6 +49,7 @@ class LongTermMemory:
         self._file_path = file_path
         self._max_entries = max_entries
         self._entries: dict[str, MemoryEntry] = {}
+        self._dirty = False
         self._load()
 
     def store(self, key: str, value: Any, importance: float = 0.5) -> dict:
@@ -63,7 +64,7 @@ class LongTermMemory:
             if len(self._entries) > self._max_entries:
                 self._evict()
 
-        self._save()
+        self._dirty = True
         return {"success": True, "key": key, "importance": importance}
 
     def recall(self, key: str) -> dict:
@@ -72,13 +73,13 @@ class LongTermMemory:
             return {"key": key, "value": None, "error": f"No memory found for key '{key}'"}
         entry.accessed_at = time.time()
         entry.access_count += 1
-        self._save()
+        self._dirty = True
         return {"key": key, "value": entry.value, "source": "long_term"}
 
     def forget(self, key: str) -> dict:
         if key in self._entries:
             del self._entries[key]
-            self._save()
+            self._dirty = True
             return {"success": True, "key": key}
         return {"success": False, "key": key, "error": f"No memory found for key '{key}'"}
 
@@ -107,14 +108,23 @@ class LongTermMemory:
         results = [{"key": k, "value": v, "score": round(s, 3)} for s, k, v in scored[:top_k]]
         return results
 
+    def persist(self):
+        if not self._dirty:
+            return
+        self._dirty = False
+        self._save()
+
     def decay(self, factor: float = 0.95):
         now = time.time()
+        changed = False
         for entry in list(self._entries.values()):
             if now - entry.accessed_at > 86400 * 30:
                 entry.importance *= factor
                 if entry.importance < 0.1:
                     del self._entries[entry.key]
-        self._save()
+                    changed = True
+        if changed:
+            self._dirty = True
 
     def _evict(self):
         scored = [(entry.score(), key) for key, entry in self._entries.items()]

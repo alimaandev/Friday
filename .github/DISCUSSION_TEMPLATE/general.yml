@@ -1,0 +1,15 @@
+title: "General"
+labels: ["discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Start a general discussion about Friday — ideas, questions, or just chatting about the project.
+
+  - type: textarea
+    id: body
+    attributes:
+      label: Discussion
+      description: What's on your mind?
+    validations:
+      required: true

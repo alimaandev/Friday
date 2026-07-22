@@ -1,0 +1,21 @@
+title: "Show and Tell"
+labels: ["show-and-tell"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Show off what you've built with Friday — custom plugins, integrations, or deployments.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What did you build?
+      description: Describe your project or setup.
+    validations:
+      required: true
+
+  - type: textarea
+    id: links
+    attributes:
+      label: Links / Screenshots
+      description: Share URLs, screenshots, or demos.

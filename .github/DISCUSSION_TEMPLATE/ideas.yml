@@ -1,0 +1,21 @@
+title: "Ideas"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share an idea for Friday's future.
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idea
+      description: What would you like to see?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reasoning
+    attributes:
+      label: Why?
+      description: Why would this be useful?

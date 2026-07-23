@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import time
@@ -109,10 +110,18 @@ class LongTermMemory:
         return results
 
     def persist(self):
+        """Persist memory to disk synchronously. Kept for backward compatibility."""
         if not self._dirty:
             return
         self._dirty = False
         self._save()
+
+    async def persist_async(self):
+        """Persist memory to disk asynchronously without blocking the event loop."""
+        if not self._dirty:
+            return
+        self._dirty = False
+        await self._save_async()
 
     def decay(self, factor: float = 0.95):
         now = time.time()
@@ -147,9 +156,32 @@ class LongTermMemory:
             info(f"Failed to load long-term memory: {e}")
 
     def _save(self):
+        """Write memory entries to the JSON file synchronously."""
         try:
             data = [entry.to_dict() for entry in self._entries.values()]
             with open(self._file_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
         except Exception as e:
             info(f"Failed to save long-term memory: {e}")
+
+    async def _save_async(self):
+        """Write memory entries to the JSON file asynchronously.
+
+        Offloads the blocking file I/O to a background thread using
+        asyncio.to_thread so the event loop is not blocked, even when
+        the memory file contains thousands of entries.
+        """
+        try:
+            data = [entry.to_dict() for entry in self._entries.values()]
+            await asyncio.to_thread(self._write_json, data)
+        except Exception as e:
+            info(f"Failed to save long-term memory asynchronously: {e}")
+
+    def _write_json(self, data: list) -> None:
+        """Write serialized memory data to the JSON file.
+
+        This is a plain synchronous helper intended to be called from
+        a background thread via asyncio.to_thread.
+        """
+        with open(self._file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)

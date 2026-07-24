@@ -1,11 +1,11 @@
 <div align="center">
   <img src="desktop/public/favicon.svg" width="80" height="80" alt="Friday AI">
   
-  <h1 align="center">Friday — AI Command Center</h1>
+  <h1 align="center">Friday — The Open-Source JARVIS for Your Desktop</h1>
 
   <p align="center">
     <strong>Your open‑source desktop intelligence hub.</strong><br>
-    Talk, type, or gesture — Friday sees everything, knows everything, acts on everything.
+   Your personal AI command center for live intelligence and automation.
   </p>
 
   <p align="center">

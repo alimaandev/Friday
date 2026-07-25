@@ -14,6 +14,19 @@ interface StatusRibbonProps {
   voiceOutputStatus: string
 }
 
+const ORB_LABELS: Record<string, string> = {
+  idle: 'Idle',
+  listening: 'Listening',
+  thinking: 'Thinking',
+  reasoning: 'Reasoning',
+  executing: 'Executing',
+  searching: 'Searching',
+  coding: 'Coding',
+  speaking: 'Speaking',
+  error: 'Error',
+  offline: 'Offline',
+}
+
 export const StatusRibbon = memo(function StatusRibbon({
   systemInfo, latency, orbState, memory, backendOnline, onCommandPalette,
   voiceOutputEnabled, onToggleVoiceOutput, voiceInputStatus, voiceOutputStatus,
@@ -71,7 +84,7 @@ export const StatusRibbon = memo(function StatusRibbon({
 
       <span className="w-px h-3 rounded-full shrink-0" style={{ background: 'var(--glass-border)' }} />
 
-      <span className="shrink-0" style={{ color: '#606068' }}>{orbState.toUpperCase()}</span>
+      <span className="shrink-0" style={{ color: '#606068' }}>{ORB_LABELS[orbState] ?? orbState.toUpperCase()}</span>
 
       <div className="flex-1" />
 

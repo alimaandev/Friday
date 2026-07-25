@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080'
+const API_BASE = 'http://localhost:8080/api/v1'
 
 const AUTH_KEY = 'friday_api_secret'
 
@@ -63,7 +63,7 @@ export function streamChat(
 
   ;(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/chat`, {
+      const res = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,116 +123,116 @@ export function streamChat(
 /* ─── Typed endpoint helpers ─── */
 
 export async function checkHealth(): Promise<{ status: string; sessions: number }> {
-  return fetchApi('/api/health')
+  return fetchApi('/health')
 }
 
 export async function getMetrics(): Promise<any> {
-  return fetchApi('/api/metrics')
+  return fetchApi('/metrics')
 }
 
 export async function getSessions(): Promise<{ sessions: { id: string; language: string }[] }> {
-  return fetchApi('/api/sessions')
+  return fetchApi('/sessions')
 }
 
 export async function createSession(language = 'english') {
-  return fetchApi('/api/sessions', {
+  return fetchApi('/sessions', {
     method: 'POST',
     body: JSON.stringify({ language }),
   })
 }
 
 export async function deleteSession(sessionId: string) {
-  return fetchApi(`/api/sessions/${sessionId}`, { method: 'DELETE' })
+  return fetchApi(`/sessions/${sessionId}`, { method: 'DELETE' })
 }
 
 export async function getOutputDir(sessionId = 'default') {
-  return fetchApi<{ output_dir: string }>(`/api/output-dir?session_id=${sessionId}`)
+  return fetchApi<{ output_dir: string }>(`/output-dir?session_id=${sessionId}`)
 }
 
 export async function setOutputDir(path: string, sessionId = 'default') {
-  return fetchApi('/api/output-dir', {
+  return fetchApi('/output-dir', {
     method: 'PUT',
     body: JSON.stringify({ session_id: sessionId, path }),
   })
 }
 
 export async function getSystemInfo(): Promise<any> {
-  return fetchApi('/api/system-info')
+  return fetchApi('/system-info')
 }
 
 export async function getNews(): Promise<{ articles: any[] }> {
-  return fetchApi('/api/news')
+  return fetchApi('/news')
 }
 
 export async function getWeather(): Promise<any> {
-  return fetchApi('/api/weather')
+  return fetchApi('/weather')
 }
 
 export async function getStocks(symbols = 'AAPL,GOOG,MSFT,NVDA,BTC-USD'): Promise<any> {
-  return fetchApi(`/api/stocks?symbols=${encodeURIComponent(symbols)}`)
+  return fetchApi(`/stocks?symbols=${encodeURIComponent(symbols)}`)
 }
 
 export async function getGithubTrending(): Promise<any> {
-  return fetchApi('/api/github-trending')
+  return fetchApi('/github-trending')
 }
 
 export async function getEarthquakes(): Promise<any> {
-  return fetchApi('/api/earthquakes')
+  return fetchApi('/earthquakes')
 }
 
 export async function getCrypto(): Promise<any> {
-  return fetchApi('/api/crypto')
+  return fetchApi('/crypto')
 }
 
 export async function getSpace(): Promise<any> {
-  return fetchApi('/api/space')
+  return fetchApi('/space')
 }
 
 export async function getGlobalTime(): Promise<any> {
-  return fetchApi('/api/global-time')
+  return fetchApi('/global-time')
 }
 
 export async function getCve(): Promise<any> {
-  return fetchApi('/api/cve')
+  return fetchApi('/cve')
 }
 
 export async function getScreen(): Promise<any> {
-  return fetchApi('/api/screen')
+  return fetchApi('/screen')
 }
 
 export async function getMemory(): Promise<any> {
-  return fetchApi('/api/memory')
+  return fetchApi('/memory')
 }
 
 export async function searchMemory(query: string, topK = 5): Promise<any> {
-  return fetchApi('/api/memory/search', {
+  return fetchApi('/memory/search', {
     method: 'POST',
     body: JSON.stringify({ query, top_k: topK }),
   })
 }
 
 export async function clearMemory() {
-  return fetchApi('/api/memory', { method: 'DELETE' })
+  return fetchApi('/memory', { method: 'DELETE' })
 }
 
 export async function getGoogleAuth(): Promise<any> {
-  return fetchApi('/api/auth/google')
+  return fetchApi('/auth/google')
 }
 
 export async function getCalendarEvents(): Promise<any> {
-  return fetchApi('/api/calendar/events')
+  return fetchApi('/calendar/events')
 }
 
 export async function getEmailInbox(): Promise<any> {
-  return fetchApi('/api/email/inbox')
+  return fetchApi('/email/inbox')
 }
 
 export async function getEmailUnread(): Promise<any> {
-  return fetchApi('/api/email/unread')
+  return fetchApi('/email/unread')
 }
 
 export async function getAlerts(): Promise<{ alerts: any[]; count: number }> {
-  return fetchApi('/api/alerts')
+  return fetchApi('/alerts')
 }
 
 /* ─── SSE EventSource connection ─── */
@@ -246,7 +246,7 @@ export function connectEventSource(
   onError?: () => void,
 ): () => void {
   const key = getApiKey()
-  const url = key ? `${API_BASE}/api/events?key=${encodeURIComponent(key)}` : `${API_BASE}/api/events`
+  const url = key ? `${API_BASE}/events?key=${encodeURIComponent(key)}` : `${API_BASE}/events`
   const es = new EventSource(url)
 
   es.onmessage = (msg) => {

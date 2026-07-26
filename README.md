@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="desktop/public/favicon.svg" width="80" height="80" alt="Friday AI">
+  <img src="og-image.png" alt="Friday AI — Open-Source JARVIS for Your Desktop" width="100%">
   
   <h1 align="center">Friday — The Open-Source JARVIS for Your Desktop</h1>
 
@@ -20,6 +20,7 @@
     <a href="https://vite.dev"><img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite" alt="Vite 8"></a>
     <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss" alt="Tailwind CSS v4"></a>
     <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript 6"></a>
+    <a href="https://github.com/sponsors/alimaandev"><img src="https://img.shields.io/badge/Sponsor-30363D?style=for-the-badge&logo=githubsponsors" alt="Sponsor"></a>
   </p>
 </div>
 
@@ -285,6 +286,14 @@ python -m pytest tests/ -v
 
 ---
 
+## 🎬 Demo
+
+> 🎥 *Capture a short screen recording of Friday in action (orb, voice command, intelligence panel), convert to GIF via [ScreenToGif](https://www.screentogif.com/) or [OBS](https://obsproject.com/) + [FFmpeg](https://ffmpeg.org/), and drop it here. A 15‑second looping GIF at the top of the README is the #1 driver of interest.*
+
+<br>
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! Open an [issue](https://github.com/alimaandev/Friday/issues) or submit a PR.
@@ -301,6 +310,17 @@ See the [open issues](https://github.com/alimaandev/Friday/issues) for things to
 
 ---
 
+## 💖 Support
+
+If Friday is useful to you, consider supporting the project:
+
+- ⭐ Star the repo on [GitHub](https://github.com/alimaandev/Friday)
+- [Sponsor](https://github.com/sponsors/alimaandev) via GitHub Sponsors
+
+<br>
+
+---
+
 ## 📄 License
 
 MIT — use it, modify it, ship it. See [LICENSE](LICENSE) for details.
@@ -310,6 +330,5 @@ MIT — use it, modify it, ship it. See [LICENSE](LICENSE) for details.
 ---
 
 <p align="center">
-  <strong>Star ⭐ the repo if you find Friday useful!</strong><br>
   <sub>Made with ❤️ by <a href="https://github.com/alimaandev">alimaandev</a></sub>
 </p>

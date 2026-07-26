@@ -16,6 +16,9 @@ from core.proactive import ProactiveMonitor, ScreenMonitor, CalendarMonitor, Ema
 from quart import Quart, request, Response, jsonify, stream_with_context
 from quart_cors import cors
 
+# ─── API Version Prefix ──────────────────────────────────────────
+API_PREFIX = "/api/v1"
+
 # ─── Shared async HTTP client ────────────────────────────────────
 _async_client: httpx.AsyncClient | None = None
 
@@ -190,7 +193,7 @@ def ttl_cache(seconds: int = 60):
 
 
 # ─── Chat ────────────────────────────────────────────────────────
-@app.route('/api/chat', methods=['POST'])
+@app.route(f'{API_PREFIX}/chat', methods=['POST'])
 @require_auth
 async def chat():
     data = await request.get_json()
@@ -232,7 +235,7 @@ async def chat():
 
 
 # ─── Sessions ────────────────────────────────────────────────────
-@app.route('/api/sessions', methods=['GET'])
+@app.route(f'{API_PREFIX}/sessions', methods=['GET'])
 @require_auth
 async def list_sessions():
     return jsonify({
@@ -243,7 +246,7 @@ async def list_sessions():
     })
 
 
-@app.route('/api/sessions', methods=['POST'])
+@app.route(f'{API_PREFIX}/sessions', methods=['POST'])
 @require_auth
 async def create_session():
     data = await request.get_json() or {}
@@ -256,7 +259,7 @@ async def create_session():
     return jsonify({"session_id": session_id, "language": lang}), 201
 
 
-@app.route('/api/sessions/<session_id>', methods=['DELETE'])
+@app.route(f'{API_PREFIX}/sessions/<session_id>', methods=['DELETE'])
 @require_auth
 async def delete_session(session_id):
     if session_id not in _agents:
@@ -266,7 +269,7 @@ async def delete_session(session_id):
 
 
 # ─── Output directory ────────────────────────────────────────────
-@app.route('/api/output-dir', methods=['PUT'])
+@app.route(f'{API_PREFIX}/output-dir', methods=['PUT'])
 @require_auth
 async def set_output_dir():
     data = await request.get_json()
@@ -280,7 +283,7 @@ async def set_output_dir():
     return jsonify({"status": "ok", "output_dir": path})
 
 
-@app.route('/api/output-dir', methods=['GET'])
+@app.route(f'{API_PREFIX}/output-dir', methods=['GET'])
 @require_auth
 async def get_output_dir():
     session_id = request.args.get('session_id', 'default')
@@ -289,19 +292,19 @@ async def get_output_dir():
 
 
 # ─── Metrics & Health ────────────────────────────────────────────
-@app.route('/api/metrics')
+@app.route(f'{API_PREFIX}/metrics')
 @require_auth
 async def metrics():
     return jsonify(get_metrics())
 
 
-@app.route('/api/health')
+@app.route(f'{API_PREFIX}/health')
 async def health():
     return jsonify({"status": "ok", "sessions": len(_agents)})
 
 
 # ─── Alerts ──────────────────────────────────────────────────────
-@app.route('/api/alerts/stream')
+@app.route(f'{API_PREFIX}/alerts/stream')
 @require_auth
 async def alert_stream():
     pm = get_proactive()
@@ -314,7 +317,7 @@ async def alert_stream():
     return Response(generate(), mimetype='text/event-stream')
 
 
-@app.route('/api/alerts')
+@app.route(f'{API_PREFIX}/alerts')
 @require_auth
 async def alerts_list():
     pm = get_proactive()
@@ -323,7 +326,7 @@ async def alerts_list():
 
 
 # ─── System Info ─────────────────────────────────────────────────
-@app.route('/api/system-info')
+@app.route(f'{API_PREFIX}/system-info')
 @require_auth
 @ttl_cache(30)
 async def system_info():
@@ -351,7 +354,7 @@ _NEWS_RSS = [
 ]
 
 
-@app.route('/api/news')
+@app.route(f'{API_PREFIX}/news')
 @require_auth
 @ttl_cache(300)
 async def news():
@@ -393,7 +396,7 @@ _WEATHER_LON = 73.05
 _WEATHER_LOCATION = "Islamabad"
 
 
-@app.route('/api/weather')
+@app.route(f'{API_PREFIX}/weather')
 @require_auth
 @ttl_cache(300)
 async def weather():
@@ -423,7 +426,7 @@ async def weather():
 
 
 # ─── Stocks ─────────────────────────────────────────────────────
-@app.route('/api/stocks')
+@app.route(f'{API_PREFIX}/stocks')
 @require_auth
 @ttl_cache(60)
 async def stocks():
@@ -461,7 +464,7 @@ async def stocks():
 
 
 # ─── GitHub Trending ─────────────────────────────────────────────
-@app.route('/api/github-trending')
+@app.route(f'{API_PREFIX}/github-trending')
 @require_auth
 @ttl_cache(300)
 async def github_trending():
@@ -497,7 +500,7 @@ async def github_trending():
 
 
 # ─── Earthquakes ─────────────────────────────────────────────────
-@app.route('/api/earthquakes')
+@app.route(f'{API_PREFIX}/earthquakes')
 @require_auth
 @ttl_cache(120)
 async def earthquakes():
@@ -525,7 +528,7 @@ async def earthquakes():
 
 
 # ─── Crypto ──────────────────────────────────────────────────────
-@app.route('/api/crypto')
+@app.route(f'{API_PREFIX}/crypto')
 @require_auth
 @ttl_cache(120)
 async def crypto():
@@ -552,7 +555,7 @@ async def crypto():
 
 
 # ─── Space ──────────────────────────────────────────────────────
-@app.route('/api/space')
+@app.route(f'{API_PREFIX}/space')
 @require_auth
 @ttl_cache(60)
 async def space():
@@ -577,7 +580,7 @@ async def space():
 
 
 # ─── World Clocks ────────────────────────────────────────────────
-@app.route('/api/global-time')
+@app.route(f'{API_PREFIX}/global-time')
 @require_auth
 @ttl_cache(10)
 async def global_time():
@@ -608,7 +611,7 @@ async def global_time():
 
 
 # ─── CVEs ────────────────────────────────────────────────────────
-@app.route('/api/cve')
+@app.route(f'{API_PREFIX}/cve')
 @require_auth
 @ttl_cache(600)
 async def cve():
@@ -647,7 +650,7 @@ _SCREEN_CACHE: tuple[float, dict] | None = None
 _SCREEN_TTL = 2.0
 
 
-@app.route('/api/screen')
+@app.route(f'{API_PREFIX}/screen')
 @require_auth
 async def screen_capture():
     global _SCREEN_CACHE
@@ -668,7 +671,7 @@ async def screen_capture():
 
 
 # ─── Memory ──────────────────────────────────────────────────────
-@app.route('/api/memory', methods=['GET'])
+@app.route(f'{API_PREFIX}/memory', methods=['GET'])
 @require_auth
 async def memory_list():
     memory = get_memory_manager()
@@ -685,7 +688,7 @@ async def memory_list():
     })
 
 
-@app.route('/api/memory/search', methods=['POST'])
+@app.route(f'{API_PREFIX}/memory/search', methods=['POST'])
 @require_auth
 async def memory_search():
     body = await request.get_json()
@@ -699,25 +702,25 @@ async def memory_search():
 
 
 # ─── Google Auth ─────────────────────────────────────────────────
-@app.route('/api/auth/google')
+@app.route(f'{API_PREFIX}/auth/google')
 @require_auth
 async def google_auth():
     from core.auth.google import get_auth_url, is_authenticated
     if is_authenticated():
         return jsonify({"status": "authenticated"})
-    redirect = "http://localhost:8080/api/auth/google/callback"
+    redirect = f"http://localhost:8080{API_PREFIX}/auth/google/callback"
     url = get_auth_url(redirect)
     if not url:
         return jsonify({"status": "missing_credentials", "message": "Put google_credentials.json in memory_store/"})
     return jsonify({"status": "needs_auth", "url": url})
 
 
-@app.route('/api/auth/google/callback')
+@app.route(f'{API_PREFIX}/auth/google/callback')
 async def google_auth_callback():
     from core.auth.google import handle_callback
     code = request.args.get("code", "")
     state = request.args.get("state", "")
-    redirect = "http://localhost:8080/api/auth/google/callback"
+    redirect = f"http://localhost:8080{API_PREFIX}/auth/google/callback"
     ok = handle_callback(code, state, redirect)
     if ok:
         return "<html><body><h3>Authenticated!</h3><p>You can close this tab and return to Friday.</p><script>window.close()</script></body></html>"
@@ -725,7 +728,7 @@ async def google_auth_callback():
 
 
 # ─── Calendar ────────────────────────────────────────────────────
-@app.route('/api/calendar/events')
+@app.route(f'{API_PREFIX}/calendar/events')
 @require_auth
 @ttl_cache(120)
 async def calendar_events():
@@ -757,7 +760,7 @@ async def calendar_events():
 
 
 # ─── Email ───────────────────────────────────────────────────────
-@app.route('/api/email/inbox')
+@app.route(f'{API_PREFIX}/email/inbox')
 @require_auth
 @ttl_cache(60)
 async def email_inbox():
@@ -784,7 +787,7 @@ async def email_inbox():
         return jsonify({"messages": [], "error": str(ex)})
 
 
-@app.route('/api/email/unread')
+@app.route(f'{API_PREFIX}/email/unread')
 @require_auth
 @ttl_cache(30)
 async def email_unread():
@@ -799,7 +802,7 @@ async def email_unread():
         return jsonify({"unread": 0, "error": str(ex)})
 
 
-@app.route('/api/memory', methods=['DELETE'])
+@app.route(f'{API_PREFIX}/memory', methods=['DELETE'])
 @require_auth
 async def memory_clear():
     memory = get_memory_manager()
@@ -808,7 +811,7 @@ async def memory_clear():
 
 
 # ─── Unified SSE Events ─────────────────────────────────────────
-@app.route('/api/events')
+@app.route(f'{API_PREFIX}/events')
 async def event_stream():
     if _API_SECRET:
         key = request.args.get("key", "") or request.headers.get("X-API-Key", "")

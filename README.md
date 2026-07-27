@@ -61,29 +61,39 @@
 
 ## ⚡ Quick Start
 
-Get Friday running in **under 2 minutes**.
+### 🐳 Docker (recommended)
+
+```bash
+git clone https://github.com/alimaandev/Friday.git
+cd Friday
+cp config/providers.toml.example config/providers.toml
+# Edit config/providers.toml — paste your OpenRouter API key
+docker compose up -d
+```
+
+Frontend → `http://localhost:5173` · Backend → `http://localhost:8080`
+
+### 🔧 Manual setup
 
 ```bash
 # 1. Clone
 git clone https://github.com/alimaandev/Friday.git
 cd Friday
 
-# 2. Install backend
-pip install quart quart-cors hypercorn yfinance cachetools
+# 2. Backend
+pip install -r requirements.txt
 cp config/providers.toml.example config/providers.toml
-# Edit config/providers.toml — paste your OpenRouter API key
+# Edit config/providers.toml — paste your API key
 cd desktop && python api_server.py &
 # Backend → http://localhost:8080
 
-# 3. Install frontend
+# 3. Frontend
 npm install
 npm run dev
 # Frontend → http://localhost:5173
 ```
 
 That's it. The orb pulses, the panel fills with live data, and Friday is online.
-
-> **One-click deploy coming soon** — Docker Compose and Vercel/Railway templates are in progress.
 
 <div align="right">
   <a href="#readme-top">▲ back to top</a>
@@ -120,6 +130,12 @@ Everything runs locally. Your API key, your LLM, your choice.
 
 ### 🧠 AI Core
 
+<p align="center">
+  <img src="desktop/public/feature-chat.png" alt="Friday AI Chat Interface" width="800">
+  <br>
+  <em>Streaming chat with token-by-token responses, session management, and suggestion chips</em>
+</p>
+
 | Capability | Details |
 |-----------|---------|
 | **Streaming Chat** | Token-by-token responses with plan visualization and tool-call tracking |
@@ -135,7 +151,11 @@ Everything runs locally. Your API key, your LLM, your choice.
 
 ### 🎨 3D Reactive Orb
 
-The orb is the heart of Friday's interface — a procedural Three.js scene with 10 state-driven animation profiles.
+<p align="center">
+  <img src="desktop/public/feature-orb.png" alt="Friday 3D Reactive Orb" width="800">
+  <br>
+  <em>The procedural Three.js orb at the heart of Friday's interface — 10 state-driven animation profiles</em>
+</p>
 
 | State | Visual |
 |-------|--------|
@@ -158,9 +178,9 @@ Additional effects: hand-tracking follow (orb follows your cursor when camera is
 ### 🌍 Live Intelligence Panel
 
 <p align="center">
-  <img src="desktop/public/dashboard.png" alt="Friday AI Dashboard — live intelligence panel" width="800">
+  <img src="desktop/public/feature-panel.png" alt="Friday Intelligence Panel" width="340">
   <br>
-  <em>Friday dashboard — 3D orb + intelligence panel + streaming chat</em>
+  <em>10 live data modules pushing real-time updates via SSE — news, weather, stocks, crypto, space, and more</em>
 </p>
 
 | Module | Source | Refresh | Description |

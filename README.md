@@ -29,6 +29,14 @@
     <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript 6"></a>
     <a href="https://github.com/sponsors/alimaandev"><img src="https://img.shields.io/badge/Sponsor-30363D?style=for-the-badge&logo=githubsponsors" alt="Sponsor"></a>
   </p>
+
+  <p align="center">
+    <b>English</b>
+    ·
+    <b><a href="README.ur.md">اردو</a></b>
+    ·
+    <b><a href="README.hi.md">हिन्दी</a></b>
+  </p>
 </div>
 
 <br>

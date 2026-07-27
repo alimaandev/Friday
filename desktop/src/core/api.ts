@@ -244,25 +244,50 @@ export type ServerEvent = {
 export function connectEventSource(
   onEvent: (event: ServerEvent) => void,
   onError?: () => void,
+  onStatus?: (connected: boolean) => void,
 ): () => void {
-  const key = getApiKey()
-  const url = key ? `${API_BASE}/events?key=${encodeURIComponent(key)}` : `${API_BASE}/events`
-  const es = new EventSource(url)
+  let es: EventSource | null = null
+  let closed = false
+  let retryDelay = 1000
+  const MAX_RETRY = 30000
 
-  es.onmessage = (msg) => {
-    try {
-      const parsed = JSON.parse(msg.data)
-      onEvent(parsed)
-    } catch {
-      // skip malformed messages
+  function connect() {
+    if (closed) return
+    const key = getApiKey()
+    const url = key ? `${API_BASE}/events?key=${encodeURIComponent(key)}` : `${API_BASE}/events`
+    es = new EventSource(url)
+
+    es.onmessage = (msg) => {
+      try {
+        const parsed = JSON.parse(msg.data)
+        onEvent(parsed)
+      } catch {
+        // skip malformed messages
+      }
+    }
+
+    es.onopen = () => {
+      retryDelay = 1000
+      onStatus?.(true)
+    }
+
+    es.onerror = () => {
+      es?.close()
+      es = null
+      onStatus?.(false)
+      onError?.()
+      if (closed) return
+      const delay = retryDelay
+      retryDelay = Math.min(retryDelay * 2, MAX_RETRY)
+      setTimeout(connect, delay)
     }
   }
 
-  es.onerror = () => {
-    onError?.()
-  }
+  connect()
 
   return () => {
-    es.close()
+    closed = true
+    es?.close()
+    es = null
   }
 }

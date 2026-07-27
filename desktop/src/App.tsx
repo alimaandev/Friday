@@ -43,6 +43,7 @@ function App() {
   const [backendOnline, setBackendOnline] = useState(true)
   const [outputDir, setOutputDir] = useState(() => localStorage.getItem('friday_output_dir') || '')
   const [dataLoaded, setDataLoaded] = useState(false)
+  const [sseConnected, setSseConnected] = useState(false)
   const [alerts, setAlerts] = useState<ProactiveAlert[]>([])
   const [settingsOpen, setSettingsOpen] = useState(false)
 
@@ -175,6 +176,11 @@ function App() {
 
     const unsub = connectEventSource(handleEvent, () => {
       if (!cancelled) setBackendOnline(false)
+    }, (connected) => {
+      if (!cancelled) {
+        setSseConnected(connected)
+        if (connected) setBackendOnline(true)
+      }
     })
 
     return () => { cancelled = true; unsub() }
@@ -243,9 +249,7 @@ function App() {
       }
     }
     init()
-    // Fallback: stop showing skeleton after 10s even if data never arrives
-    const fallback = setTimeout(() => setDataLoaded(true), 10000)
-    return () => { cancelled = true; clearTimeout(fallback) }
+    return () => { cancelled = true }
   }, [])
 
   const dismissAlert = useCallback((idx: number) => {
@@ -524,6 +528,13 @@ function App() {
           style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5' }}
         >
           Backend offline — start <code style={{ color: '#fbbf24' }}>python api_server.py</code> on port 8080
+        </div>
+      )}
+      {backendOnline && !sseConnected && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-xs"
+          style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)', color: '#fde68a' }}
+        >
+          Reconnecting…
         </div>
       )}
 

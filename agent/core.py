@@ -21,14 +21,26 @@ _TRANSIENT_ERRORS = ["timeout", "not found", "connection", "rate limit"]
 
 
 class Agent:
-    def __init__(self, language="english"):
+    def __init__(self, language="english", persona=None):
         self.language = language
-        self.messages = [{"role": "system", "content": get_system_prompt(language)}]
+        self.persona = persona
+        self.messages = self._build_messages()
         self._tool_defs = get_tool_definitions()
         tool_map = get_tool_map()
         self._planner = Planner(llm_chat, tool_definitions=self._tool_defs)
         self._executor = Executor(llm_chat, tool_map)
         self._output_dir: str | None = None
+
+    def _build_messages(self):
+        base = get_system_prompt(self.language)
+        if self.persona:
+            try:
+                from core.persona import get_persona_prompt
+                persona_text = get_persona_prompt(self.persona)
+                base = persona_text + "\n\n" + base
+            except ImportError:
+                pass
+        return [{"role": "system", "content": base}]
 
     @property
     def output_dir(self) -> str | None:
@@ -43,7 +55,7 @@ class Agent:
         self.clear()
 
     def clear(self):
-        self.messages = [{"role": "system", "content": get_system_prompt(self.language)}]
+        self.messages = self._build_messages()
 
     def run(self, user_input: str):
         self._executor.output_dir = self._output_dir

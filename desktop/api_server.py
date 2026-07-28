@@ -14,6 +14,8 @@ from agent.core import Agent
 from core.memory import get_memory_manager
 from core.proactive import ProactiveMonitor, ScreenMonitor, CalendarMonitor, EmailMonitor, SystemMonitor
 from core.briefing import BriefingEngine
+from core.automations import get_automation_engine, Automation
+from core.vision import get_vision_engine
 from quart import Quart, request, Response, jsonify, stream_with_context
 from quart_cors import cors
 
@@ -158,9 +160,12 @@ def get_proactive() -> ProactiveMonitor:
     return _proactive
 
 
-def _get_agent(session_id: str) -> Agent:
+def _get_agent(session_id: str, persona: str | None = None) -> Agent:
     if session_id not in _agents:
-        _agents[session_id] = Agent()
+        _agents[session_id] = Agent(persona=persona)
+    elif persona and _agents[session_id].persona != persona:
+        _agents[session_id].persona = persona
+        _agents[session_id].clear()
     return _agents[session_id]
 
 
@@ -203,7 +208,8 @@ async def chat():
         return jsonify({"error": err}), 422
     user_input = data.get('message', '')
     session_id = data.get('session_id', 'default')
-    agent = _get_agent(session_id)
+    persona = data.get('persona')
+    agent = _get_agent(session_id, persona=persona)
 
     async def generate():
         loop = asyncio.get_event_loop()
@@ -867,6 +873,154 @@ async def _push_briefing():
         await asyncio.sleep(300)
 
 
+# ─── Automations ─────────────────────────────────────────────────
+@app.route(f'{API_PREFIX}/automations', methods=['GET'])
+@require_auth
+async def list_automations():
+    engine = get_automation_engine()
+    autos = [a.to_dict() for a in engine.list_all()]
+    return jsonify({"automations": autos})
+
+
+@app.route(f'{API_PREFIX}/automations', methods=['POST'])
+@require_auth
+async def create_automation():
+    data = await request.get_json() or {}
+    name = data.get("name", "").strip()
+    trigger_type = data.get("trigger_type", "")
+    trigger_config = data.get("trigger_config", {})
+    action = data.get("action", "")
+    action_params = data.get("action_params", {})
+    if not name or trigger_type not in ("cron", "threshold", "event") or not action:
+        return jsonify({"error": "name, trigger_type, and action are required"}), 422
+    engine = get_automation_engine()
+    auto = engine.create(name, trigger_type, trigger_config, action, action_params)
+    return jsonify(auto.to_dict()), 201
+
+
+@app.route(f'{API_PREFIX}/automations/<auto_id>', methods=['GET'])
+@require_auth
+async def get_automation(auto_id):
+    engine = get_automation_engine()
+    auto = engine.get(auto_id)
+    if not auto:
+        return jsonify({"error": "automation not found"}), 404
+    return jsonify(auto.to_dict())
+
+
+@app.route(f'{API_PREFIX}/automations/<auto_id>', methods=['PUT'])
+@require_auth
+async def update_automation(auto_id):
+    data = await request.get_json() or {}
+    engine = get_automation_engine()
+    auto = engine.update(auto_id, **data)
+    if not auto:
+        return jsonify({"error": "automation not found"}), 404
+    return jsonify(auto.to_dict())
+
+
+@app.route(f'{API_PREFIX}/automations/<auto_id>', methods=['DELETE'])
+@require_auth
+async def delete_automation(auto_id):
+    engine = get_automation_engine()
+    if engine.delete(auto_id):
+        return jsonify({"status": "deleted"})
+    return jsonify({"error": "automation not found"}), 404
+
+
+@app.route(f'{API_PREFIX}/automations/<auto_id>/toggle', methods=['POST'])
+@require_auth
+async def toggle_automation(auto_id):
+    engine = get_automation_engine()
+    auto = engine.toggle(auto_id)
+    if not auto:
+        return jsonify({"error": "automation not found"}), 404
+    return jsonify(auto.to_dict())
+
+
+@app.route(f'{API_PREFIX}/automations/<auto_id>/trigger', methods=['POST'])
+@require_auth
+async def trigger_automation(auto_id):
+    engine = get_automation_engine()
+    auto = engine.get(auto_id)
+    if not auto:
+        return jsonify({"error": "automation not found"}), 404
+    result = engine.execute(auto)
+    engine.record_run(auto_id, "success" if result.get("type") != "error" else "error")
+    return jsonify(result)
+
+
+async def _push_automations():
+    await asyncio.sleep(10)
+    engine = get_automation_engine()
+    last_check: dict[str, float] = {}
+    while True:
+        await asyncio.sleep(30)
+        try:
+            for auto in engine.list_all():
+                if not auto.enabled:
+                    continue
+                if auto.trigger_type == "cron" and engine.should_fire_cron(auto.id, last_check):
+                    last_check[auto.id] = time.time()
+                    result = engine.execute(auto)
+                    status = "success" if result.get("type") != "error" else "error"
+                    engine.record_run(auto.id, status)
+                    await _broadcaster.broadcast("automation_run", {
+                        "id": auto.id,
+                        "name": auto.name,
+                        "status": status,
+                        "result": result,
+                        "timestamp": time.time(),
+                    })
+        except Exception:
+            pass
+
+
+# ─── Vision ──────────────────────────────────────────────────────
+@app.route(f'{API_PREFIX}/vision/screen')
+@require_auth
+async def vision_screen():
+    engine = get_vision_engine()
+    result = await asyncio.to_thread(engine.describe_screen)
+    return jsonify(result)
+
+
+@app.route(f'{API_PREFIX}/vision/analyze', methods=['POST'])
+@require_auth
+async def vision_analyze():
+    data = await request.get_json() or {}
+    image = data.get("image", "")
+    prompt = data.get("prompt")
+    if not image:
+        return jsonify({"error": "image (base64) is required"}), 422
+    engine = get_vision_engine()
+    loop = asyncio.get_event_loop()
+    description = await loop.run_in_executor(None, engine.analyze_image, image, prompt)
+    text = await loop.run_in_executor(None, engine.extract_text, image)
+    return jsonify({
+        "description": description,
+        "text": text,
+        "timestamp": time.time(),
+    })
+
+
+async def _push_vision():
+    await asyncio.sleep(15)
+    engine = get_vision_engine()
+    while True:
+        await asyncio.sleep(15)
+        try:
+            if engine.screen_changed_since_last_check():
+                result = await asyncio.to_thread(engine.describe_screen)
+                await _broadcaster.broadcast("vision", {
+                    "description": result.get("description", ""),
+                    "text": result.get("text"),
+                    "timestamp": result.get("timestamp", time.time()),
+                })
+        except Exception:
+            pass
+
+
 async def _push_metrics():
     while True:
         await asyncio.sleep(5)
@@ -1021,6 +1175,8 @@ if __name__ == '__main__':
     loop.create_task(_proactive_loop())
     loop.create_task(_push_metrics())
     loop.create_task(_push_briefing())
+    loop.create_task(_push_automations())
+    loop.create_task(_push_vision())
     loop.create_task(_push_system_info())
     loop.create_task(_push_memory())
     loop.create_task(_push_alerts())

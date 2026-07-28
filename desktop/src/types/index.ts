@@ -176,6 +176,20 @@ export interface ProactiveAlert {
   timestamp: number
 }
 
+export interface Automation {
+  id: string
+  name: string
+  trigger_type: 'cron' | 'threshold' | 'event'
+  trigger_config: Record<string, any>
+  action: string
+  action_params: Record<string, any>
+  enabled: boolean
+  created_at: number
+  last_run: number | null
+  last_status: string | null
+  run_count: number
+}
+
 export interface DesignTokens {
   colors: {
     bg: string

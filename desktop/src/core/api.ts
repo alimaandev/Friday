@@ -54,7 +54,7 @@ export async function fetchApi<T = any>(
 
 /* ─── SSE streaming helper ─── */
 export function streamChat(
-  body: { message: string; session_id?: string },
+  body: { message: string; session_id?: string; persona?: string },
   onEvent: (event: any) => void,
   onError: (err: any) => void,
   onDone: () => void,
@@ -233,6 +233,58 @@ export async function getEmailUnread(): Promise<any> {
 
 export async function getAlerts(): Promise<{ alerts: any[]; count: number }> {
   return fetchApi('/alerts')
+}
+
+/* ─── Automations API ─────────────────────────────────────────── */
+
+export async function getAutomations(): Promise<{ automations: any[] }> {
+  return fetchApi('/automations')
+}
+
+export async function createAutomation(data: {
+  name: string; trigger_type: string; trigger_config: Record<string, any>;
+  action: string; action_params?: Record<string, any>;
+}): Promise<any> {
+  return fetchApi('/automations', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function updateAutomation(id: string, data: Record<string, any>): Promise<any> {
+  return fetchApi(`/automations/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function deleteAutomation(id: string): Promise<any> {
+  return fetchApi(`/automations/${id}`, { method: 'DELETE' })
+}
+
+export async function toggleAutomation(id: string): Promise<any> {
+  return fetchApi(`/automations/${id}/toggle`, { method: 'POST' })
+}
+
+export async function triggerAutomation(id: string): Promise<any> {
+  return fetchApi(`/automations/${id}/trigger`, { method: 'POST' })
+}
+
+/* ─── Vision API ──────────────────────────────────────────────── */
+
+export async function analyzeVisionImage(image: string, prompt?: string): Promise<{
+  description: string; text: string | null; timestamp: number
+}> {
+  return fetchApi('/vision/analyze', {
+    method: 'POST',
+    body: JSON.stringify({ image, prompt }),
+  })
+}
+
+export async function getVisionScreen(): Promise<{
+  description: string; text: string | null; width: number; height: number; timestamp: number
+}> {
+  return fetchApi('/vision/screen')
 }
 
 /* ─── SSE EventSource connection ─── */

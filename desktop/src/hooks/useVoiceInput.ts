@@ -8,10 +8,13 @@ interface UseVoiceInputReturn {
   interimTranscript: string
   finalTranscript: string
   error: string | null
-  startListening: (lang?: string) => void
+  startListening: (lang?: string, autoRestart?: boolean) => void
   stopListening: () => string
+  cancelAutoRestart: () => void
   resetTranscript: () => void
 }
+
+const RESTART_DEBOUNCE = 300
 
 export function useVoiceInput(): UseVoiceInputReturn {
   const [status, setStatus] = useState<VoiceStatus>('idle')
@@ -21,6 +24,9 @@ export function useVoiceInput(): UseVoiceInputReturn {
 
   const recognitionRef = useRef<any>(null)
   const finalRef = useRef('')
+  const autoRestartRef = useRef(false)
+  const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const langRef = useRef('en-US')
 
   const isSupported =
     typeof window !== 'undefined' &&
@@ -33,23 +39,36 @@ export function useVoiceInput(): UseVoiceInputReturn {
     setError(null)
   }, [])
 
-  const startListening = useCallback((lang?: string) => {
+  const cancelAutoRestart = useCallback(() => {
+    autoRestartRef.current = false
+    if (restartTimerRef.current) {
+      clearTimeout(restartTimerRef.current)
+      restartTimerRef.current = null
+    }
+  }, [])
+
+  const startListening = useCallback((lang?: string, autoRestart?: boolean) => {
     if (!isSupported) {
       setError('Speech recognition not supported')
       return
     }
+
+    cancelAutoRestart()
+    autoRestartRef.current = autoRestart ?? false
 
     if (recognitionRef.current) {
       try { recognitionRef.current.abort() } catch {}
       recognitionRef.current = null
     }
 
+    langRef.current = lang || 'en-US'
+
     const SpeechRecognitionCtor =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     const recognition = new SpeechRecognitionCtor()
     recognition.continuous = true
     recognition.interimResults = true
-    recognition.lang = lang || 'en-US'
+    recognition.lang = langRef.current
 
     recognition.onresult = (event: any) => {
       let interim = ''
@@ -68,6 +87,13 @@ export function useVoiceInput(): UseVoiceInputReturn {
     recognition.onerror = (event: any) => {
       if (event.error === 'no-speech' || event.error === 'aborted') {
         setStatus('idle')
+        if (autoRestartRef.current) {
+          restartTimerRef.current = setTimeout(() => {
+            if (autoRestartRef.current) {
+              startListening(langRef.current, true)
+            }
+          }, RESTART_DEBOUNCE)
+        }
       } else {
         setStatus('error')
         setError(event.error)
@@ -77,6 +103,13 @@ export function useVoiceInput(): UseVoiceInputReturn {
     recognition.onend = () => {
       setStatus('idle')
       setInterimTranscript('')
+      if (autoRestartRef.current) {
+        restartTimerRef.current = setTimeout(() => {
+          if (autoRestartRef.current) {
+            startListening(langRef.current, true)
+          }
+        }, RESTART_DEBOUNCE)
+      }
     }
 
     recognitionRef.current = recognition
@@ -92,9 +125,14 @@ export function useVoiceInput(): UseVoiceInputReturn {
       setStatus('error')
       setError('Failed to start recognition')
     }
-  }, [isSupported])
+  }, [isSupported, cancelAutoRestart])
 
   const stopListening = useCallback((): string => {
+    autoRestartRef.current = false
+    if (restartTimerRef.current) {
+      clearTimeout(restartTimerRef.current)
+      restartTimerRef.current = null
+    }
     if (recognitionRef.current) {
       try { recognitionRef.current.stop() } catch {}
       recognitionRef.current = null
@@ -105,11 +143,15 @@ export function useVoiceInput(): UseVoiceInputReturn {
 
   useEffect(() => {
     return () => {
+      autoRestartRef.current = false
+      if (restartTimerRef.current) {
+        clearTimeout(restartTimerRef.current)
+      }
       if (recognitionRef.current) {
         try { recognitionRef.current.abort() } catch {}
       }
     }
   }, [])
 
-  return { isSupported, status, interimTranscript, finalTranscript, error, startListening, stopListening, resetTranscript }
+  return { isSupported, status, interimTranscript, finalTranscript, error, startListening, stopListening, cancelAutoRestart, resetTranscript }
 }

@@ -13,6 +13,7 @@ from core.logger import get_metrics
 from agent.core import Agent
 from core.memory import get_memory_manager
 from core.proactive import ProactiveMonitor, ScreenMonitor, CalendarMonitor, EmailMonitor, SystemMonitor
+from core.briefing import BriefingEngine
 from quart import Quart, request, Response, jsonify, stream_with_context
 from quart_cors import cors
 
@@ -832,6 +833,40 @@ async def event_stream():
     return Response(generate(), mimetype='text/event-stream')
 
 
+# ─── Briefing ─────────────────────────────────────────────────────
+@app.route(f'{API_PREFIX}/briefing')
+@require_auth
+async def get_briefing():
+    engine = BriefingEngine(client=get_async_client())
+    briefing = await engine.synthesize()
+    return jsonify({
+        "greeting": briefing.greeting,
+        "summary": briefing.summary,
+        "sections": briefing.sections,
+        "timestamp": briefing.timestamp,
+    })
+
+
+async def _push_briefing():
+    await asyncio.sleep(5)
+    engine = BriefingEngine(client=get_async_client())
+    last_briefing_date = None
+    while True:
+        try:
+            today = datetime.now(timezone.utc).date()
+            if last_briefing_date != today:
+                briefing = await engine.synthesize()
+                await _broadcaster.broadcast("briefing", {
+                    "summary": briefing.summary,
+                    "sections": briefing.sections,
+                    "greeting": briefing.greeting,
+                })
+                last_briefing_date = today
+        except Exception:
+            pass
+        await asyncio.sleep(300)
+
+
 async def _push_metrics():
     while True:
         await asyncio.sleep(5)
@@ -985,6 +1020,7 @@ if __name__ == '__main__':
     loop.create_task(_memory_consolidation_loop())
     loop.create_task(_proactive_loop())
     loop.create_task(_push_metrics())
+    loop.create_task(_push_briefing())
     loop.create_task(_push_system_info())
     loop.create_task(_push_memory())
     loop.create_task(_push_alerts())

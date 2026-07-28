@@ -9,8 +9,9 @@ interface UseWakeWordReturn {
   stop: () => void
 }
 
-const WAKE_PATTERNS = [/\bhey\s*friday\b/i, /\bfriday\b/i]
+const WAKE_PATTERN = /\bhey\s*friday\b/i
 const COOLDOWN_MS = 5000
+const SESSION_RENEW_INTERVAL = 40000
 
 export function useWakeWord(onWake: () => void): UseWakeWordReturn {
   const [active, setActive] = useState(false)
@@ -19,6 +20,8 @@ export function useWakeWord(onWake: () => void): UseWakeWordReturn {
   const recognitionRef = useRef<any>(null)
   const cooldownRef = useRef(0)
   const activeRef = useRef(false)
+  const sessionGenRef = useRef(0)
+  const renewIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const onWakeRef = useRef(onWake)
   onWakeRef.current = onWake
 
@@ -27,6 +30,10 @@ export function useWakeWord(onWake: () => void): UseWakeWordReturn {
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
 
   const stop = useCallback(() => {
+    if (renewIntervalRef.current) {
+      clearInterval(renewIntervalRef.current)
+      renewIntervalRef.current = null
+    }
     if (recognitionRef.current) {
       try { recognitionRef.current.abort() } catch {}
       recognitionRef.current = null
@@ -36,13 +43,8 @@ export function useWakeWord(onWake: () => void): UseWakeWordReturn {
     setListening(false)
   }, [])
 
-  const start = useCallback(() => {
-    if (!isSupported) {
-      setError('Speech recognition not supported')
-      return
-    }
-
-    stop()
+  const startSession = useCallback(() => {
+    if (!activeRef.current) return
 
     const SpeechRecognitionCtor =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -51,16 +53,17 @@ export function useWakeWord(onWake: () => void): UseWakeWordReturn {
     recognition.interimResults = true
     recognition.lang = 'en-US'
 
+    const gen = sessionGenRef.current
+
     recognition.onresult = (event: any) => {
       const now = Date.now()
       if (now - cooldownRef.current < COOLDOWN_MS) return
-
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript.toLowerCase()
-          if (WAKE_PATTERNS.some(p => p.test(transcript))) {
-            cooldownRef.current = now
-            onWakeRef.current()
-            break
+        if (WAKE_PATTERN.test(transcript)) {
+          cooldownRef.current = now
+          onWakeRef.current()
+          break
         }
       }
     }
@@ -73,16 +76,13 @@ export function useWakeWord(onWake: () => void): UseWakeWordReturn {
 
     recognition.onend = () => {
       setListening(false)
-      if (activeRef.current && recognitionRef.current === recognition) {
-        try { recognition.start() } catch {}
-        setListening(true)
+      recognitionRef.current = null
+      if (activeRef.current && gen === sessionGenRef.current) {
+        startSession()
       }
     }
 
     recognitionRef.current = recognition
-    activeRef.current = true
-    setActive(true)
-    setError(null)
 
     try {
       recognition.start()
@@ -91,11 +91,40 @@ export function useWakeWord(onWake: () => void): UseWakeWordReturn {
       setError('Failed to start wake word detection')
       setActive(false)
       setListening(false)
+      activeRef.current = false
     }
-  }, [isSupported, stop])
+  }, [])
+
+  const start = useCallback(() => {
+    if (!isSupported) {
+      setError('Speech recognition not supported')
+      return
+    }
+
+    stop()
+    activeRef.current = true
+    sessionGenRef.current += 1
+    setActive(true)
+    setError(null)
+
+    startSession()
+
+    renewIntervalRef.current = setInterval(() => {
+      if (!activeRef.current) return
+      sessionGenRef.current += 1
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort() } catch {}
+        recognitionRef.current = null
+      }
+      startSession()
+    }, SESSION_RENEW_INTERVAL)
+  }, [isSupported, stop, startSession])
 
   useEffect(() => {
     return () => {
+      if (renewIntervalRef.current) {
+        clearInterval(renewIntervalRef.current)
+      }
       if (recognitionRef.current) {
         try { recognitionRef.current.abort() } catch {}
       }

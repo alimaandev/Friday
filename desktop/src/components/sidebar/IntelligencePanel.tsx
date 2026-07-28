@@ -6,6 +6,7 @@ import { MemoryPanel } from './MemoryPanel'
 import { ScreenPanel } from './ScreenPanel'
 import { CalendarPanel } from './CalendarPanel'
 import { EmailPanel } from './EmailPanel'
+import { BriefingCard } from './BriefingCard'
 
 interface StockData {
   symbol: string; price: number; change: number; change_pct: number; sparkline: number[]
@@ -39,6 +40,9 @@ interface IntelligencePanelProps {
   emailAuth?: string
   onCalendarConnect?: () => void
   onEmailConnect?: () => void
+  briefing?: { summary: string; sections: string[]; greeting: string } | null
+  onPlayBriefing?: () => void
+  voiceOutputEnabled?: boolean
 }
 
 const timeAgo = (dateStr: string) => {
@@ -355,6 +359,7 @@ export const IntelligencePanel = memo(function IntelligencePanel({
   earthquakes, crypto, space, cve, clocks, memoryData, screenData,
   calendarEvents, calendarAuth, emailMessages, emailUnread, emailAuth,
   onCalendarConnect, onEmailConnect,
+  briefing, onPlayBriefing, voiceOutputEnabled,
 }: IntelligencePanelProps) {
   return (
     <div
@@ -377,6 +382,7 @@ export const IntelligencePanel = memo(function IntelligencePanel({
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
+            <BriefingCard briefing={briefing || null} onPlay={onPlayBriefing || (() => {})} voiceOutputEnabled={voiceOutputEnabled || false} />
             {!news.length && !weather && !stocks.length && !repos.length && !earthquakes?.length && !crypto?.length && !space && !cve?.length && !clocks?.length && (
               <div className="col-span-2 flex flex-col items-center justify-center py-16 text-xs" style={{ color: '#666' }}>
                 <span className="text-2xl mb-2">📡</span>

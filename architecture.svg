@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a0a0f"/>
+      <stop offset="100%" stop-color="#0c0c14"/>
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00a8ff"/>
+      <stop offset="100%" stop-color="#33ccff"/>
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="cardShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#00a8ff" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#00a8ff"/>
+    </marker>
+    <marker id="arrowGray" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#606068"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="620" fill="url(#bgGrad)" rx="16"/>
+
+  <!-- Title -->
+  <text x="450" y="36" text-anchor="middle" fill="#f0f0f0" font-family="system-ui,sans-serif" font-size="16" font-weight="600" letter-spacing="1">SYSTEM ARCHITECTURE</text>
+  <line x1="350" y1="46" x2="550" y2="46" stroke="#00a8ff" stroke-width="1.5" opacity="0.4"/>
+
+  <!-- ===== Browser Layer ===== -->
+  <rect x="50" y="70" width="800" height="210" rx="10" fill="rgba(0,168,255,0.04)" stroke="rgba(0,168,255,0.12)" stroke-width="1"/>
+  <text x="65" y="100" fill="#00a8ff" font-family="system-ui,sans-serif" font-size="13" font-weight="600" letter-spacing="0.5">BROWSER</text>
+  <text x="800" y="100" text-anchor="end" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="11">React 19 · TypeScript · Vite</text>
+
+  <!-- Orb Card -->
+  <rect x="70" y="115" width="230" height="145" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1" filter="url(#cardShadow)"/>
+  <rect x="70" y="115" width="230" height="28" rx="8" fill="rgba(0,168,255,0.08)"/>
+  <rect x="70" y="135" width="230" height="8" fill="rgba(0,168,255,0.08)"/>
+  <text x="95" y="134" fill="#00a8ff" font-family="system-ui,sans-serif" font-size="12" font-weight="600">🎨 3D Reactive Orb</text>
+  <text x="80" y="162" fill="#f0f0f0" font-family="system-ui,sans-serif" font-size="11">Three.js · WebGL</text>
+  <text x="80" y="180" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">10 state-driven animation profiles</text>
+  <text x="80" y="196" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">Hand-tracking · Fresnel glow</text>
+  <text x="80" y="212" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">Holographic hex shell · Particles</text>
+  <text x="80" y="236" fill="#606068" font-family="system-ui,sans-serif" font-size="10">State: idle / listening / thinking / speaking</text>
+
+  <!-- Intelligence Panel Card -->
+  <rect x="335" y="115" width="230" height="145" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1" filter="url(#cardShadow)"/>
+  <rect x="335" y="115" width="230" height="28" rx="8" fill="rgba(0,168,255,0.08)"/>
+  <rect x="335" y="135" width="230" height="8" fill="rgba(0,168,255,0.08)"/>
+  <text x="360" y="134" fill="#00a8ff" font-family="system-ui,sans-serif" font-size="12" font-weight="600">🌍 Live Intelligence Panel</text>
+  <text x="345" y="162" fill="#f0f0f0" font-family="system-ui,sans-serif" font-size="11">10 Real-time Data Modules</text>
+  <text x="345" y="180" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">News · Weather · Stocks · Crypto</text>
+  <text x="345" y="196" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">Earthquakes · Space · GitHub Trending</text>
+  <text x="345" y="212" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">World Clocks · CVE · Screen Capture</text>
+  <text x="345" y="236" fill="#606068" font-family="system-ui,sans-serif" font-size="10">All data via single SSE connection</text>
+
+  <!-- Chat Card -->
+  <rect x="600" y="115" width="230" height="145" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1" filter="url(#cardShadow)"/>
+  <rect x="600" y="115" width="230" height="28" rx="8" fill="rgba(0,168,255,0.08)"/>
+  <rect x="600" y="135" width="230" height="8" fill="rgba(0,168,255,0.08)"/>
+  <text x="625" y="134" fill="#00a8ff" font-family="system-ui,sans-serif" font-size="12" font-weight="600">💬 Streaming Chat</text>
+  <text x="610" y="162" fill="#f0f0f0" font-family="system-ui,sans-serif" font-size="11">Token-by-token responses</text>
+  <text x="610" y="180" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">Multi-session with independent memory</text>
+  <text x="610" y="196" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">Command palette (⌘K)</text>
+  <text x="610" y="212" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">Suggestion chips · Plan visualization</text>
+  <text x="610" y="236" fill="#606068" font-family="system-ui,sans-serif" font-size="10">Voice input + wake word · Hand gestures</text>
+
+  <!-- EventBroadcaster -->
+  <rect x="335" y="270" width="230" height="24" rx="6" fill="rgba(0,168,255,0.06)" stroke="rgba(0,168,255,0.2)" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="450" y="286" text-anchor="middle" fill="#33ccff" font-family="system-ui,sans-serif" font-size="11" font-weight="500">EventBroadcaster (SSE multiplex)</text>
+
+  <!-- Connector lines within browser -->
+  <line x1="300" y1="188" x2="335" y2="188" stroke="#606068" stroke-width="1" marker-end="url(#arrowGray)"/>
+  <line x1="565" y1="188" x2="600" y2="188" stroke="#606068" stroke-width="1" marker-end="url(#arrowGray)"/>
+  <line x1="450" y1="260" x2="450" y2="270" stroke="#00a8ff" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+  <!-- SSE Arrow Down -->
+  <line x1="450" y1="294" x2="450" y2="320" stroke="#00a8ff" stroke-width="2" marker-end="url(#arrowBlue)" filter="url(#glow)"/>
+  <rect x="395" y="298" width="110" height="16" rx="4" fill="rgba(0,168,255,0.08)"/>
+  <text x="450" y="310" text-anchor="middle" fill="#00a8ff" font-family="system-ui,sans-serif" font-size="9" font-weight="600">SSE / REST (HTTP)</text>
+
+  <!-- ===== Backend Layer ===== -->
+  <rect x="50" y="325" width="800" height="200" rx="10" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="65" y="355" fill="#7c3aed" font-family="system-ui,sans-serif" font-size="13" font-weight="600" letter-spacing="0.5">BACKEND</text>
+  <text x="800" y="355" text-anchor="end" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="11">Python · Quart · Async</text>
+
+  <!-- Routes Card -->
+  <rect x="70" y="370" width="230" height="135" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1" filter="url(#cardShadow)"/>
+  <rect x="70" y="370" width="230" height="28" rx="8" fill="rgba(124,58,237,0.08)"/>
+  <rect x="70" y="390" width="230" height="8" fill="rgba(124,58,237,0.08)"/>
+  <text x="95" y="389" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="12" font-weight="600">📡 API Routes</text>
+  <text x="80" y="418" fill="#f0f0f0" font-family="system-ui,sans-serif" font-size="11">/api/v1/*</text>
+  <text x="80" y="436" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">Chat · Memory · Calendar</text>
+  <text x="80" y="452" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">Gmail · Panel data · SSE</text>
+  <text x="80" y="476" fill="#606068" font-family="system-ui,sans-serif" font-size="10">Rate limited · Validated</text>
+
+  <!-- Agents Card -->
+  <rect x="335" y="370" width="230" height="135" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1" filter="url(#cardShadow)"/>
+  <rect x="335" y="370" width="230" height="28" rx="8" fill="rgba(124,58,237,0.08)"/>
+  <rect x="335" y="390" width="230" height="8" fill="rgba(124,58,237,0.08)"/>
+  <text x="360" y="389" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="12" font-weight="600">🤖 Agent System</text>
+  <text x="345" y="418" fill="#f0f0f0" font-family="system-ui,sans-serif" font-size="11">ThreadPool Executor</text>
+  <text x="345" y="436" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">Planner · Tool execution</text>
+  <text x="345" y="452" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">Context management</text>
+  <text x="345" y="476" fill="#606068" font-family="system-ui,sans-serif" font-size="10">Proactive alert engine</text>
+
+  <!-- Memory Card -->
+  <rect x="600" y="370" width="230" height="135" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1" filter="url(#cardShadow)"/>
+  <rect x="600" y="370" width="230" height="28" rx="8" fill="rgba(124,58,237,0.08)"/>
+  <rect x="600" y="390" width="230" height="8" fill="rgba(124,58,237,0.08)"/>
+  <text x="625" y="389" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="12" font-weight="600">🧠 Memory Engine</text>
+  <text x="610" y="418" fill="#f0f0f0" font-family="system-ui,sans-serif" font-size="11">3-engine architecture</text>
+  <text x="610" y="436" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">TF-IDF · Jaccard · Vector</text>
+  <text x="610" y="452" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">Cross-session semantic search</text>
+  <text x="610" y="476" fill="#606068" font-family="system-ui,sans-serif" font-size="10">Bounded caching · Async persist</text>
+
+  <!-- httpx client bar -->
+  <rect x="70" y="515" width="760" height="24" rx="6" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="450" y="531" text-anchor="middle" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="11">httpx.AsyncClient (connection pool)</text>
+
+  <!-- Internal backend connections -->
+  <line x1="300" y1="438" x2="335" y2="438" stroke="#606068" stroke-width="1" marker-end="url(#arrowGray)"/>
+  <line x1="565" y1="438" x2="600" y2="438" stroke="#606068" stroke-width="1" marker-end="url(#arrowGray)"/>
+
+  <!-- LLM Arrow -->
+  <line x1="450" y1="539" x2="450" y2="555" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrowBlue)" filter="url(#glow)"/>
+  <rect x="370" y="545" width="160" height="16" rx="4" fill="rgba(124,58,237,0.08)"/>
+  <text x="450" y="557" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="9" font-weight="600">API Calls (OpenAI-compatible)</text>
+
+  <!-- ===== LLM Layer ===== -->
+  <rect x="200" y="565" width="500" height="42" rx="8" fill="rgba(124,58,237,0.04)" stroke="rgba(124,58,237,0.12)" stroke-width="1"/>
+  <text x="450" y="583" text-anchor="middle" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="12" font-weight="600">LLM Providers</text>
+  <text x="450" y="597" text-anchor="middle" fill="#a0a0a8" font-family="system-ui,sans-serif" font-size="10">OpenRouter · OpenAI · Ollama · Any OpenAI-compatible endpoint</text>
+</svg>

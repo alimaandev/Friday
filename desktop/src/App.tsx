@@ -46,6 +46,7 @@ function App() {
   const [sseConnected, setSseConnected] = useState(false)
   const [alerts, setAlerts] = useState<ProactiveAlert[]>([])
   const [settingsOpen, setSettingsOpen] = useState(false)
+const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; greeting: string } | null>(null)
 
   // ─── Fine-grained Zustand selectors (before any hooks that use them) ───
   const sessions = useStore(s => s.sessions)
@@ -96,6 +97,7 @@ function App() {
     interimTranscript,
     startListening: startVoiceInput,
     stopListening: stopVoiceInput,
+    cancelAutoRestart,
     resetTranscript,
   } = useVoiceInput()
 
@@ -111,7 +113,10 @@ function App() {
     active: wakeWordActive,
     start: startWakeWord,
     stop: stopWakeWord,
-  } = useWakeWord(() => startVoiceInput(voiceLanguage))
+  } = useWakeWord(() => {
+    cancelAutoRestart()
+    startVoiceInput(voiceLanguage, true)
+  })
 
   useEffect(() => {
     theme.init()
@@ -170,6 +175,9 @@ function App() {
           break
         case 'clocks':
           setClocks(ev.data.clocks || [])
+          break
+        case 'briefing':
+          setBriefing(ev.data)
           break
       }
     }
@@ -496,6 +504,25 @@ function App() {
     state.setVoiceLanguage(next)
   }, [])
 
+  const playBriefing = useCallback(() => {
+    if (briefing && voiceOutputEnabled) {
+      speakResponse(briefing.summary)
+    }
+  }, [briefing, voiceOutputEnabled, speakResponse])
+
+  // ─── Persist voice settings ───
+  useEffect(() => {
+    localStorage.setItem('friday_voice_output_enabled', String(voiceOutputEnabled))
+  }, [voiceOutputEnabled])
+
+  useEffect(() => {
+    localStorage.setItem('friday_voice_language', voiceLanguage)
+  }, [voiceLanguage])
+
+  useEffect(() => {
+    localStorage.setItem('friday_wake_word_enabled', String(wakeWordActive))
+  }, [wakeWordActive])
+
   const commandActions = [
     { id: 'new-session', label: 'New session', action: handleNewSession },
     { id: 'toggle-sidebar', label: 'Toggle sessions sidebar', action: () => setSidebarOpen(o => !o) },
@@ -676,8 +703,8 @@ function App() {
             <InputBar
               onSend={sendMessage}
               loading={loading}
-              onVoiceStart={() => { resetTranscript(); startVoiceInput(voiceLanguage) }}
-              onVoiceStop={() => stopVoiceInput()}
+              onVoiceStart={() => { cancelAutoRestart(); resetTranscript(); startVoiceInput(voiceLanguage) }}
+              onVoiceStop={() => { cancelAutoRestart(); return stopVoiceInput() }}
               voiceStatus={voiceInputStatus}
               voiceInterim={interimTranscript}
               isVoiceSupported={voiceInputSupported}
@@ -709,6 +736,9 @@ function App() {
               emailAuth={emailAuth}
               onCalendarConnect={handleGoogleConnect}
               onEmailConnect={handleGoogleConnect}
+              briefing={briefing}
+              onPlayBriefing={playBriefing}
+              voiceOutputEnabled={voiceOutputEnabled}
             />
           </Suspense>
         </div>

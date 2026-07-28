@@ -1,18 +1,9 @@
 <div align="center">
   <a name="readme-top"></a>
 
-  <img src="og-image.png" alt="Friday AI — Open-Source JARVIS for Your Desktop" width="100%">
+  <img src="og-image.svg" alt="Friday AI — Open-Source JARVIS for Your Desktop" width="100%">
 
   <br><br>
-
-  <h1 align="center">Friday — The Open-Source JARVIS for Your Desktop</h1>
-
-  <p align="center">
-    Speak, gesture, or type — your AI command center runs on <strong>your machine</strong>.<br>
-    No cloud lock-in. No subscriptions. Your data, your rules.
-  </p>
-
-  <br>
 
   <!-- SHIELD GROUP -->
   <p align="center">
@@ -45,23 +36,30 @@
   <summary><kbd>📖 Table of Contents</kbd></summary>
 
   - [⚡ Quick Start](#-quick-start)
-  - [✨ What is Friday?](#-what-is-friday)
   - [🚀 Features](#-features)
-    - [🧠 AI Core](#-ai-core)
-    - [🎨 3D Reactive Orb](#-3d-reactive-orb)
-    - [🌍 Live Intelligence Panel](#-live-intelligence-panel)
-    - [🎤 Voice & Gesture](#-voice--gesture)
-    - [🔌 Integrations](#-integrations)
-  - [🖥 Demo](#-demo)
   - [🏗 Architecture](#-architecture)
   - [🛣 Roadmap](#-roadmap)
-  - [🧪 Tests](#-tests)
   - [🤝 Contributing](#-contributing)
   - [⭐ Star History](#-star-history)
   - [💖 Support](#-support)
   - [📄 License](#-license)
 
 </details>
+
+<br>
+
+---
+
+## 🔥 Speak. Gesture. Type.
+
+**Friday** turns your desktop into an AI command center — inspired by the JARVIS interface from Iron Man. The 3D orb reacts to you, the panel streams live data from 10 sources, and the LLM speaks back. Everything runs locally. Your API key, your LLM, your rules.
+
+No cloud lock-in. No subscriptions. One command to start:
+
+```bash
+docker compose up -d
+# → Frontend: http://localhost:5173 · Backend: http://localhost:8080
+```
 
 <br>
 
@@ -75,56 +73,21 @@
 git clone https://github.com/alimaandev/Friday.git
 cd Friday
 cp config/providers.toml.example config/providers.toml
-# Edit config/providers.toml — paste your OpenRouter API key
+# Edit config/providers.toml — paste your OpenRouter (or other) API key
 docker compose up -d
 ```
-
-Frontend → `http://localhost:5173` · Backend → `http://localhost:8080`
 
 ### 🔧 Manual setup
 
 ```bash
-# 1. Clone
 git clone https://github.com/alimaandev/Friday.git
 cd Friday
-
-# 2. Backend
 pip install -r requirements.txt
 cp config/providers.toml.example config/providers.toml
 # Edit config/providers.toml — paste your API key
 cd desktop && python api_server.py &
-# Backend → http://localhost:8080
-
-# 3. Frontend
-npm install
-npm run dev
-# Frontend → http://localhost:5173
+cd .. && npm install && npm run dev
 ```
-
-That's it. The orb pulses, the panel fills with live data, and Friday is online.
-
-<div align="right">
-  <a href="#readme-top">▲ back to top</a>
-</div>
-
-<br>
-
----
-
-## ✨ What is Friday?
-
-**Friday** turns your desktop into an AI command center — inspired by the JARVIS interface from Iron Man. It's a fully open-source, real-time dashboard that combines:
-
-- A **3D reactive orb** that shifts form based on what Friday is doing
-- A **live intelligence panel** with 10 data modules (news, weather, stocks, crypto, space, earthquakes, CVE, GitHub trending, world clocks, alerts)
-- **Voice input/output** with wake-word detection ("Hey Friday")
-- **Webcam hand-gesture control** — open palm to speak, fist to send
-- **Google Calendar & Gmail** integration via OAuth 2.0
-- **Streaming chat** backed by any OpenAI-compatible LLM (OpenRouter, OpenAI, Ollama, or custom)
-
-Everything runs locally. Your API key, your LLM, your choice.
-
-**v2** delivered async performance — SSE push replaced 18 polling loops, lazy loading, batched memory persistence, and bounded caching. The result is a responsive, production-grade desktop AI experience.
 
 <div align="right">
   <a href="#readme-top">▲ back to top</a>
@@ -136,98 +99,54 @@ Everything runs locally. Your API key, your LLM, your choice.
 
 ## 🚀 Features
 
-### 🧠 AI Core
-
-<p align="center">
-  <img src="desktop/public/feature-chat.png" alt="Friday AI Chat Interface" width="800">
-  <br>
-  <em>Streaming chat with token-by-token responses, session management, and suggestion chips</em>
-</p>
-
-| Capability | Details |
-|-----------|---------|
-| **Streaming Chat** | Token-by-token responses with plan visualization and tool-call tracking |
-| **Multi-Session** | Create, switch, and delete conversations — each with independent memory |
-| **Command Palette** | `⌘K` / `Ctrl+K` for instant actions: new session, toggle voice, camera, wake word |
-| **Suggestion Chips** | Context-aware one-click prompts: *Explain*, *Search*, *Code*, *Summarize* |
-
-<div align="right">
-  <a href="#readme-top">▲ back to top</a>
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%" valign="top">
+        <p align="center">
+          <img src="desktop/public/feature-orb.png" alt="3D Reactive Orb" width="400">
+          <br>
+          <strong>🎨 3D Reactive Orb</strong>
+        </p>
+        <p align="center">
+          Procedural Three.js orb at the heart of the interface. 10 state-driven animation profiles — idle, listening, thinking, speaking, and more. Hand-tracking follow, noise-based energy core, Fresnel glow, holographic hex shell, drifting particles.
+        </p>
+      </td>
+      <td width="50%" valign="top">
+        <p align="center">
+          <img src="desktop/public/feature-panel.png" alt="Live Intelligence Panel" width="170">
+          <br>
+          <strong>🌍 Live Intelligence Panel</strong>
+        </p>
+        <p align="center">
+          10 real-time data modules: News, Weather, Stocks, Crypto, GitHub Trending, Earthquakes, Space (ISS), World Clocks, CVE, Screen Capture. All pushed via a single SSE connection — replaced 18 polling loops.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%" valign="top">
+        <p align="center">
+          <img src="desktop/public/feature-chat.png" alt="Streaming Chat" width="400">
+          <br>
+          <strong>💬 Streaming Chat</strong>
+        </p>
+        <p align="center">
+          Token-by-token responses with plan visualization and tool-call tracking. Multi-session with independent memory. Command palette (⌘K). Context-aware suggestion chips.
+        </p>
+      </td>
+      <td width="50%" valign="top">
+        <p align="center">
+          <img src="desktop/public/feature-ribbon.png" alt="Voice & Gesture" width="400">
+          <br>
+          <strong>🎤 Voice & Gesture</strong>
+        </p>
+        <p align="center">
+          Voice input/output with "Hey Friday" wake word (offline, in-browser). Webcam hand-gesture control — open palm to speak, fist to send. Multi-language support (English, Hindi, Urdu).
+        </p>
+      </td>
+    </tr>
+  </table>
 </div>
-
-<br>
-
-### 🎨 3D Reactive Orb
-
-<p align="center">
-  <img src="desktop/public/feature-orb.png" alt="Friday 3D Reactive Orb" width="800">
-  <br>
-  <em>The procedural Three.js orb at the heart of Friday's interface — 10 state-driven animation profiles</em>
-</p>
-
-| State | Visual |
-|-------|--------|
-| Idle | Slow pulse, dim glow |
-| Listening | Quick ring pulse, brighter core |
-| Thinking | Fast wave pattern, high glow |
-| Reasoning | Concentric ring expansion |
-| Speaking | Rapid fire rings, bright center |
-| Error → Thinking | Falls back to thinking config |
-| Offline | Faint pulse, minimal glow |
-
-Additional effects: hand-tracking follow (orb follows your cursor when camera is active), auto-pause (rAF loop halts on tab hide), noise-based energy core, Fresnel glow, holographic hex shell, orbital rings, drifting particles.
-
-<div align="right">
-  <a href="#readme-top">▲ back to top</a>
-</div>
-
-<br>
-
-### 🌍 Live Intelligence Panel
-
-<p align="center">
-  <img src="desktop/public/feature-panel.png" alt="Friday Intelligence Panel" width="340">
-  <br>
-  <em>10 live data modules pushing real-time updates via SSE — news, weather, stocks, crypto, space, and more</em>
-</p>
-
-| Module | Source | Refresh | Description |
-|--------|--------|---------|-------------|
-| 📰 News | Hacker News + RSS | 5 min | Global tech headlines |
-| 🌤 Weather | Open-Meteo | 5 min | Current conditions + forecast |
-| 📈 Stocks | Yahoo Finance | 60 s | AAPL, GOOG, MSFT, NVDA, BTC-USD |
-| 💻 GitHub Trending | GitHub API | 5 min | Trending repos |
-| 🌋 Earthquakes | USGS API | 2 min | Recent seismic events |
-| ₿ Crypto | CoinGecko | 2 min | Top crypto prices |
-| 🛰 Space | Open Notify | 60 s | ISS location + astronauts |
-| 🕐 World Clocks | — | 30 s | London, NY, Tokyo, Dubai, Sydney |
-| 🔐 CVE | NVD Feed | 10 min | Security vulnerabilities |
-
-All data pushes via **SSE** — a single EventSource connection replaces 18 polling loops.
-
-<div align="right">
-  <a href="#readme-top">▲ back to top</a>
-</div>
-
-<br>
-
-### 🎤 Voice & Gesture
-
-| Feature | How it works |
-|---------|-------------|
-| **Voice Input** | Hold mic → speak → release. Browser SpeechRecognition. |
-| **Voice Output** | TTS reads assistant responses aloud |
-| **Wake Word** | "Hey Friday" activates listening (offline, in-browser) |
-| **Hand Gestures** | ✋ Open palm = listen · ✊ Fist = send · 👆 Move = orb follow |
-| **Multi-Language** | Cycle English / Hindi / Urdu via mic-lang button |
-
-Enable the camera from the command palette (`⌘K` → *Gesture control*) or the camera button in the status ribbon. The orb reacts to your hand position in real time — no external sensors needed.
-
-<div align="right">
-  <a href="#readme-top">▲ back to top</a>
-</div>
-
-<br>
 
 ### 🔌 Integrations
 
@@ -235,28 +154,9 @@ Enable the camera from the command palette (`⌘K` → *Gesture control*) or the
 |-------------|------|---------|
 | **Google Calendar** | OAuth 2.0 | View upcoming events inline |
 | **Gmail** | OAuth 2.0 | Unread count + inbox preview |
-| **Screen Capture** | Periodic | Desktop screenshots inside the panel |
 | **Memory** | TF-IDF + Jaccard + Vector | Cross-session semantic search |
 | **Proactive Alerts** | SSE | System anomalies, reminders, notifications |
-| **LLM Providers** | Pluggable | OpenRouter, OpenAI, Ollama, custom OpenAI-compatible |
-
-<div align="right">
-  <a href="#readme-top">▲ back to top</a>
-</div>
-
-<br>
-
----
-
-## 🖥 Demo
-
-> 🎥 *A demo GIF will go here. Capture a 15-second screen recording (orb + voice command + intelligence panel), convert via [ScreenToGif](https://www.screentogif.com/), and embed below.*
-
-<p align="center">
-  <img src="desktop/public/dashboard.png" alt="Friday AI Dashboard" width="800">
-  <br>
-  <em>Live intelligence panel in action</em>
-</p>
+| **LLM Providers** | Pluggable | OpenRouter, OpenAI, Ollama, custom |
 
 <div align="right">
   <a href="#readme-top">▲ back to top</a>
@@ -268,38 +168,11 @@ Enable the camera from the command palette (`⌘K` → *Gesture control*) or the
 
 ## 🏗 Architecture
 
-```
-┌─────────────────────────────────────────────────────┐
-│                   Browser (React)                    │
-│  ┌──────────┐  ┌──────────────┐  ┌───────────────┐  │
-│  │  AiCore   │  │ Intelligence │  │    Chat       │  │
-│  │ (Three.js)│  │   Panel      │  │  (Streaming)  │  │
-│  └────┬─────┘  └──────┬───────┘  └──────┬────────┘  │
-│       │               │                 │            │
-│       └───────────────┼─────────────────┘            │
-│                       │ SSE EventSource              │
-│          ┌────────────┴────────────┐                 │
-│          │   EventBroadcaster      │                 │
-│          └────────────┬────────────┘                 │
-└───────────────────────┼─────────────────────────────┘
-                        │ HTTP / SSE
-┌───────────────────────┼─────────────────────────────┐
-│              Python Backend (Quart)                  │
-│  ┌──────────┐  ┌──────────────┐  ┌───────────────┐  │
-│  │  Routes   │  │    Agents    │  │    Memory     │  │
-│  │ /api/v1/* │  │  (ThreadPool)│  │ (3 engines)   │  │
-│  └────┬─────┘  └──────┬───────┘  └──────┬────────┘  │
-│       │               │                 │            │
-│  ┌────┴────────────────┴─────────────────┴────────┐  │
-│  │         httpx.AsyncClient (pooled)              │  │
-│  └─────────────────────────────────────────────────┘  │
-└───────────────────────┬─────────────────────────────┘
-                        │ API calls
-              ┌─────────┴──────────┐
-              │  LLM (OpenRouter / │
-              │  OpenAI / Ollama)  │
-              └────────────────────┘
-```
+<p align="center">
+  <img src="architecture.svg" alt="Friday System Architecture" width="90%">
+</p>
+
+A single-page React frontend communicates with a Python Quart backend via SSE and REST. The backend pools connections to any OpenAI-compatible LLM provider. Three parallel memory engines (TF-IDF, Jaccard, Vector) enable cross-session semantic recall.
 
 <div align="right">
   <a href="#readme-top">▲ back to top</a>
@@ -329,24 +202,6 @@ Track progress on the [open issues](https://github.com/alimaandev/Friday/issues)
 
 ---
 
-## 🧪 Tests
-
-```bash
-python -m pytest tests/ -v
-```
-
-59 tests covering memory, security sandbox, rate limiter, planner, plugin registry, logger, and long-term memory decay.
-
-The CI pipeline runs every push — see [Actions](https://github.com/alimaandev/Friday/actions) for status.
-
-<div align="right">
-  <a href="#readme-top">▲ back to top</a>
-</div>
-
-<br>
-
----
-
 ## 🤝 Contributing
 
 We welcome contributions of all sizes — from typo fixes to new features.
@@ -357,7 +212,15 @@ We welcome contributions of all sizes — from typo fixes to new features.
 4. Push (`git push origin feat/amazing`)
 5. Open a Pull Request
 
-Check out [open issues](https://github.com/alimaandev/Friday/issues) — especially ones labelled [`good first issue`](https://github.com/alimaandev/Friday/labels/good%20first%20issue) — to find something to work on.
+Check out [open issues](https://github.com/alimaandev/Friday/issues) — especially ones labelled [`good first issue`](https://github.com/alimaandev/Friday/labels/good%20first%20issue).
+
+### Recent contributions
+
+| Contributor | Contribution |
+|-------------|-------------|
+| [@surajthedev](https://github.com/surajthedev) | Async persistence for long-term memory |
+| [@NikhilVedak](https://github.com/NikhilVedak) | API route versioning with `/api/v1` prefix |
+| [@MasRama](https://github.com/MasRama) | Cleaned up unused CSS and animation classes |
 
 <a href="https://github.com/alimaandev/Friday/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=alimaandev/Friday" alt="Contributors" width="600">

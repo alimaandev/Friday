@@ -95,6 +95,7 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
     isSupported: voiceInputSupported,
     status: voiceInputStatus,
     interimTranscript,
+    finalTranscript,
     startListening: startVoiceInput,
     stopListening: stopVoiceInput,
     cancelAutoRestart,
@@ -115,8 +116,70 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
     stop: stopWakeWord,
   } = useWakeWord(() => {
     cancelAutoRestart()
+    resetTranscript()
+    if (!ambientActive) {
+      setAmbientActive(true)
+    }
     startVoiceInput(voiceLanguage, true)
   })
+
+  // ─── Ambient Voice Mode ────────────────────────────────────────
+  const [ambientActive, setAmbientActive] = useState(false)
+  const ambientTranscriptRef = useRef('')
+  const ambientSilenceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const ambientActiveRef = useRef(false)
+
+  const clearAmbientSilence = useCallback(() => {
+    if (ambientSilenceRef.current) {
+      clearTimeout(ambientSilenceRef.current)
+      ambientSilenceRef.current = null
+    }
+  }, [])
+
+  const exitAmbient = useCallback(() => {
+    clearAmbientSilence()
+    cancelAutoRestart()
+    stopVoiceInput()
+    ambientActiveRef.current = false
+    setAmbientActive(false)
+  }, [clearAmbientSilence, cancelAutoRestart, stopVoiceInput])
+
+  const enterAmbient = useCallback(() => {
+    cancelAutoRestart()
+    resetTranscript()
+    ambientTranscriptRef.current = ''
+    ambientActiveRef.current = true
+    setAmbientActive(true)
+    startVoiceInput(voiceLanguage, true)
+  }, [cancelAutoRestart, resetTranscript, startVoiceInput, voiceLanguage])
+
+  // Auto-send transcript in ambient mode when recognition goes idle
+  useEffect(() => {
+    if (!ambientActiveRef.current) return
+    if (voiceInputStatus === 'idle' && finalTranscript && finalTranscript !== ambientTranscriptRef.current) {
+      ambientTranscriptRef.current = finalTranscript
+      clearAmbientSilence()
+      const text = finalTranscript.trim()
+      if (text) {
+        resetTranscript()
+        handleSendRef.current(text)
+      }
+    }
+  }, [ambientActive, voiceInputStatus, finalTranscript, clearAmbientSilence, resetTranscript])
+
+  // Silence timeout — exit ambient after 5s of voice inactivity
+  useEffect(() => {
+    if (!ambientActiveRef.current) return
+    clearAmbientSilence()
+    if (voiceInputStatus === 'idle' && voiceOutputStatus === 'idle') {
+      ambientSilenceRef.current = setTimeout(() => {
+        if (ambientActiveRef.current) {
+          exitAmbient()
+        }
+      }, 5000)
+    }
+    return clearAmbientSilence
+  }, [ambientActive, voiceInputStatus, voiceOutputStatus, clearAmbientSilence, exitAmbient])
 
   useEffect(() => {
     theme.init()
@@ -532,6 +595,18 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
     { id: 'cycle-language', label: `Voice language: ${voiceLanguage}`, action: handleCycleLanguage },
   ]
 
+  if (ambientActive) {
+    commandActions.push(
+      { id: 'exit-ambient', label: 'Exit ambient conversation', action: exitAmbient },
+    )
+  }
+
+  if (voiceInputSupported && !ambientActive) {
+    commandActions.push(
+      { id: 'ambient-voice', label: 'Start ambient conversation', action: enterAmbient },
+    )
+  }
+
   if (voiceInputSupported) {
     commandActions.push(
       { id: 'voice-input', label: 'Voice input (hold mic)', action: () => startVoiceInput() },
@@ -631,6 +706,8 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
           onToggleVoiceOutput={handleToggleVoiceOutput}
           voiceInputStatus={voiceInputStatus}
           voiceOutputStatus={voiceOutputStatus}
+          ambientActive={ambientActive}
+          onExitAmbient={exitAmbient}
         />
 
         <div className="flex-1 flex min-h-0">
@@ -703,7 +780,7 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
             <InputBar
               onSend={sendMessage}
               loading={loading}
-              onVoiceStart={() => { cancelAutoRestart(); resetTranscript(); startVoiceInput(voiceLanguage) }}
+              onVoiceStart={() => { exitAmbient(); cancelAutoRestart(); resetTranscript(); startVoiceInput(voiceLanguage) }}
               onVoiceStop={() => { cancelAutoRestart(); return stopVoiceInput() }}
               voiceStatus={voiceInputStatus}
               voiceInterim={interimTranscript}

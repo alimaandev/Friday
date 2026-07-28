@@ -12,6 +12,8 @@ interface StatusRibbonProps {
   onToggleVoiceOutput: () => void
   voiceInputStatus: string
   voiceOutputStatus: string
+  ambientActive?: boolean
+  onExitAmbient?: () => void
 }
 
 const ORB_LABELS: Record<string, string> = {
@@ -30,6 +32,7 @@ const ORB_LABELS: Record<string, string> = {
 export const StatusRibbon = memo(function StatusRibbon({
   systemInfo, latency, orbState, memory, backendOnline, onCommandPalette,
   voiceOutputEnabled, onToggleVoiceOutput, voiceInputStatus, voiceOutputStatus,
+  ambientActive, onExitAmbient,
 }: StatusRibbonProps) {
   const [time, setTime] = useState('')
   useEffect(() => {
@@ -88,7 +91,36 @@ export const StatusRibbon = memo(function StatusRibbon({
 
       <div className="flex-1" />
 
-      {(voiceInputStatus === 'listening' || voiceOutputStatus === 'speaking') && (
+      {/* Ambient mode indicator */}
+      {ambientActive && (
+        <span className="flex items-center gap-1.5 shrink-0 mr-2">
+          <span
+            className="inline-block w-1.5 h-1.5 rounded-full animate-pulse"
+            style={{
+              background: voiceInputStatus === 'listening' ? '#22c55e' : '#00a8ff',
+              boxShadow: voiceInputStatus === 'listening'
+                ? '0 0 8px rgba(34,197,94,0.5)'
+                : '0 0 8px var(--blue-glow)',
+            }}
+          />
+          <span className="text-[10px]" style={{ color: voiceInputStatus === 'listening' ? '#22c55e' : 'var(--blue)' }}>
+            {voiceInputStatus === 'listening' ? 'AMBIENT' : voiceOutputStatus === 'speaking' ? 'SPEAKING' : 'AWAITING'}
+          </span>
+          {onExitAmbient && (
+            <button
+              onClick={onExitAmbient}
+              className="ml-1 text-[10px] transition-all hover:bg-white/[.04] px-1.5 py-0.5 rounded"
+              style={{ color: '#606068' }}
+              title="Exit ambient mode"
+            >
+              ✕
+            </button>
+          )}
+        </span>
+      )}
+
+      {/* Legacy voice indicator (hidden during ambient mode) */}
+      {!ambientActive && (voiceInputStatus === 'listening' || voiceOutputStatus === 'speaking') && (
         <span className="flex items-center gap-1.5 shrink-0 mr-2">
           <span
             className="inline-block w-1.5 h-1.5 rounded-full animate-pulse"

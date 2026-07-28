@@ -12,6 +12,7 @@ import { useHandGesture } from './hooks/useHandGesture'
 import { useVoiceInput } from './hooks/useVoiceInput'
 import { useVoiceOutput } from './hooks/useVoiceOutput'
 import { useWakeWord } from './hooks/useWakeWord'
+import { captureFrame } from './hooks/useCameraCapture'
 import type { SystemInfo, NewsItem, WeatherData, Earthquake, CryptoData, SpaceData, CveItem, WorldClock, MemoryData, ScreenData, CalendarEvent, EmailMessage, ProactiveAlert, Automation } from './types'
 import { AlertToast } from './components/chat/AlertToast'
 const IntelligencePanel = lazy(() => import('./components/sidebar/IntelligencePanel').then(m => ({ default: m.IntelligencePanel })))
@@ -616,7 +617,6 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
     if (visionAnalyzing || !stream) return
     setVisionAnalyzing(true)
     try {
-      const { captureFrame } = await import('./hooks/useCameraCapture')
       const frame = captureFrame(stream)
       if (frame) {
         const result = await analyzeVisionImage(frame)

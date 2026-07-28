@@ -146,7 +146,8 @@ export class HolodeckScene {
     this.rings.forEach((ring, i) => {
       ring.rotation.y += dt * (0.1 + i * 0.05)
       const pulse = 0.15 + 0.1 * Math.sin(t * 0.5 + i)
-      ring.material.opacity = pulse
+      const mat = ring.material
+      if (!Array.isArray(mat)) mat.opacity = pulse
     })
 
     // Subtle camera bob

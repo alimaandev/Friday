@@ -1,10 +1,11 @@
-import { memo, useRef, useEffect, useState, useCallback } from 'react'
-import { HolodeckScene, HolodeckMetrics } from './HolodeckScene'
+import { memo, useRef, useEffect, useState } from 'react'
+import { HolodeckScene } from './HolodeckScene'
+import type { HolodeckMetrics } from './HolodeckScene'
 
 interface HolodeckPanelProps {
   metrics: HolodeckMetrics
-  gesturePosition?: { x: number; y: number }
-  gestureOpenness?: number
+  gesturePosition?: { x: number; y: number } | null
+  gestureOpenness?: number | null
   expanded?: boolean
   onToggle?: () => void
 }
@@ -57,10 +58,6 @@ export const HolodeckPanel = memo(function HolodeckPanel({
       sceneRef.current.updateGesture(gesturePosition.x, gestureOpenness ?? 0.5)
     }
   }, [gesturePosition, gestureOpenness])
-
-  const handleResetView = useCallback(() => {
-    // Will be reset by next render cycle
-  }, [])
 
   return (
     <div

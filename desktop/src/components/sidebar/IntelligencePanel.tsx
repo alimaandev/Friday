@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import type { MemoryData, NewsItem, WeatherData, SystemInfo, Earthquake, CryptoData, SpaceData, CveItem, WorldClock, ScreenData, CalendarEvent, EmailMessage } from '../../types'
+import type { MemoryData, NewsItem, WeatherData, SystemInfo, Earthquake, CryptoData, SpaceData, CveItem, WorldClock, ScreenData, CalendarEvent, EmailMessage, Automation } from '../../types'
 import { WEATHER_CODES } from '../../types'
 import { SkeletonSection } from '../common/Skeleton'
 import { MemoryPanel } from './MemoryPanel'
@@ -7,6 +7,9 @@ import { ScreenPanel } from './ScreenPanel'
 import { CalendarPanel } from './CalendarPanel'
 import { EmailPanel } from './EmailPanel'
 import { BriefingCard } from './BriefingCard'
+import { AutomationSection } from './AutomationSection'
+import { VisionPanel } from './VisionPanel'
+import { HolodeckPanel } from '../holodeck/HolodeckPanel'
 
 interface StockData {
   symbol: string; price: number; change: number; change_pct: number; sparkline: number[]
@@ -43,6 +46,20 @@ interface IntelligencePanelProps {
   briefing?: { summary: string; sections: string[]; greeting: string } | null
   onPlayBriefing?: () => void
   voiceOutputEnabled?: boolean
+  automations?: Automation[]
+  onAutomationToggle?: (id: string) => void
+  onAutomationDelete?: (id: string) => void
+  onAutomationTrigger?: (id: string) => void
+  visionScreenResult?: { description: string; text: string | null; timestamp: number } | null
+  visionCameraResult?: { description: string; text: string | null; timestamp: number } | null
+  onVisionCaptureCamera?: () => void
+  onVisionCaptureScreen?: () => void
+  visionAnalyzing?: boolean
+  holodeckMetrics?: { latency: number; memory: number; tokenUsage: number; cpu?: number }
+  holodeckGesturePosition?: { x: number; y: number }
+  holodeckGestureOpenness?: number
+  holodeckExpanded?: boolean
+  onHolodeckToggle?: () => void
 }
 
 const timeAgo = (dateStr: string) => {
@@ -360,6 +377,9 @@ export const IntelligencePanel = memo(function IntelligencePanel({
   calendarEvents, calendarAuth, emailMessages, emailUnread, emailAuth,
   onCalendarConnect, onEmailConnect,
   briefing, onPlayBriefing, voiceOutputEnabled,
+  automations, onAutomationToggle, onAutomationDelete, onAutomationTrigger,
+  visionScreenResult, visionCameraResult, onVisionCaptureCamera, onVisionCaptureScreen, visionAnalyzing,
+  holodeckMetrics, holodeckGesturePosition, holodeckGestureOpenness, holodeckExpanded, onHolodeckToggle,
 }: IntelligencePanelProps) {
   return (
     <div
@@ -429,6 +449,34 @@ export const IntelligencePanel = memo(function IntelligencePanel({
             <MemoryPanel data={memoryData} />
           </div>
         )}
+        {automations !== undefined && (
+          <div className="mt-4">
+            <AutomationSection
+              automations={automations}
+              onToggle={onAutomationToggle || (() => {})}
+              onDelete={onAutomationDelete || (() => {})}
+              onTrigger={onAutomationTrigger || (() => {})}
+            />
+          </div>
+        )}
+        <div className="mt-4">
+          <VisionPanel
+            screenResult={visionScreenResult || null}
+            cameraResult={visionCameraResult || null}
+            onCaptureCamera={onVisionCaptureCamera || (() => {})}
+            onCaptureScreen={onVisionCaptureScreen || (() => {})}
+            analyzing={visionAnalyzing || false}
+          />
+        </div>
+        <div className="mt-4">
+          <HolodeckPanel
+            metrics={holodeckMetrics || { latency: 0, memory: 0, tokenUsage: 0, cpu: 0 }}
+            gesturePosition={holodeckGesturePosition}
+            gestureOpenness={holodeckGestureOpenness}
+            expanded={holodeckExpanded !== false}
+            onToggle={onHolodeckToggle}
+          />
+        </div>
       </div>
     </div>
   )

@@ -12,17 +12,22 @@ import { useHandGesture } from './hooks/useHandGesture'
 import { useVoiceInput } from './hooks/useVoiceInput'
 import { useVoiceOutput } from './hooks/useVoiceOutput'
 import { useWakeWord } from './hooks/useWakeWord'
-import type { SystemInfo, NewsItem, WeatherData, Earthquake, CryptoData, SpaceData, CveItem, WorldClock, MemoryData, ScreenData, CalendarEvent, EmailMessage, ProactiveAlert } from './types'
+import type { SystemInfo, NewsItem, WeatherData, Earthquake, CryptoData, SpaceData, CveItem, WorldClock, MemoryData, ScreenData, CalendarEvent, EmailMessage, ProactiveAlert, Automation } from './types'
 import { AlertToast } from './components/chat/AlertToast'
 const IntelligencePanel = lazy(() => import('./components/sidebar/IntelligencePanel').then(m => ({ default: m.IntelligencePanel })))
 const CommandPalette = lazy(() => import('./components/command/CommandPalette').then(m => ({ default: m.CommandPalette })))
 const SettingsPanel = lazy(() => import('./components/settings/SettingsPanel').then(m => ({ default: m.SettingsPanel })))
-import { fetchApi, streamChat, checkHealth, getSessions, getGoogleAuth, connectEventSource } from './core/api'
+import { fetchApi, streamChat, checkHealth, getSessions, getGoogleAuth, connectEventSource, getAutomations, toggleAutomation, deleteAutomation, triggerAutomation, analyzeVisionImage, getVisionScreen } from './core/api'
 import type { ServerEvent } from './core/api'
 
 let msgId = 0
 const nextId = () => `m${++msgId}`
 const LANG_CYCLE = ['en-US', 'hi-IN', 'ur-PK']
+const PERSONA_TTS: Record<string, { rate: number; pitch: number }> = {
+  jarvis: { rate: 0.9, pitch: 1.0 },
+  friday: { rate: 1.0, pitch: 1.1 },
+  cortana: { rate: 0.95, pitch: 1.05 },
+}
 
 function showNativeNotification(title: string, body: string) {
   if ('Notification' in window) {
@@ -47,6 +52,11 @@ function App() {
   const [alerts, setAlerts] = useState<ProactiveAlert[]>([])
   const [settingsOpen, setSettingsOpen] = useState(false)
 const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; greeting: string } | null>(null)
+const [automations, setAutomations] = useState<Automation[]>([])
+const [visionScreenResult, setVisionScreenResult] = useState<{ description: string; text: string | null; timestamp: number } | null>(null)
+const [visionCameraResult, setVisionCameraResult] = useState<{ description: string; text: string | null; timestamp: number } | null>(null)
+const [visionAnalyzing, setVisionAnalyzing] = useState(false)
+const [holodeckExpanded, setHolodeckExpanded] = useState(true)
 
   // ─── Fine-grained Zustand selectors (before any hooks that use them) ───
   const sessions = useStore(s => s.sessions)
@@ -54,6 +64,7 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
   const loading = useStore(s => s.loading)
   const orb = useStore(s => s.orb)
   const voiceLanguage = useStore(s => s.voiceLanguage)
+  const persona = useStore(s => s.persona)
   const metricsState = useStore(s => s.metrics)
   const active = useStore(s => {
     const found = s.sessions.find(ses => ses.id === s.activeSessionId)
@@ -242,6 +253,14 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
         case 'briefing':
           setBriefing(ev.data)
           break
+        case 'automation_run':
+          setAutomations(prev => prev.map(a =>
+            a.id === ev.data.id ? { ...a, last_run: ev.data.timestamp, last_status: ev.data.status, run_count: a.run_count + 1 } : a
+          ))
+          break
+        case 'vision':
+          setVisionScreenResult(ev.data)
+          break
       }
     }
 
@@ -301,6 +320,7 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
             fetchApi('/api/cve').then(d => setCve(d.cve || [])).catch(() => {}),
             fetchApi('/api/memory').then(d => setMemoryData(d)).catch(() => {}),
             fetchApi('/api/screen').then(d => setScreenData(d)).catch(() => {}),
+            getAutomations().then(d => setAutomations(d.automations || [])).catch(() => {}),
           ])
           const authStatus = authResp?.status || ''
           setCalendarAuth(authStatus)
@@ -351,10 +371,11 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
       const content = lastMsg.content
       if (content !== lastMsgRef.current && content.length > 10) {
         lastMsgRef.current = content
-        speakResponse(content)
+        const tts = PERSONA_TTS[persona]
+        speakResponse(content, tts)
       }
     }
-  }, [active.messages, voiceOutputEnabled, speakResponse])
+  }, [active.messages, voiceOutputEnabled, speakResponse, persona])
 
   const toggleCamera = useCallback(() => {
     setCamActive(prev => {
@@ -437,7 +458,7 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
     }
 
     const chatController = streamChat(
-      { message: text, session_id: activeSessionId },
+      { message: text, session_id: activeSessionId, persona },
       (ev) => {
         switch (ev.type) {
           case 'plan':
@@ -567,11 +588,60 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
     state.setVoiceLanguage(next)
   }, [])
 
+  const handleSetPersona = useCallback((key: string) => {
+    state.setPersona(key)
+  }, [])
+
+  const handleAutomationToggle = useCallback(async (id: string) => {
+    try {
+      const updated = await toggleAutomation(id)
+      setAutomations(prev => prev.map(a => a.id === id ? { ...a, enabled: updated.enabled } : a))
+    } catch {}
+  }, [])
+
+  const handleAutomationDelete = useCallback(async (id: string) => {
+    try {
+      await deleteAutomation(id)
+      setAutomations(prev => prev.filter(a => a.id !== id))
+    } catch {}
+  }, [])
+
+  const handleAutomationTrigger = useCallback(async (id: string) => {
+    try {
+      await triggerAutomation(id)
+    } catch {}
+  }, [])
+
+  const handleVisionCaptureCamera = useCallback(async () => {
+    if (visionAnalyzing || !stream) return
+    setVisionAnalyzing(true)
+    try {
+      const { captureFrame } = await import('./hooks/useCameraCapture')
+      const frame = captureFrame(stream)
+      if (frame) {
+        const result = await analyzeVisionImage(frame)
+        setVisionCameraResult(result)
+      }
+    } catch {}
+    setVisionAnalyzing(false)
+  }, [visionAnalyzing, stream])
+
+  const handleVisionCaptureScreen = useCallback(async () => {
+    if (visionAnalyzing) return
+    setVisionAnalyzing(true)
+    try {
+      const result = await getVisionScreen()
+      setVisionScreenResult(result)
+    } catch {}
+    setVisionAnalyzing(false)
+  }, [visionAnalyzing])
+
   const playBriefing = useCallback(() => {
     if (briefing && voiceOutputEnabled) {
-      speakResponse(briefing.summary)
+      const tts = PERSONA_TTS[persona]
+      speakResponse(briefing.summary, tts)
     }
-  }, [briefing, voiceOutputEnabled, speakResponse])
+  }, [briefing, voiceOutputEnabled, speakResponse, persona])
 
   // ─── Persist voice settings ───
   useEffect(() => {
@@ -593,6 +663,14 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
     { id: 'toggle-camera', label: 'Gesture control', action: toggleCamera },
     { id: 'toggle-voice-output', label: 'Toggle voice output', action: handleToggleVoiceOutput },
     { id: 'cycle-language', label: `Voice language: ${voiceLanguage}`, action: handleCycleLanguage },
+
+    { id: 'persona-friday', label: 'Persona: FRIDAY', action: () => handleSetPersona('friday') },
+    { id: 'persona-jarvis', label: 'Persona: J.A.R.V.I.S.', action: () => handleSetPersona('jarvis') },
+    { id: 'persona-cortana', label: 'Persona: Cortana', action: () => handleSetPersona('cortana') },
+
+    { id: 'vision-screen', label: 'Analyze screen', action: handleVisionCaptureScreen },
+    { id: 'vision-camera', label: 'Capture camera', action: handleVisionCaptureCamera },
+    { id: 'toggle-holodeck', label: holodeckExpanded ? 'Hide Holodeck' : 'Show Holodeck', action: () => setHolodeckExpanded(e => !e) },
   ]
 
   if (ambientActive) {
@@ -708,6 +786,7 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
           voiceOutputStatus={voiceOutputStatus}
           ambientActive={ambientActive}
           onExitAmbient={exitAmbient}
+          persona={persona}
         />
 
         <div className="flex-1 flex min-h-0">
@@ -816,6 +895,24 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
               briefing={briefing}
               onPlayBriefing={playBriefing}
               voiceOutputEnabled={voiceOutputEnabled}
+              automations={automations}
+              onAutomationToggle={handleAutomationToggle}
+              onAutomationDelete={handleAutomationDelete}
+              onAutomationTrigger={handleAutomationTrigger}
+              visionScreenResult={visionScreenResult}
+              visionCameraResult={visionCameraResult}
+              onVisionCaptureCamera={handleVisionCaptureCamera}
+              onVisionCaptureScreen={handleVisionCaptureScreen}
+              visionAnalyzing={visionAnalyzing}
+              holodeckMetrics={{
+                latency: metricsState.latency,
+                memory: metricsState.memory,
+                tokenUsage: metricsState.tokenUsage,
+              }}
+              holodeckGesturePosition={handPosition}
+              holodeckGestureOpenness={openness}
+              holodeckExpanded={holodeckExpanded}
+              onHolodeckToggle={() => setHolodeckExpanded(e => !e)}
             />
           </Suspense>
         </div>
@@ -845,6 +942,8 @@ const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; 
           calendarAuth={calendarAuth}
           emailAuth={emailAuth}
           onGoogleConnect={handleGoogleConnect}
+          persona={persona}
+          onSetPersona={handleSetPersona}
         />
         </Suspense>
       )}

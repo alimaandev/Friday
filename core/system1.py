@@ -213,6 +213,150 @@ def _handle_news(query: str) -> str | None:
         return None
 
 
+def _handle_create_automation(query: str) -> str | None:
+    """Parse natural-language automation creation requests."""
+    try:
+        from core.automations import get_automation_engine
+
+        q = query.lower()
+
+        # Extract name
+        name_match = re.search(r"(?:called|named|to )([a-z0-9 _-]+?)(?: (every|each|when|if|at|on|that))", q)
+        name = name_match.group(1).strip().title() if name_match else "Custom Automation"
+
+        # Detect trigger type
+        cron_match = re.search(
+            r"(?:(every|each|everyday|daily|weekly|monthly|hourly)"
+            r"|(at\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)?)"
+            r"|(\d+)\s*(minute|hour|day)s?\s*ly?)",
+            q,
+        )
+        trigger_type = "cron"
+        trigger_config = {"cron": "0 0 * * *"}  # default: daily midnight
+
+        if cron_match:
+            trigger_config = _parse_cron_from_text(q)
+
+        # Detect action
+        action = "notification"
+        action_params = {"message": f"⏰ Automation triggered: {name}"}
+
+        if re.search(r"\b(briefing|morning (report|briefing)|daily (summary|digest))\b", q):
+            action = "briefing"
+            action_params = {}
+        elif re.search(r"\b(tool|run|execute|call)\b", q):
+            action = "tool_call"
+            tool_match = re.search(r"(?:use|run|call|execute) (\w+)", q)
+            action_params = {
+                "tool": tool_match.group(1) if tool_match else "default",
+                "args": {},
+            }
+
+        engine = get_automation_engine()
+        auto = engine.create(name, trigger_type, trigger_config, action, action_params)
+        return (
+            f"✅ Automation created: \"{auto.name}\"\n"
+            f"   Trigger: {trigger_type} ({trigger_config.get('cron', '')})\n"
+            f"   Action: {action}\n"
+            f"   Use `/api/v1/automations/{auto.id}` to manage it."
+        )
+    except Exception as e:
+        return f"Could not create automation: {e}"
+
+
+def _parse_cron_from_text(text: str) -> dict:
+    """Convert natural language to a cron expression."""
+    text = text.lower()
+
+    # Hourly: "every hour", "every 2 hours"
+    m = re.search(r"every\s+(\d+)?\s*hour", text)
+    if m:
+        interval = int(m.group(1)) if m.group(1) else 1
+        return {"cron": f"0 */{interval} * * *"}
+
+    # Minutes: "every 15 minutes", "every 5 min"
+    m = re.search(r"every\s+(\d+)\s*(minute|min)", text)
+    if m:
+        return {"cron": f"*/{m.group(1)} * * * *"}
+
+    # Daily at specific time: "at 8am", "at 09:30", "every day at 7"
+    m = re.search(r"(?:at\s+)(\d{1,2})(?::(\d{2}))?\s*(am|pm)?", text)
+    if m:
+        hour = int(m.group(1))
+        minute = int(m.group(2)) if m.group(2) else 0
+        period = m.group(3)
+        if period == "pm" and hour < 12:
+            hour += 12
+        if period == "am" and hour == 12:
+            hour = 0
+        return {"cron": f"{minute} {hour} * * *"}
+
+    # Weekly: "every monday", "on mondays"
+    days = {"monday": 1, "tuesday": 2, "wednesday": 3, "thursday": 4,
+            "friday": 5, "saturday": 6, "sunday": 0}
+    for day_name, day_num in days.items():
+        if day_name in text:
+            m = re.search(r"(?:at\s+)(\d{1,2})(?::(\d{2}))?\s*(am|pm)?", text)
+            if m:
+                hour = int(m.group(1))
+                minute = int(m.group(2)) if m.group(2) else 0
+                period = m.group(3)
+                if period == "pm" and hour < 12:
+                    hour += 12
+                if period == "am" and hour == 12:
+                    hour = 0
+                return {"cron": f"{minute} {hour} * * {day_num}"}
+            return {"cron": f"0 9 * * {day_num}"}
+
+    # Weekdays: "every weekday", "weekdays"
+    if re.search(r"weekday|business day", text):
+        m = re.search(r"(?:at\s+)(\d{1,2})(?::(\d{2}))?\s*(am|pm)?", text)
+        if m:
+            hour = int(m.group(1))
+            minute = int(m.group(2)) if m.group(2) else 0
+            period = m.group(3)
+            if period == "pm" and hour < 12:
+                hour += 12
+            if period == "am" and hour == 12:
+                hour = 0
+            return {"cron": f"{minute} {hour} * * 1-5"}
+        return {"cron": "0 9 * * 1-5"}
+
+    # Daily: "every day", "daily"
+    if re.search(r"(daily|every day|each day|every morning|every evening)", text):
+        m = re.search(r"(?:at\s+)(\d{1,2})(?::(\d{2}))?\s*(am|pm)?", text)
+        if m:
+            hour = int(m.group(1))
+            minute = int(m.group(2)) if m.group(2) else 0
+            period = m.group(3)
+            if period == "pm" and hour < 12:
+                hour += 12
+            if period == "am" and hour == 12:
+                hour = 0
+            return {"cron": f"{minute} {hour} * * *"}
+        return {"cron": "0 8 * * *"}
+
+    return {"cron": "0 8 * * *"}
+
+
+def _handle_vision_query(query: str) -> str | None:
+    """Handle 'what's on my screen' type queries."""
+    try:
+        from core.vision import get_vision_engine
+        engine = get_vision_engine()
+        result = engine.describe_screen()
+        if "error" in result:
+            return None
+        desc = result.get("description", "")
+        text = result.get("text")
+        parts = [desc]
+        if text:
+            parts.append(f"\nText detected on screen:\n{text[:500]}")
+        return "".join(parts)
+    except Exception:
+        return None
+
+
 def build_default_system1() -> System1:
     s1 = System1()
     s1.register("time", r"\b(what|current|tell|show).*time\b", _handle_time, priority=10, cache_ttl=10)
@@ -221,4 +365,6 @@ def build_default_system1() -> System1:
     s1.register("system_info", r"\b(system|(cpu|memory|ram|disk)\s*(usage|info|status)|how.*system|performance)\b", _handle_system_info, priority=50, cache_ttl=10)
     s1.register("memory_recall", r"\b(remember|recall|what (do you know|did i)|search memory|find memory|look up)\b", _handle_memory_recall, priority=60)
     s1.register("news", r"\b(news|headlines|what'?s (new|happening)|latest)\b", _handle_news, priority=70, cache_ttl=300)
+    s1.register("create_automation", r"\b(create|make|add|schedule|set up)\s+(automation|automatic|schedule|recurring|cron|routine|task)\b", _handle_create_automation, priority=30)
+    s1.register("vision", r"\b(what.*(screen|display|monitor|desktop|window)|describe.*(screen|display)|read.*screen|screen.*(show|say|display)|look at screen)\b", _handle_vision_query, priority=40)
     return s1

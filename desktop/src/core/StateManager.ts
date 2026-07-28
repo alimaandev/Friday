@@ -11,6 +11,7 @@ interface AppState {
   voiceOutputEnabled: boolean
   wakeWordEnabled: boolean
   voiceLanguage: string
+  persona: string
   loading: boolean
   metrics: SystemMetrics
 }
@@ -34,6 +35,7 @@ const initialState: AppState = {
   voiceOutputEnabled: false,
   wakeWordEnabled: false,
   voiceLanguage: 'en-US',
+  persona: (() => { try { return localStorage.getItem('friday_persona') || 'friday' } catch { return 'friday' } })(),
   loading: false,
   metrics: DEFAULT_METRICS,
 }
@@ -80,6 +82,11 @@ class StateManager {
 
   setVoiceLanguage(lang: string) {
     useStore.setState({ voiceLanguage: lang })
+  }
+
+  setPersona(key: string) {
+    useStore.setState({ persona: key })
+    try { localStorage.setItem('friday_persona', key) } catch {}
   }
 }
 

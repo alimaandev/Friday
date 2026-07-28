@@ -14,6 +14,7 @@ interface StatusRibbonProps {
   voiceOutputStatus: string
   ambientActive?: boolean
   onExitAmbient?: () => void
+  persona?: string
 }
 
 const ORB_LABELS: Record<string, string> = {
@@ -32,7 +33,7 @@ const ORB_LABELS: Record<string, string> = {
 export const StatusRibbon = memo(function StatusRibbon({
   systemInfo, latency, orbState, memory, backendOnline, onCommandPalette,
   voiceOutputEnabled, onToggleVoiceOutput, voiceInputStatus, voiceOutputStatus,
-  ambientActive, onExitAmbient,
+  ambientActive, onExitAmbient, persona,
 }: StatusRibbonProps) {
   const [time, setTime] = useState('')
   useEffect(() => {
@@ -88,6 +89,12 @@ export const StatusRibbon = memo(function StatusRibbon({
       <span className="w-px h-3 rounded-full shrink-0" style={{ background: 'var(--glass-border)' }} />
 
       <span className="shrink-0" style={{ color: '#606068' }}>{ORB_LABELS[orbState] ?? orbState.toUpperCase()}</span>
+
+      {persona && (
+        <span className="shrink-0 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: '#00a8ff', background: 'rgba(0,168,255,0.08)', border: '1px solid rgba(0,168,255,0.15)' }}>
+          {persona}
+        </span>
+      )}
 
       <div className="flex-1" />
 

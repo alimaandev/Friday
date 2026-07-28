@@ -2,12 +2,17 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 
 export type VoiceOutputStatus = 'idle' | 'speaking' | 'paused'
 
+export interface SpeakOptions {
+  rate?: number
+  pitch?: number
+}
+
 interface UseVoiceOutputReturn {
   isSupported: boolean
   enabled: boolean
   setEnabled: (v: boolean) => void
   status: VoiceOutputStatus
-  speak: (text: string) => void
+  speak: (text: string, options?: SpeakOptions) => void
   stop: () => void
   pause: () => void
   resume: () => void
@@ -28,7 +33,7 @@ export function useVoiceOutput(): UseVoiceOutputReturn {
   const [selectedVoice, setSelectedVoiceState] = useState<SpeechSynthesisVoice | null>(null)
   const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null)
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
-  const speakQueueRef = useRef<string[]>([])
+  const speakQueueRef = useRef<{ text: string; options?: SpeakOptions }[]>([])
   const speakingRef = useRef(false)
   const synthRef = useRef<SpeechSynthesis | null>(null)
 
@@ -40,13 +45,13 @@ export function useVoiceOutput(): UseVoiceOutputReturn {
     const synth = synthRef.current
     if (!synth) return
 
-    const text = speakQueueRef.current.shift()!
+    const item = speakQueueRef.current.shift()!
     speakingRef.current = true
 
-    const utterance = new SpeechSynthesisUtterance(text)
+    const utterance = new SpeechSynthesisUtterance(item.text)
     if (selectedVoiceRef.current) utterance.voice = selectedVoiceRef.current
-    utterance.rate = 1
-    utterance.pitch = 1
+    utterance.rate = item.options?.rate ?? 1
+    utterance.pitch = item.options?.pitch ?? 1
     utterance.volume = 1
 
     utterance.onstart = () => setStatus('speaking')
@@ -69,9 +74,9 @@ export function useVoiceOutput(): UseVoiceOutputReturn {
     synth.speak(utterance)
   }, [])
 
-  const speak = useCallback((text: string) => {
+  const speak = useCallback((text: string, options?: SpeakOptions) => {
     if (!isSupported || !enabled || !text.trim()) return
-    speakQueueRef.current.push(text)
+    speakQueueRef.current.push({ text, options })
     processQueue()
   }, [isSupported, enabled, processQueue])
 

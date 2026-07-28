@@ -14,6 +14,8 @@ interface SettingsPanelProps {
   calendarAuth: string
   emailAuth: string
   onGoogleConnect: () => void
+  persona: string
+  onSetPersona: (key: string) => void
 }
 
 export function SettingsPanel({
@@ -30,6 +32,8 @@ export function SettingsPanel({
   calendarAuth,
   emailAuth,
   onGoogleConnect,
+  persona,
+  onSetPersona,
 }: SettingsPanelProps) {
   const ref = useRef<HTMLDivElement>(null)
 
@@ -116,6 +120,25 @@ export function SettingsPanel({
             </button>
           </div>
           {toggleRow('Wake Word ("Hey Friday")', wakeWordActive, onToggleWakeWord)}
+          <div className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+            <span className="text-sm" style={{ color: '#ccc' }}>Voice Personality</span>
+            <div className="flex gap-1">
+              {['friday', 'jarvis', 'cortana'].map(k => (
+                <button
+                  key={k}
+                  onClick={() => onSetPersona(k)}
+                  className="px-2.5 py-1 rounded-lg text-[11px] uppercase tracking-wider transition-all"
+                  style={{
+                    background: persona === k ? 'rgba(0,168,255,0.15)' : 'rgba(255,255,255,0.04)',
+                    border: persona === k ? '1px solid rgba(0,168,255,0.3)' : '1px solid rgba(255,255,255,0.06)',
+                    color: persona === k ? '#00a8ff' : '#888',
+                  }}
+                >
+                  {k}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Section: Input */}
           <div className="text-[10px] tracking-[0.15em] py-2" style={{ color: '#555' }}>INPUT</div>

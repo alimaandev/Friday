@@ -106,10 +106,10 @@ cd .. && npm install && npm run dev
         <p align="center">
           <img src="desktop/public/feature-orb.png" alt="3D Reactive Orb" width="400">
           <br>
-          <strong>🎨 3D Reactive Orb</strong>
+          <strong>🎨 3D Reactive Orb + Holodeck</strong>
         </p>
         <p align="center">
-          Procedural Three.js orb at the heart of the interface. 10 state-driven animation profiles — idle, listening, thinking, speaking, and more. Hand-tracking follow, noise-based energy core, Fresnel glow, holographic hex shell, drifting particles.
+          Procedural Three.js orb with 10 state-driven animation profiles. Plus a full 3D data visualization canvas — animated metric bars, ambient particle fields, orbital rings. Camera follows hand gestures in real time.
         </p>
       </td>
       <td width="50%" valign="top">
@@ -119,7 +119,7 @@ cd .. && npm install && npm run dev
           <strong>🌍 Live Intelligence Panel</strong>
         </p>
         <p align="center">
-          10 real-time data modules: News, Weather, Stocks, Crypto, GitHub Trending, Earthquakes, Space (ISS), World Clocks, CVE, Screen Capture. All pushed via a single SSE connection — replaced 18 polling loops.
+          10 real-time data modules: News, Weather, Stocks, Crypto, GitHub, Earthquakes, Space, World Clocks, CVE, Screen. All pushed via a single SSE connection — replaced 18 polling loops.
         </p>
       </td>
     </tr>
@@ -128,20 +128,40 @@ cd .. && npm install && npm run dev
         <p align="center">
           <img src="desktop/public/feature-chat.png" alt="Streaming Chat" width="400">
           <br>
-          <strong>💬 Streaming Chat</strong>
+          <strong>💬 Streaming Chat + Voice Personality</strong>
         </p>
         <p align="center">
-          Token-by-token responses with plan visualization and tool-call tracking. Multi-session with independent memory. Command palette (⌘K). Context-aware suggestion chips.
+          Token-by-token responses with plan visualization and tool-call tracking. Three voice personas (JARVIS, FRIDAY, Cortana) with unique TTS rate/pitch and custom system prompts. Switch anytime via settings or ⌘K.
         </p>
       </td>
       <td width="50%" valign="top">
         <p align="center">
           <img src="desktop/public/feature-ribbon.png" alt="Voice & Gesture" width="400">
           <br>
-          <strong>🎤 Voice & Gesture</strong>
+          <strong>🎤 Voice, Gesture & Ambient Mode</strong>
         </p>
         <p align="center">
-          Voice input/output with "Hey Friday" wake word (offline, in-browser). Webcam hand-gesture control — open palm to speak, fist to send. Multi-language support (English, Hindi, Urdu).
+          Voice input/output with "Hey Friday" wake word (offline, in-browser). Ambient conversation mode — natural back-and-forth with auto-send on pause. Webcam hand-gesture control — open palm to speak, fist to send. Multi-language (English, Hindi, Urdu).
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%" valign="top">
+        <p align="center">
+          <br>
+          <strong>⏰ Automations</strong>
+        </p>
+        <p align="center">
+          Schedule recurring actions with cron expressions ("every weekday at 9am"). Natural language creation — say "create automation for daily briefing at 8am". Background engine checks every 30s and fires via SSE. Toggle, trigger manually, or delete from the Intelligence panel.
+        </p>
+      </td>
+      <td width="50%" valign="top">
+        <p align="center">
+          <br>
+          <strong>👁 Screen & Camera Vision</strong>
+        </p>
+        <p align="center">
+          Analyze your screen or webcam feed via LLM vision. Ask "what's on my screen" for instant description. Background SSE push auto-describes screen changes. Optional OCR via pytesseract. Capture camera frames from the Intelligence panel buttons.
         </p>
       </td>
     </tr>
@@ -156,7 +176,10 @@ cd .. && npm install && npm run dev
 | **Gmail** | OAuth 2.0 | Unread count + inbox preview |
 | **Memory** | TF-IDF + Jaccard + Vector | Cross-session semantic search |
 | **Proactive Alerts** | SSE | System anomalies, reminders, notifications |
-| **LLM Providers** | Pluggable | OpenRouter, OpenAI, Ollama, custom |
+| **LLM Providers** | Pluggable | OpenRouter, OpenAI, Ollama, Anthropic, custom |
+| **Morning Pulse Briefing** | Template | Daily weather, news, crypto, calendar, email summary |
+| **Automations Engine** | Cron + SSE | Conditional triggers with background scheduler |
+| **Vision** | LLM + PIL | Screen capture, camera frames, optional OCR |
 
 <div align="right">
   <a href="#readme-top">▲ back to top</a>
@@ -188,9 +211,9 @@ A single-page React frontend communicates with a Python Quart backend via SSE an
 |---------|--------|------------|
 | **v1** | ✅ Shipped | Core chat, 3D orb, intelligence dashboard |
 | **v2** | ✅ Shipped | Async backend, SSE push, voice/gesture, Google integration, performance overhaul |
-| **v3** | 🔨 In progress | Plugin marketplace, custom tool builder, local RAG pipeline |
-| **v4** | 📋 Planned | Mobile companion app, multi-user mode, proactive automation engine |
-| **v5** | 📋 Planned | Native desktop app (Tauri), offline-first, local LLM integration |
+| **v3** | ✅ Shipped | Voice personality (3 personas), cron automations with NL creation, screen/camera vision, Holodeck 3D visualizations, ambient conversation mode |
+| **v4** | 📋 Planned | Plugin marketplace, custom tool builder, local RAG pipeline |
+| **v5** | 📋 Planned | Mobile companion app, multi-user mode, proactive automation engine |
 
 Track progress on the [open issues](https://github.com/alimaandev/Friday/issues).
 

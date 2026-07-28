@@ -909,8 +909,8 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
                 memory: metricsState.memory,
                 tokenUsage: metricsState.tokenUsage,
               }}
-              holodeckGesturePosition={handPosition}
-              holodeckGestureOpenness={openness}
+              holodeckGesturePosition={handPosition ?? undefined}
+              holodeckGestureOpenness={openness ?? undefined}
               holodeckExpanded={holodeckExpanded}
               onHolodeckToggle={() => setHolodeckExpanded(e => !e)}
             />

@@ -3,9 +3,9 @@
 
   <img src="og-image.svg" alt="Friday AI — Open-Source JARVIS for Your Desktop" width="100%">
 
-  <br><br>
+  <br>
 
-  <!-- SHIELD GROUP -->
+  <!-- Hero badges -->
   <p align="center">
     <a href="https://github.com/alimaandev/Friday/stargazers"><img src="https://img.shields.io/github/stars/alimaandev/Friday?style=for-the-badge&logo=github&color=gold" alt="Stars"></a>
     <a href="https://github.com/alimaandev/Friday/issues"><img src="https://img.shields.io/github/issues/alimaandev/Friday?style=for-the-badge&logo=github" alt="Issues"></a>
@@ -18,7 +18,11 @@
     <a href="https://vite.dev"><img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite" alt="Vite 8"></a>
     <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss" alt="Tailwind CSS v4"></a>
     <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript 6"></a>
+    <br>
     <a href="https://github.com/sponsors/alimaandev"><img src="https://img.shields.io/badge/Sponsor-30363D?style=for-the-badge&logo=githubsponsors" alt="Sponsor"></a>
+    <a href="#"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
+    <a href="https://twitter.com/intent/tweet?text=Check%20out%20Friday%20-%20The%20Open-Source%20JARVIS%20for%20Your%20Desktop&url=https://github.com/alimaandev/Friday"><img src="https://img.shields.io/badge/Tweet-000000?style=for-the-badge&logo=x&logoColor=white" alt="X / Twitter"></a>
+    <a href="https://www.youtube.com/@alimaandev"><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube"></a>
   </p>
 
   <p align="center">
@@ -38,6 +42,7 @@
   - [⚡ Quick Start](#-quick-start)
   - [🚀 Features](#-features)
   - [🏗 Architecture](#-architecture)
+  - [📘 API Reference](docs/api.md)
   - [🛣 Roadmap](#-roadmap)
   - [🤝 Contributing](#-contributing)
   - [⭐ Star History](#-star-history)
@@ -50,11 +55,11 @@
 
 ---
 
-## 🔥 Speak. Gesture. Type.
+## 🎯 Your Desktop AI Command Center
 
-**Friday** turns your desktop into an AI command center — inspired by the JARVIS interface from Iron Man. The 3D orb reacts to you, the panel streams live data from 10 sources, and the LLM speaks back. Everything runs locally. Your API key, your LLM, your rules.
+**Friday** is an open-source JARVIS-class AI that lives on your desktop. Speak to it, gesture at it, or type — it sees your screen, runs automations, visualizes data in 3D, and talks back with personality. Everything runs locally. Your API key, your LLM, your rules.
 
-No cloud lock-in. No subscriptions. One command to start:
+> The 3D orb reacts to your voice. The Intelligence panel streams 10 live data sources. The Holodeck renders your metrics as animated 3D bars. And it all starts with one command.
 
 ```bash
 docker compose up -d

@@ -1,5 +1,4 @@
-import pytest
-from config import OLLAMA_BASE_URL, MODEL, MAX_ITERATIONS, get_system_prompt
+from config import MAX_ITERATIONS, MODEL, OLLAMA_BASE_URL, get_system_prompt
 
 
 class TestConfig:

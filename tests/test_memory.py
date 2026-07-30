@@ -1,7 +1,8 @@
 import pytest
-from core.memory.working import WorkingMemory
-from core.memory.long_term import LongTermMemory, MemoryEntry
+
 from core.memory.conversation import ConversationMemory
+from core.memory.long_term import LongTermMemory, MemoryEntry
+from core.memory.working import WorkingMemory
 
 
 class TestWorkingMemory:

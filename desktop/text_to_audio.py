@@ -61,7 +61,7 @@ def speak_text(engine, text, output_path=None, rate=200, volume=1.0):
 
 def read_file_text(path):
     """Read text from a file."""
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return f.read()
 
 

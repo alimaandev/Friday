@@ -3,7 +3,7 @@ import hashlib
 import io
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from datetime import UTC
 
 try:
     from PIL import ImageGrab
@@ -134,9 +134,9 @@ class CalendarMonitor(BaseMonitor):
             from core.auth.google import get_calendar_service, is_authenticated
             if not is_authenticated():
                 return None
-            from datetime import datetime, timezone, timedelta
+            from datetime import datetime, timedelta
             service = get_calendar_service()
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             soon = (now + timedelta(hours=2)).isoformat()
             events = service.events().list(
                 calendarId="primary",
@@ -147,7 +147,6 @@ class CalendarMonitor(BaseMonitor):
                 orderBy="startTime",
             ).execute()
 
-            alerts = []
             for e in events.get("items", []):
                 eid = e.get("id", "")
                 if eid in self._known_events:
@@ -211,7 +210,6 @@ class EmailMonitor(BaseMonitor):
                     headers = {h["name"]: h["value"] for h in meta.get("payload", {}).get("headers", [])}
                     subj = headers.get("Subject", "").lower()
                     frm = headers.get("From", "")
-                    snippet = meta.get("snippet", "")
                     for keyword in urgencies:
                         if keyword in subj:
                             return Alert(

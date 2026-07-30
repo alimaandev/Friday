@@ -1,4 +1,5 @@
-from typing import Generator
+from collections.abc import Generator
+
 from providers import get_provider
 
 _provider = None

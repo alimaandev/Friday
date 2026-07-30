@@ -2,13 +2,13 @@ import os
 import time
 from typing import Any
 
-from core.memory.working import WorkingMemory
-from core.memory.long_term import LongTermMemory
-from core.memory.conversation import ConversationMemory
-from core.memory.vector import VectorMemory
-from core.memory.embeddings import EmbeddingEngine
-from core.memory.consolidator import MemoryConsolidator
 from core.logger import info
+from core.memory.consolidator import MemoryConsolidator
+from core.memory.conversation import ConversationMemory
+from core.memory.embeddings import EmbeddingEngine
+from core.memory.long_term import LongTermMemory
+from core.memory.vector import VectorMemory
+from core.memory.working import WorkingMemory
 
 MEMORY_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "memory_store")
 os.makedirs(MEMORY_DIR, exist_ok=True)

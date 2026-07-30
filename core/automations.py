@@ -4,9 +4,7 @@ import json
 import os
 import time
 import uuid
-import re
-from dataclasses import dataclass, field, asdict
-from typing import Any
+from dataclasses import asdict, dataclass
 
 AUTOMATIONS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "memory_store")
 AUTOMATIONS_FILE = os.path.join(AUTOMATIONS_DIR, "automations.json")
@@ -202,7 +200,7 @@ class AutomationEngine:
 
     def _load(self):
         try:
-            with open(self._file_path, "r", encoding="utf-8") as f:
+            with open(self._file_path, encoding="utf-8") as f:
                 data = json.load(f)
             for item in data:
                 auto = Automation.from_dict(item)

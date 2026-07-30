@@ -147,7 +147,7 @@ class LongTermMemory:
         if not os.path.exists(self._file_path):
             return
         try:
-            with open(self._file_path, "r", encoding="utf-8") as f:
+            with open(self._file_path, encoding="utf-8") as f:
                 data = json.load(f)
             for item in data:
                 entry = MemoryEntry.from_dict(item)

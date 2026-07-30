@@ -3,8 +3,8 @@ import inspect
 import pkgutil
 from typing import Any
 
-from plugins.base import ToolPlugin
 from core.logger import info, warn
+from plugins.base import ToolPlugin
 
 _TOOL_DEFINITIONS: list[dict[str, Any]] = []
 _TOOL_MAP: dict[str, Any] = {}

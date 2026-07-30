@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from plugins.base import ToolPlugin
@@ -25,8 +25,8 @@ class CalendarPlugin(ToolPlugin):
             if not is_authenticated():
                 return {"error": "Not authenticated. Run the Google OAuth flow first."}
             service = get_calendar_service()
-            now = datetime.now(timezone.utc).isoformat()
-            later = (datetime.now(timezone.utc) + timedelta(days=days_ahead)).isoformat()
+            now = datetime.now(UTC).isoformat()
+            later = (datetime.now(UTC) + timedelta(days=days_ahead)).isoformat()
             events = service.events().list(
                 calendarId="primary", timeMin=now, timeMax=later,
                 maxResults=max_results, singleEvents=True, orderBy="startTime",

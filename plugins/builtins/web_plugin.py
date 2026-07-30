@@ -1,7 +1,6 @@
-import urllib.request
-import urllib.error
-import socket
 import re
+import urllib.error
+import urllib.request
 
 from plugins.base import ToolPlugin
 
@@ -35,5 +34,5 @@ class WebFetchPlugin(ToolPlugin):
                 content = response.read().decode("utf-8", errors="replace")
             text = _strip_html(content)
             return {"content": text[:5000], "error": None}
-        except (urllib.error.URLError, socket.timeout, ValueError) as e:
+        except (TimeoutError, urllib.error.URLError, ValueError) as e:
             return {"content": None, "error": str(e)}

@@ -1,5 +1,4 @@
 import time
-from typing import Any
 
 from core.logger import info
 
@@ -124,7 +123,8 @@ class MemoryConsolidator:
         return jaccard
 
 
-import re
+import re  # noqa: E402
+
 _WORD_RE = re.compile(r"\w+")
 
 _STOP_WORDS = {

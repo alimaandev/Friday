@@ -3,7 +3,7 @@ import io
 import time
 from typing import Any
 
-from PIL import Image, ImageGrab
+from PIL import ImageGrab
 
 from plugins.base import ToolPlugin
 
@@ -52,7 +52,6 @@ class ScreenCapturePlugin(ToolPlugin):
                 right: int | None = None, bottom: int | None = None) -> dict[str, Any]:
         region = (left, top, right, bottom) if all(x is not None for x in [left, top, right, bottom]) else None
         try:
-            from PIL import Image
             img = ImageGrab.grab(bbox=region)
             buf = io.BytesIO()
             img.save(buf, format="PNG", optimize=True)

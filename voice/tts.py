@@ -1,5 +1,4 @@
 import threading
-import time
 
 _tts_engine = None
 _tts_lock = threading.Lock()

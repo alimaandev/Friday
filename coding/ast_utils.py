@@ -1,11 +1,9 @@
 import ast
-import os
-from typing import Any
 
 
 def parse_file(filepath: str) -> dict:
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             source = f.read()
         tree = ast.parse(source, filename=filepath)
         return {
@@ -82,7 +80,7 @@ def get_function_info(filepath: str, function_name: str) -> dict:
 
 def find_references(filepath: str, symbol: str) -> dict:
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             lines = f.readlines()
         refs = []
         for i, line in enumerate(lines, 1):
@@ -99,7 +97,7 @@ def find_references(filepath: str, symbol: str) -> dict:
 
 def rename_symbol(filepath: str, old_name: str, new_name: str, dry_run: bool = True) -> dict:
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             content = f.read()
         new_content = content.replace(old_name, new_name)
         changes = sum(1 for a, b in zip(content, new_content) if a != b)

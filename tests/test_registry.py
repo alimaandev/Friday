@@ -1,4 +1,3 @@
-import pytest
 from core.registry import discover_plugins, get_tool_definitions, get_tool_map, run_health_checks
 
 

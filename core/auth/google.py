@@ -1,7 +1,6 @@
 import json
 import os
 import secrets
-import time
 from typing import Any
 
 from google.auth.transport.requests import Request
@@ -63,7 +62,7 @@ def _load_token() -> Credentials | None:
     if not os.path.exists(TOKEN_PATH):
         return None
     try:
-        with open(TOKEN_PATH, "r") as f:
+        with open(TOKEN_PATH) as f:
             data = json.load(f)
         creds = Credentials.from_authorized_user_info(data, _SCOPES)
         if creds and creds.expired and creds.refresh_token:

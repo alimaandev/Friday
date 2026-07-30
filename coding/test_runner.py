@@ -14,7 +14,7 @@ def _find_command(cmds: list[str]) -> str | None:
 
 def run_tests(path: str = ".", timeout: int = 60, verbose: bool = False) -> dict:
     try:
-        import pytest
+        import pytest  # noqa: F401 — used to check availability
         pytest_cmd = "pytest"
     except ImportError:
         pytest_target = _find_command(["pytest", "python -m pytest", "python3 -m pytest"])
@@ -49,7 +49,7 @@ def run_lint(path: str = ".") -> dict:
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        lines = [l for l in result.stdout.split("\n") if l.strip()][:30]
+        lines = [line for line in result.stdout.split("\n") if line.strip()][:30]
         return {
             "issues": lines,
             "count": len(lines),

@@ -2,9 +2,7 @@
 
 import base64
 import io
-import os
 import time
-from datetime import datetime
 
 try:
     from PIL import Image, ImageGrab

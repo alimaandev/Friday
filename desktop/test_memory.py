@@ -1,6 +1,9 @@
-﻿import sys, os
+﻿import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from core.memory import get_memory_manager
+
 m = get_memory_manager()
 m.vector.clear()
 r1 = m.vector.store('user likes Python and dark mode', {'type':'pref'})

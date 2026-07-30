@@ -1,4 +1,4 @@
-from core.security import get_sandbox, get_permission_manager
+from core.security import get_permission_manager, get_sandbox
 from plugins.base import ToolPlugin
 
 

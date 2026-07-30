@@ -1,8 +1,9 @@
 import time
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
-from openai import OpenAI, APIError, APIConnectionError, APITimeoutError, RateLimitError
 import httpx
+from openai import OpenAI
 
 from providers.base import BaseProvider
 from providers.registry import register_provider

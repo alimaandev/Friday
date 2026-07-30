@@ -1,10 +1,11 @@
-import sys
-import shutil
 import argparse
-from core.registry import discover_plugins
+import shutil
+import sys
+
 from agent.core import Agent
 from browser import close_browser
-
+from core.registry import discover_plugins
+from voice import is_voice_available, listen, speak
 
 BANNER = r"""
   _____  _     _     _

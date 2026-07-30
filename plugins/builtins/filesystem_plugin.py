@@ -19,7 +19,7 @@ class ReadFilePlugin(ToolPlugin):
 
     def execute(self, path: str) -> dict:
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 content = f.read()
             return {"content": content, "error": None}
         except Exception as e:

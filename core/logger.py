@@ -1,9 +1,9 @@
 import json
+import logging
 import os
 import time
-import logging
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
@@ -50,7 +50,7 @@ def _metrics_log(entry: dict[str, Any]):
 
 def log(level: str, message: str, **extra):
     entry = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "level": level.upper(),
         "message": message,
         **extra,
@@ -149,7 +149,7 @@ def get_timeline(limit: int = 50) -> list[dict]:
     events = []
     if os.path.exists(_EVENT_LOG):
         try:
-            with open(_EVENT_LOG, "r", encoding="utf-8") as f:
+            with open(_EVENT_LOG, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     if line:

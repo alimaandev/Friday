@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 SESSION_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "sessions")
@@ -9,11 +9,11 @@ os.makedirs(SESSION_DIR, exist_ok=True)
 
 class Session:
     def __init__(self, language: str = "english"):
-        self.session_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        self.session_id = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         self.language = language
         self.messages: list[dict[str, Any]] = []
         self.metadata: dict[str, Any] = {
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "language": language,
             "message_count": 0,
         }
@@ -22,7 +22,7 @@ class Session:
         entry = {
             "role": role,
             "content": content,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             **extra,
         }
         self.messages.append(entry)

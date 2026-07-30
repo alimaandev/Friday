@@ -1,8 +1,7 @@
 import os
 import pickle
-import time
 import re
-from typing import Any
+import time
 
 from core.logger import info
 
@@ -236,7 +235,6 @@ class SentenceEngine:
         return self.search(query, top_k)
 
     def delete(self, entry_id: str) -> bool:
-        before = len(self._entries)
         indices = [i for i, e in enumerate(self._entries) if e.id == entry_id]
         if not indices:
             return False

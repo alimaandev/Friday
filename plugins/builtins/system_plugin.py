@@ -1,6 +1,6 @@
-import platform
 import os
-from datetime import datetime, timezone
+import platform
+from datetime import UTC, datetime
 
 from plugins.base import ToolPlugin
 
@@ -46,7 +46,7 @@ class GetCurrentDateTimePlugin(ToolPlugin):
         return {"type": "object", "properties": {}, "required": []}
 
     def execute(self) -> dict:
-        now = datetime.now(timezone.utc).astimezone()
+        now = datetime.now(UTC).astimezone()
         return {
             "datetime": now.isoformat(),
             "date": now.strftime("%Y-%m-%d"),

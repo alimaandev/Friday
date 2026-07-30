@@ -1,23 +1,34 @@
 """Local API server for Friday desktop - streams Agent events via SSE"""
-import sys, json, asyncio, uuid, os, platform, re, time, hashlib, io, base64
+import asyncio
+import base64
+import io
+import json
+import os
+import platform
+import re
+import sys
+import time
+import uuid
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
+from datetime import UTC, datetime, timedelta
 from functools import wraps
+from pathlib import Path
+
 import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from core.registry import discover_plugins
-from core.logger import get_metrics
-from agent.core import Agent
-from core.memory import get_memory_manager
-from core.proactive import ProactiveMonitor, ScreenMonitor, CalendarMonitor, EmailMonitor, SystemMonitor
-from core.briefing import BriefingEngine
-from core.automations import get_automation_engine, Automation
-from core.vision import get_vision_engine
-from quart import Quart, request, Response, jsonify, stream_with_context
+from quart import Quart, Response, jsonify, request
 from quart_cors import cors
+
+from agent.core import Agent
+from core.automations import get_automation_engine
+from core.briefing import BriefingEngine
+from core.logger import get_metrics
+from core.memory import get_memory_manager
+from core.proactive import CalendarMonitor, EmailMonitor, ProactiveMonitor, ScreenMonitor, SystemMonitor
+from core.registry import discover_plugins
+from core.vision import get_vision_engine
 
 # ─── API Version Prefix ──────────────────────────────────────────
 API_PREFIX = "/api/v1"
@@ -169,7 +180,7 @@ def _get_agent(session_id: str, persona: str | None = None) -> Agent:
     return _agents[session_id]
 
 
-from cachetools import TTLCache
+from cachetools import TTLCache  # noqa: E402
 
 TTL_CACHE: TTLCache = TTLCache(maxsize=500, ttl=300)
 
@@ -233,7 +244,7 @@ async def chat():
                 if event is None:
                     break
                 yield json.dumps(event, ensure_ascii=False) + '\n'
-        except asyncio.TimeoutError:
+        except TimeoutError:
             yield json.dumps({"type": "done", "content": "Request timed out", "final": True}) + '\n'
         finally:
             executor.shutdown(wait=False)
@@ -525,7 +536,7 @@ async def earthquakes():
             items.append({
                 "mag": props.get("mag", 0),
                 "place": props.get("place", "Unknown"),
-                "time": datetime.fromtimestamp(props.get("time", 0) / 1000, tz=timezone.utc).isoformat(),
+                "time": datetime.fromtimestamp(props.get("time", 0) / 1000, tz=UTC).isoformat(),
                 "depth": round(coords[2], 1),
                 "url": props.get("url", ""),
             })
@@ -591,7 +602,7 @@ async def space():
 @require_auth
 @ttl_cache(10)
 async def global_time():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     zones = [
         ("London", "Europe/London"),
         ("New York", "America/New_York"),
@@ -623,10 +634,10 @@ async def global_time():
 @ttl_cache(600)
 async def cve():
     try:
-        start = (datetime.now(timezone.utc) - timedelta(days=3)).strftime("%Y-%m-%dT00:00:00.000")
+        start = (datetime.now(UTC) - timedelta(days=3)).strftime("%Y-%m-%dT00:00:00.000")
         url = (
             f"https://services.nvd.nist.gov/rest/json/cves/2.0"
-            f"?pubStartDate={start}&pubEndDate={datetime.now(timezone.utc).strftime('%Y-%m-%dT23:59:59.999')}"
+            f"?pubStartDate={start}&pubEndDate={datetime.now(UTC).strftime('%Y-%m-%dT23:59:59.999')}"
             f"&resultsPerPage=8&cvssScore=7"
         )
         client = get_async_client()
@@ -743,10 +754,10 @@ async def calendar_events():
         from core.auth.google import get_calendar_service, is_authenticated
         if not is_authenticated():
             return jsonify({"events": [], "error": "not_authenticated"})
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta
         service = get_calendar_service()
-        now = datetime.now(timezone.utc).isoformat()
-        later = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+        now = datetime.now(UTC).isoformat()
+        later = (datetime.now(UTC) + timedelta(days=7)).isoformat()
         events = service.events().list(
             calendarId="primary", timeMin=now, timeMax=later,
             maxResults=10, singleEvents=True, orderBy="startTime",
@@ -859,7 +870,7 @@ async def _push_briefing():
     last_briefing_date = None
     while True:
         try:
-            today = datetime.now(timezone.utc).date()
+            today = datetime.now(UTC).date()
             if last_briefing_date != today:
                 briefing = await engine.synthesize()
                 await _broadcaster.broadcast("briefing", {
@@ -1117,7 +1128,7 @@ async def _push_clocks():
     while True:
         await asyncio.sleep(30)
         try:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             zones = [
                 ("London", "Europe/London"),
                 ("New York", "America/New_York"),

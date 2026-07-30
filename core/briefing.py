@@ -1,11 +1,12 @@
 """Morning Pulse — daily briefing generator that aggregates all data sources."""
-import asyncio, time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-from typing import Any
-import httpx
+import asyncio
+import time
 import xml.etree.ElementTree as ET
-import re
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
+import httpx
 
 __all__ = ["Briefing", "BriefingEngine"]
 
@@ -74,7 +75,7 @@ class BriefingEngine:
 
     @staticmethod
     def _greeting() -> str:
-        hour = datetime.now(timezone.utc).hour
+        hour = datetime.now(UTC).hour
         if hour < 12:
             return "Good morning."
         if hour < 17:
@@ -152,8 +153,8 @@ class BriefingEngine:
             if not is_authenticated():
                 return None
             service = get_calendar_service()
-            now = datetime.now(timezone.utc).isoformat()
-            later = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+            now = datetime.now(UTC).isoformat()
+            later = (datetime.now(UTC) + timedelta(days=1)).isoformat()
             events = service.events().list(
                 calendarId="primary", timeMin=now, timeMax=later,
                 maxResults=5, singleEvents=True, orderBy="startTime",

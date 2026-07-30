@@ -1,7 +1,7 @@
 import re
 import time
-from dataclasses import dataclass, field
-from typing import Any, Callable
+from collections.abc import Callable
+from dataclasses import dataclass
 
 from core.logger import info
 
@@ -130,7 +130,8 @@ def _handle_date(query: str) -> str | None:
 
 def _handle_weather(query: str) -> str | None:
     try:
-        import urllib.request, json
+        import json
+        import urllib.request
         url = (
             "https://api.open-meteo.com/v1/forecast?"
             "latitude=33.68&longitude=73.05"
@@ -156,7 +157,10 @@ def _handle_weather(query: str) -> str | None:
 
 def _handle_system_info(query: str) -> str | None:
     try:
-        import platform, os, psutil
+        import os
+        import platform
+
+        import psutil
         cpu = psutil.cpu_percent(interval=0)
         mem = psutil.virtual_memory()
         return (
@@ -189,7 +193,8 @@ def _handle_memory_recall(query: str) -> str | None:
 
 def _handle_news(query: str) -> str | None:
     try:
-        import urllib.request, xml.etree.ElementTree as ET
+        import urllib.request
+        import xml.etree.ElementTree as ET
         feeds = [
             "https://hnrss.org/frontpage",
             "http://feeds.bbci.co.uk/news/rss.xml",

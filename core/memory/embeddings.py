@@ -54,6 +54,7 @@ class TfidfEngine:
         try:
             query_vec = self._vectorizer.transform([query])
             from sklearn.metrics.pairwise import cosine_similarity
+
             scores = cosine_similarity(query_vec, self._matrix)[0]
             scored = [(float(scores[i]), self._entries[i]) for i in range(len(self._entries))]
             scored.sort(key=lambda x: -x[0])
@@ -61,13 +62,15 @@ class TfidfEngine:
             for score, entry in scored[:top_k]:
                 if score < 0.05:
                     continue
-                results.append({
-                    "id": entry.id,
-                    "text": entry.text[:300],
-                    "score": round(score, 4),
-                    "metadata": entry.metadata,
-                    "created_at": entry.created_at,
-                })
+                results.append(
+                    {
+                        "id": entry.id,
+                        "text": entry.text[:300],
+                        "score": round(score, 4),
+                        "metadata": entry.metadata,
+                        "created_at": entry.created_at,
+                    }
+                )
             return results
         except Exception as e:
             info(f"Embedding search error: {e}")
@@ -108,6 +111,7 @@ class TfidfEngine:
             self._matrix = None
             return
         from sklearn.feature_extraction.text import TfidfVectorizer
+
         texts = [e.text for e in self._entries]
         self._vectorizer = TfidfVectorizer(
             max_features=5000,
@@ -151,21 +155,25 @@ class SentenceEngine:
     def _init_lock(cls):
         if cls._model_lock is None:
             import threading
+
             cls._model_lock = threading.Lock()
 
     @classmethod
     def start_background_load(cls):
         cls._init_lock()
         import threading
+
         def _load():
             try:
                 from sentence_transformers import SentenceTransformer
+
                 model = SentenceTransformer("all-MiniLM-L6-v2")
                 with cls._model_lock:
                     cls._shared_model = model
                     cls._model_ready = True
             except Exception:
                 pass
+
         t = threading.Thread(target=_load, daemon=True)
         t.start()
 
@@ -186,10 +194,14 @@ class SentenceEngine:
                     self._model = SentenceEngine._shared_model
                     return self._model
         from sentence_transformers import SentenceTransformer
+
         self._model = SentenceTransformer("all-MiniLM-L6-v2")
         SentenceEngine._shared_model = self._model
         SentenceEngine._model_ready = True
         return self._model
+
+    def count(self) -> int:
+        return len(self._entries)
 
     def store(self, text: str, metadata: dict | None = None) -> dict:
         entry = EmbeddingEntry(text, metadata)
@@ -207,6 +219,7 @@ class SentenceEngine:
             return []
         try:
             import numpy as np
+
             query_vec = self._get_model().encode([query])[0]
             scores = []
             for i, emb in enumerate(self._embeddings):
@@ -219,13 +232,15 @@ class SentenceEngine:
             for score, entry in scores[:top_k]:
                 if score < 0.3:
                     continue
-                results.append({
-                    "id": entry.id,
-                    "text": entry.text[:300],
-                    "score": round(score, 4),
-                    "metadata": entry.metadata,
-                    "created_at": entry.created_at,
-                })
+                results.append(
+                    {
+                        "id": entry.id,
+                        "text": entry.text[:300],
+                        "score": round(score, 4),
+                        "metadata": entry.metadata,
+                        "created_at": entry.created_at,
+                    }
+                )
             return results
         except Exception as e:
             info(f"Sentence embedding search error: {e}")
@@ -257,6 +272,7 @@ class SentenceEngine:
     def persist(self):
         try:
             import numpy as np
+
             data = [(e.text, e.metadata, e.created_at, e.id) for e in self._entries]
             emb_data = [e.tolist() if isinstance(e, np.ndarray) else e for e in self._embeddings]
             with open(EMBEDDINGS_PATH, "wb") as f:
@@ -290,10 +306,12 @@ class EmbeddingEngine:
     def _get_config_engine(self) -> str:
         try:
             from config.providers import get_provider_config
+
             cfg = get_provider_config("embeddings")
             return cfg.get("engine", "tfidf").lower()
         except Exception:
             import os as _os
+
             return _os.environ.get("FRIDAY_EMBEDDINGS", "tfidf").lower()
 
     def _ensure(self):
@@ -336,12 +354,12 @@ class EmbeddingEngine:
 
     def persist(self):
         self._ensure().persist()
-        if hasattr(self._engine, '_dirty'):
+        if hasattr(self._engine, "_dirty"):
             self._engine._dirty = False
 
     def is_dirty(self) -> bool:
         self._ensure()
-        return getattr(self._engine, '_dirty', False)
+        return getattr(self._engine, "_dirty", False)
 
     def get_engine_type(self) -> str:
         self._ensure()

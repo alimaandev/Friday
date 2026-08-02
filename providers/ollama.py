@@ -3,8 +3,6 @@ import time
 from collections.abc import Generator
 from typing import Any
 
-import ollama
-
 from providers.base import BaseProvider
 from providers.registry import register_provider
 
@@ -16,6 +14,8 @@ class OllamaProvider(BaseProvider):
 
     def __init__(self, config: dict[str, Any]):
         super().__init__(config)
+        import ollama
+
         self._client = ollama.Client(host=config.get("base_url", "http://localhost:11434"))
 
     def chat(

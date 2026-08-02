@@ -1,11 +1,14 @@
 import time
 from collections.abc import Generator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
 from providers.base import BaseProvider
 from providers.registry import register_provider
+
+if TYPE_CHECKING:
+    from openai import OpenAI
 
 
 def _is_retryable_err(e: Exception) -> bool:
@@ -27,7 +30,7 @@ class OpenAICompatibleProvider(BaseProvider):
         super().__init__(config)
         self._client = None
 
-    def _get_client(self) -> "OpenAI":
+    def _get_client(self) -> OpenAI:
         if self._client is not None:
             return self._client
         from openai import OpenAI

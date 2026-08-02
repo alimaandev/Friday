@@ -3,7 +3,6 @@ from collections.abc import Generator
 from typing import Any
 
 import httpx
-from openai import OpenAI
 
 from providers.base import BaseProvider
 from providers.registry import register_provider
@@ -28,9 +27,11 @@ class OpenAICompatibleProvider(BaseProvider):
         super().__init__(config)
         self._client = None
 
-    def _get_client(self) -> OpenAI:
+    def _get_client(self) -> "OpenAI":
         if self._client is not None:
             return self._client
+        from openai import OpenAI
+
         api_key = self.config.get("api_key", "") or ""
         base_url = self.config.get("base_url", "https://api.openai.com/v1")
         timeout = self.config.get("timeout", 30)

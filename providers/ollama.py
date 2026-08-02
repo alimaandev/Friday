@@ -16,9 +16,7 @@ class OllamaProvider(BaseProvider):
 
     def __init__(self, config: dict[str, Any]):
         super().__init__(config)
-        self._client = ollama.Client(
-            host=config.get("base_url", "http://localhost:11434")
-        )
+        self._client = ollama.Client(host=config.get("base_url", "http://localhost:11434"))
 
     def chat(
         self,
@@ -68,11 +66,13 @@ class OllamaProvider(BaseProvider):
                     tc_id = tc.get("id", getattr(tc, "id", ""))
                     if isinstance(args, dict):
                         args = json.dumps(args, ensure_ascii=False)
-                    normalized.append({
-                        "id": tc_id,
-                        "type": "function",
-                        "function": {"name": name, "arguments": args},
-                    })
+                    normalized.append(
+                        {
+                            "id": tc_id,
+                            "type": "function",
+                            "function": {"name": name, "arguments": args},
+                        }
+                    )
                 tool_calls = normalized
 
         if buffer:

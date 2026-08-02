@@ -95,12 +95,14 @@ def record_tool_call(name: str, duration_ms: float, success: bool = True):
     if not success:
         _METRICS["tool_errors"][name] += 1
         _METRICS["failures"] += 1
-    _metrics_log({
-        "type": "tool_call",
-        "tool": name,
-        "duration_ms": round(duration_ms, 1),
-        "success": success,
-    })
+    _metrics_log(
+        {
+            "type": "tool_call",
+            "tool": name,
+            "duration_ms": round(duration_ms, 1),
+            "success": success,
+        }
+    )
 
 
 def record_llm_call(tokens: int = 0):
@@ -133,16 +135,18 @@ def get_metrics() -> dict:
 
 def reset_metrics():
     _METRICS.clear()
-    _METRICS.update({
-        "tools": defaultdict(int),
-        "tool_errors": defaultdict(int),
-        "tool_durations": defaultdict(list),
-        "tokens_used": 0,
-        "llm_calls": 0,
-        "failures": 0,
-        "retries": 0,
-        "started_at": time.time(),
-    })
+    _METRICS.update(
+        {
+            "tools": defaultdict(int),
+            "tool_errors": defaultdict(int),
+            "tool_durations": defaultdict(list),
+            "tokens_used": 0,
+            "llm_calls": 0,
+            "failures": 0,
+            "retries": 0,
+            "started_at": time.time(),
+        }
+    )
 
 
 def get_timeline(limit: int = 50) -> list[dict]:

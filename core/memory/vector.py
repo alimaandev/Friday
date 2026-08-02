@@ -32,7 +32,7 @@ def _cosine_similarity(a: Counter, b: Counter) -> float:
         return 0.0
     intersection = set(a) & set(b)
     numerator = sum(a[x] * b[x] for x in intersection)
-    denom = (sum(v ** 2 for v in a.values()) ** 0.5) * (sum(v ** 2 for v in b.values()) ** 0.5)
+    denom = (sum(v**2 for v in a.values()) ** 0.5) * (sum(v**2 for v in b.values()) ** 0.5)
     if not denom:
         return 0.0
     return numerator / denom
@@ -85,13 +85,15 @@ class VectorMemory:
         for score, entry in scored[:top_k]:
             if score < 0.05:
                 continue
-            results.append({
-                "id": entry.id,
-                "text": entry.text[:200],
-                "score": round(score, 4),
-                "metadata": entry.metadata,
-                "created_at": entry.created_at,
-            })
+            results.append(
+                {
+                    "id": entry.id,
+                    "text": entry.text[:200],
+                    "score": round(score, 4),
+                    "metadata": entry.metadata,
+                    "created_at": entry.created_at,
+                }
+            )
         return results
 
     def delete(self, entry_id: str) -> bool:

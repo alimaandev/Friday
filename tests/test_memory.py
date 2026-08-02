@@ -116,4 +116,3 @@ class TestConversationMemory:
     def test_summarize_empty(self):
         cm = ConversationMemory()
         assert cm.summarize() == ""
-

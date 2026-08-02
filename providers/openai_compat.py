@@ -39,7 +39,12 @@ class OpenAICompatibleProvider(BaseProvider):
         return self._client
 
     def _stream(
-        self, model: str, messages: list[dict], tools: list[dict] | None, temperature: float, max_tokens: int,
+        self,
+        model: str,
+        messages: list[dict],
+        tools: list[dict] | None,
+        temperature: float,
+        max_tokens: int,
     ) -> Generator[dict, None, None]:
         kwargs = dict(
             model=model,
@@ -95,11 +100,7 @@ class OpenAICompatibleProvider(BaseProvider):
         if buffer:
             yield {"type": "tokens", "content": "".join(buffer)}
 
-        tool_calls = (
-            [v for _, v in sorted(tool_calls_acc.items())]
-            if tool_calls_acc
-            else None
-        )
+        tool_calls = [v for _, v in sorted(tool_calls_acc.items())] if tool_calls_acc else None
 
         yield {
             "type": "done",
@@ -127,7 +128,10 @@ class OpenAICompatibleProvider(BaseProvider):
                 if is_fallback or not _is_retryable_err(e):
                     yield {"type": "done", "content": f"Error: {err_msg}", "final": True}
                     return
-                yield {"type": "tokens", "content": f"[Primary model failed ({err_msg[:60]}), retrying with {fallback}…]\n\n"}
+                yield {
+                    "type": "tokens",
+                    "content": f"[Primary model failed ({err_msg[:60]}), retrying with {fallback}…]\n\n",
+                }
 
 
 register_provider("openai", OpenAICompatibleProvider)

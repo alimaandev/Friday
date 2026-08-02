@@ -54,9 +54,16 @@ class PermissionManager:
         self._denied_tools: set[str] = set()
         self._allowed_tools: set[str] = set()
         self._command_blacklist: list[str] = [
-            "rm -rf /", "rm -rf /*", ":(){ :|:& };:", "mkfs",
-            "dd if=", "> /dev/sda", "chmod 777 /",
-            "sudo rm", "wget http://", "curl http://",
+            "rm -rf /",
+            "rm -rf /*",
+            ":(){ :|:& };:",
+            "mkfs",
+            "dd if=",
+            "> /dev/sda",
+            "chmod 777 /",
+            "sudo rm",
+            "wget http://",
+            "curl http://",
         ]
         self._interactive_mode = True
 
@@ -87,7 +94,9 @@ class PermissionManager:
         for blacklisted in self._command_blacklist:
             if blacklisted in cmd_lower:
                 return {"allowed": False, "reason": f"Command contains blacklisted pattern: '{blacklisted}'"}
-        if self._interactive_mode and any(cmd_lower.startswith(prefix) for prefix in ["rm ", "del ", "shutdown", "format"]):
+        if self._interactive_mode and any(
+            cmd_lower.startswith(prefix) for prefix in ["rm ", "del ", "shutdown", "format"]
+        ):
             return {"allowed": True, "requires_confirmation": True}
         return {"allowed": True}
 

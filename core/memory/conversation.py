@@ -9,11 +9,13 @@ class ConversationMemory:
         self._summaries: list[str] = []
 
     def add(self, role: str, content: str):
-        self._messages.append({
-            "role": role,
-            "content": content,
-            "timestamp": time.time(),
-        })
+        self._messages.append(
+            {
+                "role": role,
+                "content": content,
+                "timestamp": time.time(),
+            }
+        )
         self._trim()
 
     def get_messages(self) -> list[dict]:

@@ -17,6 +17,7 @@ _EXCLUDED_TOOLS = {
     "browse_",  # prefix for internal browser helpers
 }
 
+
 def _is_tool_allowed(name: str) -> bool:
     if name in _EXCLUDED_TOOLS:
         return False
@@ -56,18 +57,14 @@ def _scan_package(package_name: str):
 
 def _scan_tools_fallback():
     from tools import python_repl, search, shell, voice
+
     for mod in (python_repl, search, shell, voice):
         _register_functions_from_module(mod)
 
 
 def _register_plugins_from_module(module):
     for name, obj in inspect.getmembers(module, inspect.isclass):
-        if (
-            issubclass(obj, ToolPlugin)
-            and obj is not ToolPlugin
-            and hasattr(obj, "name")
-            and obj.name
-        ):
+        if issubclass(obj, ToolPlugin) and obj is not ToolPlugin and hasattr(obj, "name") and obj.name:
             try:
                 instance = obj()
                 name = instance.name
@@ -112,18 +109,20 @@ def _register_functions_from_module(module):
                     elif ann is list:
                         prop["type"] = "array"
                 properties[pname] = prop
-            _TOOL_DEFINITIONS.append({
-                "type": "function",
-                "function": {
-                    "name": name,
-                    "description": (obj.__doc__ or f"Execute {name}").strip()[:200],
-                    "parameters": {
-                        "type": "object",
-                        "properties": properties,
-                        "required": required,
+            _TOOL_DEFINITIONS.append(
+                {
+                    "type": "function",
+                    "function": {
+                        "name": name,
+                        "description": (obj.__doc__ or f"Execute {name}").strip()[:200],
+                        "parameters": {
+                            "type": "object",
+                            "properties": properties,
+                            "required": required,
+                        },
                     },
-                },
-            })
+                }
+            )
         except Exception as e:
             warn(f"Could not generate definition for {name}: {e}")
 

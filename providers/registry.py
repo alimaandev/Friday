@@ -8,9 +8,7 @@ def register_provider(name: str, cls: type) -> None:
 def get_provider_class(name: str) -> type:
     cls = _PROVIDER_REGISTRY.get(name)
     if cls is None:
-        raise ValueError(
-            f"Unknown provider '{name}'. Available: {list(_PROVIDER_REGISTRY.keys())}"
-        )
+        raise ValueError(f"Unknown provider '{name}'. Available: {list(_PROVIDER_REGISTRY.keys())}")
     return cls
 
 

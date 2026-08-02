@@ -9,13 +9,11 @@ class BaseProvider(ABC):
 
     @property
     @abstractmethod
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
     @abstractmethod
     def chat(
         self,
         messages: list[dict],
         tools: list[dict] | None = None,
-    ) -> Generator[dict, None, None]:
-        ...
+    ) -> Generator[dict, None, None]: ...

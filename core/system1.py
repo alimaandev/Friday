@@ -23,15 +23,18 @@ class System1:
         self._reflexes: list[Reflex] = []
         self._compiled_from_history: list[Reflex] = []
 
-    def register(self, label: str, pattern: str, handler: Callable[[str], str | None],
-                 priority: int = 100, cache_ttl: float = 0):
-        self._reflexes.append(Reflex(
-            label=label,
-            pattern=re.compile(pattern, re.I),
-            handler=handler,
-            priority=priority,
-            cache_ttl=cache_ttl,
-        ))
+    def register(
+        self, label: str, pattern: str, handler: Callable[[str], str | None], priority: int = 100, cache_ttl: float = 0
+    ):
+        self._reflexes.append(
+            Reflex(
+                label=label,
+                pattern=re.compile(pattern, re.I),
+                handler=handler,
+                priority=priority,
+                cache_ttl=cache_ttl,
+            )
+        )
         self._reflexes.sort(key=lambda r: r.priority)
 
     def route(self, user_input: str) -> dict | None:
@@ -81,12 +84,16 @@ class System1:
             try:
                 existing = {r.pattern.pattern for r in self._reflexes}
                 if pattern not in existing:
-                    self._compiled_from_history.append(Reflex(
-                        label=f"learned_{plan_tool}",
-                        pattern=re.compile(pattern, re.I),
-                        handler=lambda _, t=plan_tool: f"I notice you're asking about {t}. Try using the {plan_tool} tool for this.",
-                        priority=200,
-                    ))
+                    self._compiled_from_history.append(
+                        Reflex(
+                            label=f"learned_{plan_tool}",
+                            pattern=re.compile(pattern, re.I),
+                            handler=lambda _, t=plan_tool: (
+                                f"I notice you're asking about {t}. Try using the {plan_tool} tool for this."
+                            ),
+                            priority=200,
+                        )
+                    )
             except re.error:
                 pass
         if len(self._compiled_from_history) > 50:
@@ -99,12 +106,14 @@ class System1:
     def stats(self) -> list[dict]:
         stats = []
         for r in self._reflexes:
-            stats.append({
-                "label": r.label,
-                "priority": r.priority,
-                "hit_count": r.hit_count,
-                "pattern": r.pattern.pattern,
-            })
+            stats.append(
+                {
+                    "label": r.label,
+                    "priority": r.priority,
+                    "hit_count": r.hit_count,
+                    "pattern": r.pattern.pattern,
+                }
+            )
         return stats
 
 
@@ -117,21 +126,19 @@ _date_formats = [
 
 def _handle_time(query: str) -> str | None:
     now = time.localtime()
-    return (
-        f"{time.strftime('%A, %B %d, %Y', now)}\n"
-        f"{time.strftime('%I:%M %p', now)}"
-    )
+    return f"{time.strftime('%A, %B %d, %Y', now)}\n{time.strftime('%I:%M %p', now)}"
 
 
 def _handle_date(query: str) -> str | None:
     now = time.localtime()
-    return time.strftime('%A, %B %d, %Y', now)
+    return time.strftime("%A, %B %d, %Y", now)
 
 
 def _handle_weather(query: str) -> str | None:
     try:
         import json
         import urllib.request
+
         url = (
             "https://api.open-meteo.com/v1/forecast?"
             "latitude=33.68&longitude=73.05"
@@ -146,9 +153,19 @@ def _handle_weather(query: str) -> str | None:
         humidity = cur.get("relative_humidity_2m", "?")
         wind = cur.get("wind_speed_10m", "?")
         code = cur.get("weather_code", 0)
-        _weather_labels = {0: "Clear", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
-                           45: "Foggy", 48: "Foggy", 51: "Light drizzle", 61: "Rain",
-                           71: "Snow", 80: "Rain showers", 95: "Thunderstorm"}
+        _weather_labels = {
+            0: "Clear",
+            1: "Mainly clear",
+            2: "Partly cloudy",
+            3: "Overcast",
+            45: "Foggy",
+            48: "Foggy",
+            51: "Light drizzle",
+            61: "Rain",
+            71: "Snow",
+            80: "Rain showers",
+            95: "Thunderstorm",
+        }
         label = _weather_labels.get(code, "Unknown")
         return f"{temp}°C, {label}. Feels like {feels}°C. Humidity: {humidity}%. Wind: {wind} km/h."
     except Exception:
@@ -161,6 +178,7 @@ def _handle_system_info(query: str) -> str | None:
         import platform
 
         import psutil
+
         cpu = psutil.cpu_percent(interval=0)
         mem = psutil.virtual_memory()
         return (
@@ -175,8 +193,11 @@ def _handle_system_info(query: str) -> str | None:
 def _handle_memory_recall(query: str) -> str | None:
     try:
         from core.memory import get_memory_manager
+
         mm = get_memory_manager()
-        search_term = re.sub(r"(?i)(remember|recall|what (do you know|did i)|search memory|find memory|look up)", "", query).strip()
+        search_term = re.sub(
+            r"(?i)(remember|recall|what (do you know|did i)|search memory|find memory|look up)", "", query
+        ).strip()
         if search_term:
             results = mm.search(search_term, top_k=3)
             if results:
@@ -195,6 +216,7 @@ def _handle_news(query: str) -> str | None:
     try:
         import urllib.request
         import xml.etree.ElementTree as ET
+
         feeds = [
             "https://hnrss.org/frontpage",
             "http://feeds.bbci.co.uk/news/rss.xml",
@@ -260,7 +282,7 @@ def _handle_create_automation(query: str) -> str | None:
         engine = get_automation_engine()
         auto = engine.create(name, trigger_type, trigger_config, action, action_params)
         return (
-            f"✅ Automation created: \"{auto.name}\"\n"
+            f'✅ Automation created: "{auto.name}"\n'
             f"   Trigger: {trigger_type} ({trigger_config.get('cron', '')})\n"
             f"   Action: {action}\n"
             f"   Use `/api/v1/automations/{auto.id}` to manage it."
@@ -297,8 +319,7 @@ def _parse_cron_from_text(text: str) -> dict:
         return {"cron": f"{minute} {hour} * * *"}
 
     # Weekly: "every monday", "on mondays"
-    days = {"monday": 1, "tuesday": 2, "wednesday": 3, "thursday": 4,
-            "friday": 5, "saturday": 6, "sunday": 0}
+    days = {"monday": 1, "tuesday": 2, "wednesday": 3, "thursday": 4, "friday": 5, "saturday": 6, "sunday": 0}
     for day_name, day_num in days.items():
         if day_name in text:
             m = re.search(r"(?:at\s+)(\d{1,2})(?::(\d{2}))?\s*(am|pm)?", text)
@@ -348,6 +369,7 @@ def _handle_vision_query(query: str) -> str | None:
     """Handle 'what's on my screen' type queries."""
     try:
         from core.vision import get_vision_engine
+
         engine = get_vision_engine()
         result = engine.describe_screen()
         if "error" in result:
@@ -366,10 +388,39 @@ def build_default_system1() -> System1:
     s1 = System1()
     s1.register("time", r"\b(what|current|tell|show).*time\b", _handle_time, priority=10, cache_ttl=10)
     s1.register("date", r"\b(what|current|today'?s|tell|show).*date\b", _handle_date, priority=10, cache_ttl=30)
-    s1.register("weather", r"\b(weather|temperature|forecast|how.*(hot|cold|warm))\b", _handle_weather, priority=20, cache_ttl=300)
-    s1.register("system_info", r"\b(system|(cpu|memory|ram|disk)\s*(usage|info|status)|how.*system|performance)\b", _handle_system_info, priority=50, cache_ttl=10)
-    s1.register("memory_recall", r"\b(remember|recall|what (do you know|did i)|search memory|find memory|look up)\b", _handle_memory_recall, priority=60)
-    s1.register("news", r"\b(news|headlines|what'?s (new|happening)|latest)\b", _handle_news, priority=70, cache_ttl=300)
-    s1.register("create_automation", r"\b(create|make|add|schedule|set up)\s+(automation|automatic|schedule|recurring|cron|routine|task)\b", _handle_create_automation, priority=30)
-    s1.register("vision", r"\b(what.*(screen|display|monitor|desktop|window)|describe.*(screen|display)|read.*screen|screen.*(show|say|display)|look at screen)\b", _handle_vision_query, priority=40)
+    s1.register(
+        "weather",
+        r"\b(weather|temperature|forecast|how.*(hot|cold|warm))\b",
+        _handle_weather,
+        priority=20,
+        cache_ttl=300,
+    )
+    s1.register(
+        "system_info",
+        r"\b(system|(cpu|memory|ram|disk)\s*(usage|info|status)|how.*system|performance)\b",
+        _handle_system_info,
+        priority=50,
+        cache_ttl=10,
+    )
+    s1.register(
+        "memory_recall",
+        r"\b(remember|recall|what (do you know|did i)|search memory|find memory|look up)\b",
+        _handle_memory_recall,
+        priority=60,
+    )
+    s1.register(
+        "news", r"\b(news|headlines|what'?s (new|happening)|latest)\b", _handle_news, priority=70, cache_ttl=300
+    )
+    s1.register(
+        "create_automation",
+        r"\b(create|make|add|schedule|set up)\s+(automation|automatic|schedule|recurring|cron|routine|task)\b",
+        _handle_create_automation,
+        priority=30,
+    )
+    s1.register(
+        "vision",
+        r"\b(what.*(screen|display|monitor|desktop|window)|describe.*(screen|display)|read.*screen|screen.*(show|say|display)|look at screen)\b",
+        _handle_vision_query,
+        priority=40,
+    )
     return s1

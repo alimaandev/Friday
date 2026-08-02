@@ -1,4 +1,5 @@
 """Local API server for Friday desktop - streams Agent events via SSE"""
+
 import asyncio
 import base64
 import io
@@ -79,6 +80,7 @@ class EventBroadcaster:
 
 _broadcaster = EventBroadcaster()
 
+
 # ─── Load env vars ───────────────────────────────────────────────
 def _load_dotenv():
     root = Path(__file__).resolve().parent.parent
@@ -95,6 +97,7 @@ def _load_dotenv():
             if not os.environ.get(key):
                 os.environ[key] = val
 
+
 _load_dotenv()
 
 # ─── Security ────────────────────────────────────────────────────
@@ -105,6 +108,7 @@ _FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "http://localhost:5173")
 def require_auth(f):
     """Decorator that checks X-API-Key header against API_SECRET.
     If API_SECRET is empty, auth is skipped (local dev mode)."""
+
     @wraps(f)
     async def wrapper(*args, **kwargs):
         if _API_SECRET:
@@ -112,6 +116,7 @@ def require_auth(f):
             if key != _API_SECRET:
                 return jsonify({"error": "Unauthorized"}), 401
         return await f(*args, **kwargs)
+
     return wrapper
 
 
@@ -184,6 +189,7 @@ from cachetools import TTLCache  # noqa: E402
 
 TTL_CACHE: TTLCache = TTLCache(maxsize=500, ttl=300)
 
+
 def ttl_cache(seconds: int = 60):
     def decorator(f):
         @wraps(f)
@@ -197,35 +203,39 @@ def ttl_cache(seconds: int = 60):
                 if status == 200 and body is not None:
                     TTL_CACHE[key] = body
                 return result
-            if hasattr(result, 'status_code') and result.status_code == 200:
+            if hasattr(result, "status_code") and result.status_code == 200:
                 try:
                     import json as _json
+
                     data = _json.loads((await result.get_data()).decode())
                     TTL_CACHE[key] = data
                 except Exception:
                     pass
             return result
+
         return wrapper
+
     return decorator
 
 
 # ─── Chat ────────────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/chat', methods=['POST'])
+@app.route(f"{API_PREFIX}/chat", methods=["POST"])
 @require_auth
 async def chat():
     data = await request.get_json()
     err = validate_chat_input(data)
     if err:
         return jsonify({"error": err}), 422
-    user_input = data.get('message', '')
-    session_id = data.get('session_id', 'default')
-    persona = data.get('persona')
+    user_input = data.get("message", "")
+    session_id = data.get("session_id", "default")
+    persona = data.get("persona")
     agent = _get_agent(session_id, persona=persona)
 
     async def generate():
         loop = asyncio.get_event_loop()
         queue: asyncio.Queue = asyncio.Queue()
         import concurrent.futures
+
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
         def _run():
@@ -243,28 +253,23 @@ async def chat():
                 event = await asyncio.wait_for(queue.get(), timeout=300)
                 if event is None:
                     break
-                yield json.dumps(event, ensure_ascii=False) + '\n'
+                yield json.dumps(event, ensure_ascii=False) + "\n"
         except TimeoutError:
-            yield json.dumps({"type": "done", "content": "Request timed out", "final": True}) + '\n'
+            yield json.dumps({"type": "done", "content": "Request timed out", "final": True}) + "\n"
         finally:
             executor.shutdown(wait=False)
 
-    return Response(generate(), mimetype='text/event-stream')
+    return Response(generate(), mimetype="text/event-stream")
 
 
 # ─── Sessions ────────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/sessions', methods=['GET'])
+@app.route(f"{API_PREFIX}/sessions", methods=["GET"])
 @require_auth
 async def list_sessions():
-    return jsonify({
-        "sessions": [
-            {"id": sid, "language": a.language}
-            for sid, a in _agents.items()
-        ]
-    })
+    return jsonify({"sessions": [{"id": sid, "language": a.language} for sid, a in _agents.items()]})
 
 
-@app.route(f'{API_PREFIX}/sessions', methods=['POST'])
+@app.route(f"{API_PREFIX}/sessions", methods=["POST"])
 @require_auth
 async def create_session():
     data = await request.get_json() or {}
@@ -277,7 +282,7 @@ async def create_session():
     return jsonify({"session_id": session_id, "language": lang}), 201
 
 
-@app.route(f'{API_PREFIX}/sessions/<session_id>', methods=['DELETE'])
+@app.route(f"{API_PREFIX}/sessions/<session_id>", methods=["DELETE"])
 @require_auth
 async def delete_session(session_id):
     if session_id not in _agents:
@@ -287,12 +292,12 @@ async def delete_session(session_id):
 
 
 # ─── Output directory ────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/output-dir', methods=['PUT'])
+@app.route(f"{API_PREFIX}/output-dir", methods=["PUT"])
 @require_auth
 async def set_output_dir():
     data = await request.get_json()
-    session_id = data.get('session_id', 'default')
-    path = data.get('path', '')
+    session_id = data.get("session_id", "default")
+    path = data.get("path", "")
     err = validate_output_path(path)
     if err:
         return jsonify({"error": err}), 422
@@ -301,41 +306,43 @@ async def set_output_dir():
     return jsonify({"status": "ok", "output_dir": path})
 
 
-@app.route(f'{API_PREFIX}/output-dir', methods=['GET'])
+@app.route(f"{API_PREFIX}/output-dir", methods=["GET"])
 @require_auth
 async def get_output_dir():
-    session_id = request.args.get('session_id', 'default')
+    session_id = request.args.get("session_id", "default")
     agent = _get_agent(session_id)
     return jsonify({"output_dir": agent.output_dir or ""})
 
 
 # ─── Metrics & Health ────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/metrics')
+@app.route(f"{API_PREFIX}/metrics")
 @require_auth
 async def metrics():
     return jsonify(get_metrics())
 
 
-@app.route(f'{API_PREFIX}/health')
+@app.route(f"{API_PREFIX}/health")
 async def health():
     return jsonify({"status": "ok", "sessions": len(_agents)})
 
 
 # ─── Alerts ──────────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/alerts/stream')
+@app.route(f"{API_PREFIX}/alerts/stream")
 @require_auth
 async def alert_stream():
     pm = get_proactive()
+
     async def generate():
         while True:
             alerts = await pm.get_alerts()
             for alert in alerts:
                 yield f"data: {json.dumps(alert.to_dict(), ensure_ascii=False)}\n\n"
             await asyncio.sleep(1)
-    return Response(generate(), mimetype='text/event-stream')
+
+    return Response(generate(), mimetype="text/event-stream")
 
 
-@app.route(f'{API_PREFIX}/alerts')
+@app.route(f"{API_PREFIX}/alerts")
 @require_auth
 async def alerts_list():
     pm = get_proactive()
@@ -344,24 +351,26 @@ async def alerts_list():
 
 
 # ─── System Info ─────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/system-info')
+@app.route(f"{API_PREFIX}/system-info")
 @require_auth
 @ttl_cache(30)
 async def system_info():
     metrics = get_metrics()
-    return jsonify({
-        "hostname": platform.node(),
-        "os": f"{platform.system()} {platform.release()}",
-        "cpu_cores": os.cpu_count(),
-        "python_version": sys.version.split()[0],
-        "uptime_seconds": metrics.get("uptime_seconds", 0),
-        "llm_calls": metrics.get("llm_calls", 0),
-        "tokens_used": metrics.get("tokens_used", 0),
-        "failures": metrics.get("failures", 0),
-        "retries": metrics.get("retries", 0),
-        "model": "openrouter/free",
-        "provider": "OpenRouter",
-    })
+    return jsonify(
+        {
+            "hostname": platform.node(),
+            "os": f"{platform.system()} {platform.release()}",
+            "cpu_cores": os.cpu_count(),
+            "python_version": sys.version.split()[0],
+            "uptime_seconds": metrics.get("uptime_seconds", 0),
+            "llm_calls": metrics.get("llm_calls", 0),
+            "tokens_used": metrics.get("tokens_used", 0),
+            "failures": metrics.get("failures", 0),
+            "retries": metrics.get("retries", 0),
+            "model": "openrouter/free",
+            "provider": "OpenRouter",
+        }
+    )
 
 
 # ─── News ────────────────────────────────────────────────────────
@@ -372,7 +381,7 @@ _NEWS_RSS = [
 ]
 
 
-@app.route(f'{API_PREFIX}/news')
+@app.route(f"{API_PREFIX}/news")
 @require_auth
 @ttl_cache(300)
 async def news():
@@ -396,13 +405,15 @@ async def news():
                     m = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', desc)
                     if m:
                         img = m.group(1)
-                items.append({
-                    "title": title,
-                    "url": link,
-                    "image": img,
-                    "source": url.split("/")[2],
-                    "time": pub,
-                })
+                items.append(
+                    {
+                        "title": title,
+                        "url": link,
+                        "image": img,
+                        "source": url.split("/")[2],
+                        "time": pub,
+                    }
+                )
         except Exception:
             continue
     return jsonify({"articles": items})
@@ -414,7 +425,7 @@ _WEATHER_LON = 73.05
 _WEATHER_LOCATION = "Islamabad"
 
 
-@app.route(f'{API_PREFIX}/weather')
+@app.route(f"{API_PREFIX}/weather")
 @require_auth
 @ttl_cache(300)
 async def weather():
@@ -431,26 +442,29 @@ async def weather():
         resp = await client.get(url, timeout=5)
         data = resp.json()
         cur = data.get("current", {})
-        return jsonify({
-            "temperature": cur.get("temperature_2m"),
-            "feels_like": cur.get("apparent_temperature"),
-            "humidity": cur.get("relative_humidity_2m"),
-            "wind_speed": cur.get("wind_speed_10m"),
-            "weather_code": cur.get("weather_code", 0),
-            "location": request.args.get("location", _WEATHER_LOCATION),
-        })
+        return jsonify(
+            {
+                "temperature": cur.get("temperature_2m"),
+                "feels_like": cur.get("apparent_temperature"),
+                "humidity": cur.get("relative_humidity_2m"),
+                "wind_speed": cur.get("wind_speed_10m"),
+                "weather_code": cur.get("weather_code", 0),
+                "location": request.args.get("location", _WEATHER_LOCATION),
+            }
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 502
 
 
 # ─── Stocks ─────────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/stocks')
+@app.route(f"{API_PREFIX}/stocks")
 @require_auth
 @ttl_cache(60)
 async def stocks():
     symbols = request.args.get("symbols", "AAPL,GOOG,MSFT,NVDA,BTC-USD")
     try:
         import yfinance as yf
+
         def _fetch():
             tickers = yf.Tickers([s.strip() for s in symbols.split(",")])
             results = []
@@ -465,16 +479,19 @@ async def stocks():
                     prev_close = info.get("previousClose") or price
                     change = price - prev_close
                     change_pct = (change / prev_close * 100) if prev_close else 0
-                    results.append({
-                        "symbol": sym.upper(),
-                        "price": round(price, 2),
-                        "change": round(change, 2),
-                        "change_pct": round(change_pct, 2),
-                        "sparkline": [round(v, 2) for v in close],
-                    })
+                    results.append(
+                        {
+                            "symbol": sym.upper(),
+                            "price": round(price, 2),
+                            "change": round(change, 2),
+                            "change_pct": round(change_pct, 2),
+                            "sparkline": [round(v, 2) for v in close],
+                        }
+                    )
                 except Exception:
                     results.append({"symbol": sym.upper(), "price": 0, "change": 0, "change_pct": 0, "sparkline": []})
             return results
+
         results = await asyncio.to_thread(_fetch)
         return jsonify({"stocks": results})
     except Exception as e:
@@ -482,7 +499,7 @@ async def stocks():
 
 
 # ─── GitHub Trending ─────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/github-trending')
+@app.route(f"{API_PREFIX}/github-trending")
 @require_auth
 @ttl_cache(300)
 async def github_trending():
@@ -500,25 +517,27 @@ async def github_trending():
             full_name = h.group(1) if h else ""
             desc_m = re.search(r'<p[^>]*class="[^"]*col-9[^"]*"[^>]*>(.*?)</p>', article, re.DOTALL)
             desc = desc_m.group(1).strip() if desc_m else ""
-            desc = re.sub(r'<[^>]+>', '', desc).strip()
+            desc = re.sub(r"<[^>]+>", "", desc).strip()
             star_m = re.search(r'<span[^>]*class="[^"]*d-inline-block[^"]*"[^>]*>.*?(\d[\d,]*)\s*</span>', article)
             stars = star_m.group(1).replace(",", "") if star_m else "0"
             lang_m = re.search(r'<span[^>]*itemprop="programmingLanguage"[^>]*>(.*?)</span>', article)
             lang = lang_m.group(1).strip() if lang_m else ""
-            repos.append({
-                "name": full_name,
-                "url": f"https://github.com/{full_name}",
-                "description": desc,
-                "stars": int(stars) if stars.isdigit() else 0,
-                "language": lang,
-            })
+            repos.append(
+                {
+                    "name": full_name,
+                    "url": f"https://github.com/{full_name}",
+                    "description": desc,
+                    "stars": int(stars) if stars.isdigit() else 0,
+                    "language": lang,
+                }
+            )
         return jsonify({"repos": repos})
     except Exception as e:
         return jsonify({"error": str(e)}), 502
 
 
 # ─── Earthquakes ─────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/earthquakes')
+@app.route(f"{API_PREFIX}/earthquakes")
 @require_auth
 @ttl_cache(120)
 async def earthquakes():
@@ -533,20 +552,22 @@ async def earthquakes():
         for f in data.get("features", [])[:8]:
             props = f.get("properties", {})
             coords = f.get("geometry", {}).get("coordinates", [0, 0, 0])
-            items.append({
-                "mag": props.get("mag", 0),
-                "place": props.get("place", "Unknown"),
-                "time": datetime.fromtimestamp(props.get("time", 0) / 1000, tz=UTC).isoformat(),
-                "depth": round(coords[2], 1),
-                "url": props.get("url", ""),
-            })
+            items.append(
+                {
+                    "mag": props.get("mag", 0),
+                    "place": props.get("place", "Unknown"),
+                    "time": datetime.fromtimestamp(props.get("time", 0) / 1000, tz=UTC).isoformat(),
+                    "depth": round(coords[2], 1),
+                    "url": props.get("url", ""),
+                }
+            )
         return jsonify({"earthquakes": items})
     except Exception as e:
         return jsonify({"earthquakes": [], "error": str(e)})
 
 
 # ─── Crypto ──────────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/crypto')
+@app.route(f"{API_PREFIX}/crypto")
 @require_auth
 @ttl_cache(120)
 async def crypto():
@@ -560,20 +581,22 @@ async def crypto():
         data = resp.json()
         coins = []
         for c in data:
-            coins.append({
-                "symbol": c.get("symbol", "").upper(),
-                "name": c.get("name", ""),
-                "price": round(c.get("current_price", 0), 2),
-                "change_24h": round(c.get("price_change_percentage_24h", 0), 1),
-                "market_cap": c.get("market_cap", 0),
-            })
+            coins.append(
+                {
+                    "symbol": c.get("symbol", "").upper(),
+                    "name": c.get("name", ""),
+                    "price": round(c.get("current_price", 0), 2),
+                    "change_24h": round(c.get("price_change_percentage_24h", 0), 1),
+                    "market_cap": c.get("market_cap", 0),
+                }
+            )
         return jsonify({"crypto": coins})
     except Exception as e:
         return jsonify({"crypto": [], "error": str(e)})
 
 
 # ─── Space ──────────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/space')
+@app.route(f"{API_PREFIX}/space")
 @require_auth
 @ttl_cache(60)
 async def space():
@@ -587,18 +610,20 @@ async def space():
         astro_data = astro_resp.json()
         iss_pos = iss_data.get("iss_position", {})
         people = astro_data.get("people", [])
-        return jsonify({
-            "iss_lat": float(iss_pos.get("latitude", 0)),
-            "iss_lon": float(iss_pos.get("longitude", 0)),
-            "astronauts": astro_data.get("number", 0),
-            "astronaut_names": [p.get("name", "") for p in people],
-        })
+        return jsonify(
+            {
+                "iss_lat": float(iss_pos.get("latitude", 0)),
+                "iss_lon": float(iss_pos.get("longitude", 0)),
+                "astronauts": astro_data.get("number", 0),
+                "astronaut_names": [p.get("name", "") for p in people],
+            }
+        )
     except Exception as e:
         return jsonify({"iss_lat": 0, "iss_lon": 0, "astronauts": 0, "astronaut_names": [], "error": str(e)})
 
 
 # ─── World Clocks ────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/global-time')
+@app.route(f"{API_PREFIX}/global-time")
 @require_auth
 @ttl_cache(10)
 async def global_time():
@@ -614,22 +639,25 @@ async def global_time():
     for label, tz_name in zones:
         try:
             import zoneinfo
+
             tz = zoneinfo.ZoneInfo(tz_name)
             local = now.astimezone(tz)
             offset = local.strftime("%z")
             offset_fmt = f"UTC{offset[:3]}:{offset[3:]}" if offset else "UTC"
-            clocks.append({
-                "zone": label,
-                "time": local.strftime("%H:%M"),
-                "offset": offset_fmt,
-            })
+            clocks.append(
+                {
+                    "zone": label,
+                    "time": local.strftime("%H:%M"),
+                    "offset": offset_fmt,
+                }
+            )
         except Exception:
             clocks.append({"zone": label, "time": "--:--", "offset": ""})
     return jsonify({"clocks": clocks})
 
 
 # ─── CVEs ────────────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/cve')
+@app.route(f"{API_PREFIX}/cve")
 @require_auth
 @ttl_cache(600)
 async def cve():
@@ -648,16 +676,20 @@ async def cve():
         for v in vulns[:6]:
             cve = v.get("cve", {})
             metrics = cve.get("metrics", {})
-            cvss = (metrics.get("cvssMetricV31", [{}])[0] or metrics.get("cvssMetricV30", [{}])[0] or {}).get("cvssData", {})
+            cvss = (metrics.get("cvssMetricV31", [{}])[0] or metrics.get("cvssMetricV30", [{}])[0] or {}).get(
+                "cvssData", {}
+            )
             score = cvss.get("baseScore", 0)
             sev = cvss.get("baseSeverity", "UNKNOWN")
-            items.append({
-                "id": cve.get("id", ""),
-                "severity": sev,
-                "score": score,
-                "description": (cve.get("descriptions", [{}])[0] or {}).get("value", ""),
-                "published": cve.get("published", ""),
-            })
+            items.append(
+                {
+                    "id": cve.get("id", ""),
+                    "severity": sev,
+                    "score": score,
+                    "description": (cve.get("descriptions", [{}])[0] or {}).get("value", ""),
+                    "published": cve.get("published", ""),
+                }
+            )
         return jsonify({"cve": items})
     except Exception as e:
         return jsonify({"cve": [], "error": str(e)})
@@ -668,7 +700,7 @@ _SCREEN_CACHE: tuple[float, dict] | None = None
 _SCREEN_TTL = 2.0
 
 
-@app.route(f'{API_PREFIX}/screen')
+@app.route(f"{API_PREFIX}/screen")
 @require_auth
 async def screen_capture():
     global _SCREEN_CACHE
@@ -677,6 +709,7 @@ async def screen_capture():
         return jsonify(_SCREEN_CACHE[1])
     try:
         from PIL import ImageGrab
+
         img = await asyncio.to_thread(ImageGrab.grab)
         buf = io.BytesIO()
         await asyncio.to_thread(lambda: img.save(buf, format="PNG", optimize=True))
@@ -689,24 +722,26 @@ async def screen_capture():
 
 
 # ─── Memory ──────────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/memory', methods=['GET'])
+@app.route(f"{API_PREFIX}/memory", methods=["GET"])
 @require_auth
 async def memory_list():
     memory = get_memory_manager()
     memories = memory.vector.list_all(limit=50)
     kw_memories = memory.long_term.list_all().get("entries", [])
     emb_memories = memory.embeddings.list_all(limit=50)
-    return jsonify({
-        "vector_memories": memories,
-        "embedding_memories": emb_memories,
-        "key_memories": kw_memories,
-        "vector_count": memory.vector.count(),
-        "embedding_count": memory.embeddings.count(),
-        "key_count": len(kw_memories),
-    })
+    return jsonify(
+        {
+            "vector_memories": memories,
+            "embedding_memories": emb_memories,
+            "key_memories": kw_memories,
+            "vector_count": memory.vector.count(),
+            "embedding_count": memory.embeddings.count(),
+            "key_count": len(kw_memories),
+        }
+    )
 
 
-@app.route(f'{API_PREFIX}/memory/search', methods=['POST'])
+@app.route(f"{API_PREFIX}/memory/search", methods=["POST"])
 @require_auth
 async def memory_search():
     body = await request.get_json()
@@ -720,10 +755,11 @@ async def memory_search():
 
 
 # ─── Google Auth ─────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/auth/google')
+@app.route(f"{API_PREFIX}/auth/google")
 @require_auth
 async def google_auth():
     from core.auth.google import get_auth_url, is_authenticated
+
     if is_authenticated():
         return jsonify({"status": "authenticated"})
     redirect = f"http://localhost:8080{API_PREFIX}/auth/google/callback"
@@ -733,9 +769,10 @@ async def google_auth():
     return jsonify({"status": "needs_auth", "url": url})
 
 
-@app.route(f'{API_PREFIX}/auth/google/callback')
+@app.route(f"{API_PREFIX}/auth/google/callback")
 async def google_auth_callback():
     from core.auth.google import handle_callback
+
     code = request.args.get("code", "")
     state = request.args.get("state", "")
     redirect = f"http://localhost:8080{API_PREFIX}/auth/google/callback"
@@ -746,71 +783,91 @@ async def google_auth_callback():
 
 
 # ─── Calendar ────────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/calendar/events')
+@app.route(f"{API_PREFIX}/calendar/events")
 @require_auth
 @ttl_cache(120)
 async def calendar_events():
     try:
         from core.auth.google import get_calendar_service, is_authenticated
+
         if not is_authenticated():
             return jsonify({"events": [], "error": "not_authenticated"})
         from datetime import datetime, timedelta
+
         service = get_calendar_service()
         now = datetime.now(UTC).isoformat()
         later = (datetime.now(UTC) + timedelta(days=7)).isoformat()
-        events = service.events().list(
-            calendarId="primary", timeMin=now, timeMax=later,
-            maxResults=10, singleEvents=True, orderBy="startTime",
-        ).execute()
+        events = (
+            service.events()
+            .list(
+                calendarId="primary",
+                timeMin=now,
+                timeMax=later,
+                maxResults=10,
+                singleEvents=True,
+                orderBy="startTime",
+            )
+            .execute()
+        )
         items = []
         for e in events.get("items", []):
             start = e["start"].get("dateTime", e["start"].get("date", ""))
             end = e["end"].get("dateTime", e["end"].get("date", ""))
-            items.append({
-                "summary": e.get("summary", ""),
-                "start": start,
-                "end": end,
-                "location": e.get("location", ""),
-            })
+            items.append(
+                {
+                    "summary": e.get("summary", ""),
+                    "start": start,
+                    "end": end,
+                    "location": e.get("location", ""),
+                }
+            )
         return jsonify({"events": items, "count": len(items)})
     except Exception as ex:
         return jsonify({"events": [], "error": str(ex)})
 
 
 # ─── Email ───────────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/email/inbox')
+@app.route(f"{API_PREFIX}/email/inbox")
 @require_auth
 @ttl_cache(60)
 async def email_inbox():
     try:
         from core.auth.google import get_gmail_service, is_authenticated
+
         if not is_authenticated():
             return jsonify({"messages": [], "error": "not_authenticated"})
         service = get_gmail_service()
         results = service.users().messages().list(userId="me", maxResults=10).execute()
         messages = []
         for msg in results.get("messages", []):
-            meta = service.users().messages().get(userId="me", id=msg["id"], format="metadata",
-                metadataHeaders=["From", "Subject", "Date"]).execute()
+            meta = (
+                service.users()
+                .messages()
+                .get(userId="me", id=msg["id"], format="metadata", metadataHeaders=["From", "Subject", "Date"])
+                .execute()
+            )
             headers = {h["name"]: h["value"] for h in meta.get("payload", {}).get("headers", [])}
-            messages.append({
-                "id": msg["id"],
-                "from": headers.get("From", ""),
-                "subject": headers.get("Subject", ""),
-                "date": headers.get("Date", ""),
-                "snippet": meta.get("snippet", ""),
-            })
+            messages.append(
+                {
+                    "id": msg["id"],
+                    "from": headers.get("From", ""),
+                    "subject": headers.get("Subject", ""),
+                    "date": headers.get("Date", ""),
+                    "snippet": meta.get("snippet", ""),
+                }
+            )
         return jsonify({"messages": messages, "count": len(messages)})
     except Exception as ex:
         return jsonify({"messages": [], "error": str(ex)})
 
 
-@app.route(f'{API_PREFIX}/email/unread')
+@app.route(f"{API_PREFIX}/email/unread")
 @require_auth
 @ttl_cache(30)
 async def email_unread():
     try:
         from core.auth.google import get_gmail_service, is_authenticated
+
         if not is_authenticated():
             return jsonify({"unread": 0})
         service = get_gmail_service()
@@ -820,7 +877,7 @@ async def email_unread():
         return jsonify({"unread": 0, "error": str(ex)})
 
 
-@app.route(f'{API_PREFIX}/memory', methods=['DELETE'])
+@app.route(f"{API_PREFIX}/memory", methods=["DELETE"])
 @require_auth
 async def memory_clear():
     memory = get_memory_manager()
@@ -829,7 +886,7 @@ async def memory_clear():
 
 
 # ─── Unified SSE Events ─────────────────────────────────────────
-@app.route(f'{API_PREFIX}/events')
+@app.route(f"{API_PREFIX}/events")
 async def event_stream():
     if _API_SECRET:
         key = request.args.get("key", "") or request.headers.get("X-API-Key", "")
@@ -847,21 +904,23 @@ async def event_stream():
         finally:
             await _broadcaster.unsubscribe(queue)
 
-    return Response(generate(), mimetype='text/event-stream')
+    return Response(generate(), mimetype="text/event-stream")
 
 
 # ─── Briefing ─────────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/briefing')
+@app.route(f"{API_PREFIX}/briefing")
 @require_auth
 async def get_briefing():
     engine = BriefingEngine(client=get_async_client())
     briefing = await engine.synthesize()
-    return jsonify({
-        "greeting": briefing.greeting,
-        "summary": briefing.summary,
-        "sections": briefing.sections,
-        "timestamp": briefing.timestamp,
-    })
+    return jsonify(
+        {
+            "greeting": briefing.greeting,
+            "summary": briefing.summary,
+            "sections": briefing.sections,
+            "timestamp": briefing.timestamp,
+        }
+    )
 
 
 async def _push_briefing():
@@ -873,11 +932,14 @@ async def _push_briefing():
             today = datetime.now(UTC).date()
             if last_briefing_date != today:
                 briefing = await engine.synthesize()
-                await _broadcaster.broadcast("briefing", {
-                    "summary": briefing.summary,
-                    "sections": briefing.sections,
-                    "greeting": briefing.greeting,
-                })
+                await _broadcaster.broadcast(
+                    "briefing",
+                    {
+                        "summary": briefing.summary,
+                        "sections": briefing.sections,
+                        "greeting": briefing.greeting,
+                    },
+                )
                 last_briefing_date = today
         except Exception:
             pass
@@ -885,7 +947,7 @@ async def _push_briefing():
 
 
 # ─── Automations ─────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/automations', methods=['GET'])
+@app.route(f"{API_PREFIX}/automations", methods=["GET"])
 @require_auth
 async def list_automations():
     engine = get_automation_engine()
@@ -893,7 +955,7 @@ async def list_automations():
     return jsonify({"automations": autos})
 
 
-@app.route(f'{API_PREFIX}/automations', methods=['POST'])
+@app.route(f"{API_PREFIX}/automations", methods=["POST"])
 @require_auth
 async def create_automation():
     data = await request.get_json() or {}
@@ -909,7 +971,7 @@ async def create_automation():
     return jsonify(auto.to_dict()), 201
 
 
-@app.route(f'{API_PREFIX}/automations/<auto_id>', methods=['GET'])
+@app.route(f"{API_PREFIX}/automations/<auto_id>", methods=["GET"])
 @require_auth
 async def get_automation(auto_id):
     engine = get_automation_engine()
@@ -919,7 +981,7 @@ async def get_automation(auto_id):
     return jsonify(auto.to_dict())
 
 
-@app.route(f'{API_PREFIX}/automations/<auto_id>', methods=['PUT'])
+@app.route(f"{API_PREFIX}/automations/<auto_id>", methods=["PUT"])
 @require_auth
 async def update_automation(auto_id):
     data = await request.get_json() or {}
@@ -930,7 +992,7 @@ async def update_automation(auto_id):
     return jsonify(auto.to_dict())
 
 
-@app.route(f'{API_PREFIX}/automations/<auto_id>', methods=['DELETE'])
+@app.route(f"{API_PREFIX}/automations/<auto_id>", methods=["DELETE"])
 @require_auth
 async def delete_automation(auto_id):
     engine = get_automation_engine()
@@ -939,7 +1001,7 @@ async def delete_automation(auto_id):
     return jsonify({"error": "automation not found"}), 404
 
 
-@app.route(f'{API_PREFIX}/automations/<auto_id>/toggle', methods=['POST'])
+@app.route(f"{API_PREFIX}/automations/<auto_id>/toggle", methods=["POST"])
 @require_auth
 async def toggle_automation(auto_id):
     engine = get_automation_engine()
@@ -949,7 +1011,7 @@ async def toggle_automation(auto_id):
     return jsonify(auto.to_dict())
 
 
-@app.route(f'{API_PREFIX}/automations/<auto_id>/trigger', methods=['POST'])
+@app.route(f"{API_PREFIX}/automations/<auto_id>/trigger", methods=["POST"])
 @require_auth
 async def trigger_automation(auto_id):
     engine = get_automation_engine()
@@ -976,19 +1038,22 @@ async def _push_automations():
                     result = engine.execute(auto)
                     status = "success" if result.get("type") != "error" else "error"
                     engine.record_run(auto.id, status)
-                    await _broadcaster.broadcast("automation_run", {
-                        "id": auto.id,
-                        "name": auto.name,
-                        "status": status,
-                        "result": result,
-                        "timestamp": time.time(),
-                    })
+                    await _broadcaster.broadcast(
+                        "automation_run",
+                        {
+                            "id": auto.id,
+                            "name": auto.name,
+                            "status": status,
+                            "result": result,
+                            "timestamp": time.time(),
+                        },
+                    )
         except Exception:
             pass
 
 
 # ─── Vision ──────────────────────────────────────────────────────
-@app.route(f'{API_PREFIX}/vision/screen')
+@app.route(f"{API_PREFIX}/vision/screen")
 @require_auth
 async def vision_screen():
     engine = get_vision_engine()
@@ -996,7 +1061,7 @@ async def vision_screen():
     return jsonify(result)
 
 
-@app.route(f'{API_PREFIX}/vision/analyze', methods=['POST'])
+@app.route(f"{API_PREFIX}/vision/analyze", methods=["POST"])
 @require_auth
 async def vision_analyze():
     data = await request.get_json() or {}
@@ -1008,11 +1073,13 @@ async def vision_analyze():
     loop = asyncio.get_event_loop()
     description = await loop.run_in_executor(None, engine.analyze_image, image, prompt)
     text = await loop.run_in_executor(None, engine.extract_text, image)
-    return jsonify({
-        "description": description,
-        "text": text,
-        "timestamp": time.time(),
-    })
+    return jsonify(
+        {
+            "description": description,
+            "text": text,
+            "timestamp": time.time(),
+        }
+    )
 
 
 async def _push_vision():
@@ -1023,11 +1090,14 @@ async def _push_vision():
         try:
             if engine.screen_changed_since_last_check():
                 result = await asyncio.to_thread(engine.describe_screen)
-                await _broadcaster.broadcast("vision", {
-                    "description": result.get("description", ""),
-                    "text": result.get("text"),
-                    "timestamp": result.get("timestamp", time.time()),
-                })
+                await _broadcaster.broadcast(
+                    "vision",
+                    {
+                        "description": result.get("description", ""),
+                        "text": result.get("text"),
+                        "timestamp": result.get("timestamp", time.time()),
+                    },
+                )
         except Exception:
             pass
 
@@ -1040,12 +1110,15 @@ async def _push_metrics():
             durations = data.get("avg_tool_duration_ms", {})
             vals = [v for v in durations.values() if isinstance(v, (int, float))]
             avg_latency = round(sum(vals) / len(vals)) if vals else 0
-            await _broadcaster.broadcast("metrics", {
-                "latency": avg_latency,
-                "tokenUsage": data.get("tokens_used", 0),
-                "llm_calls": data.get("llm_calls", 0),
-                "failures": data.get("failures", 0),
-            })
+            await _broadcaster.broadcast(
+                "metrics",
+                {
+                    "latency": avg_latency,
+                    "tokenUsage": data.get("tokens_used", 0),
+                    "llm_calls": data.get("llm_calls", 0),
+                    "failures": data.get("failures", 0),
+                },
+            )
         except Exception:
             pass
 
@@ -1055,19 +1128,22 @@ async def _push_system_info():
         await asyncio.sleep(30)
         try:
             metrics = get_metrics()
-            await _broadcaster.broadcast("system_info", {
-                "hostname": platform.node(),
-                "os": f"{platform.system()} {platform.release()}",
-                "cpu_cores": os.cpu_count(),
-                "python_version": sys.version.split()[0],
-                "uptime_seconds": metrics.get("uptime_seconds", 0),
-                "llm_calls": metrics.get("llm_calls", 0),
-                "tokens_used": metrics.get("tokens_used", 0),
-                "failures": metrics.get("failures", 0),
-                "retries": metrics.get("retries", 0),
-                "model": "openrouter/free",
-                "provider": "OpenRouter",
-            })
+            await _broadcaster.broadcast(
+                "system_info",
+                {
+                    "hostname": platform.node(),
+                    "os": f"{platform.system()} {platform.release()}",
+                    "cpu_cores": os.cpu_count(),
+                    "python_version": sys.version.split()[0],
+                    "uptime_seconds": metrics.get("uptime_seconds", 0),
+                    "llm_calls": metrics.get("llm_calls", 0),
+                    "tokens_used": metrics.get("tokens_used", 0),
+                    "failures": metrics.get("failures", 0),
+                    "retries": metrics.get("retries", 0),
+                    "model": "openrouter/free",
+                    "provider": "OpenRouter",
+                },
+            )
         except Exception:
             pass
 
@@ -1110,16 +1186,20 @@ async def _push_screen():
         await asyncio.sleep(3)
         try:
             from PIL import ImageGrab
+
             img = await asyncio.to_thread(ImageGrab.grab)
             buf = io.BytesIO()
             await asyncio.to_thread(lambda: img.save(buf, format="PNG", optimize=True))
             b64 = base64.b64encode(buf.getvalue()).decode()
-            await _broadcaster.broadcast("screen", {
-                "image": b64,
-                "width": img.width,
-                "height": img.height,
-                "timestamp": time.time(),
-            })
+            await _broadcaster.broadcast(
+                "screen",
+                {
+                    "image": b64,
+                    "width": img.width,
+                    "height": img.height,
+                    "timestamp": time.time(),
+                },
+            )
         except Exception:
             pass
 
@@ -1140,6 +1220,7 @@ async def _push_clocks():
             for label, tz_name in zones:
                 try:
                     import zoneinfo
+
                     tz = zoneinfo.ZoneInfo(tz_name)
                     local = now.astimezone(tz)
                     offset = local.strftime("%z")
@@ -1170,12 +1251,14 @@ async def _proactive_loop():
         pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from core.memory.embeddings import SentenceEngine
+
     SentenceEngine.start_background_load()
 
     import hypercorn.asyncio
     from hypercorn.config import Config
+
     cfg = Config()
     cfg.bind = ["127.0.0.1:8080"]
     cfg.keep_alive_timeout = 300

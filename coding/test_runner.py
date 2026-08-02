@@ -15,6 +15,7 @@ def _find_command(cmds: list[str]) -> str | None:
 def run_tests(path: str = ".", timeout: int = 60, verbose: bool = False) -> dict:
     try:
         import pytest  # noqa: F401 — used to check availability
+
         pytest_cmd = "pytest"
     except ImportError:
         pytest_target = _find_command(["pytest", "python -m pytest", "python3 -m pytest"])
@@ -43,6 +44,7 @@ def run_tests(path: str = ".", timeout: int = 60, verbose: bool = False) -> dict
 def run_lint(path: str = ".") -> dict:
     try:
         import ruff  # noqa: F401
+
         cmd = ["python", "-m", "ruff", "check", path]
     except ImportError:
         return {"error": "ruff not found. Install with: pip install ruff", "exit_code": -1}
@@ -65,6 +67,7 @@ def run_lint(path: str = ".") -> dict:
 def run_format(path: str = ".", check: bool = True) -> dict:
     try:
         import ruff  # noqa: F401
+
         cmd = ["python", "-m", "ruff", "format"]
         if check:
             cmd.append("--check")

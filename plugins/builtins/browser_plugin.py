@@ -28,7 +28,10 @@ class BrowseSearchPlugin(ToolPlugin):
             "type": "object",
             "properties": {
                 "query": {"type": "string", "description": "The search query"},
-                "engine": {"type": "string", "description": "Search engine: google, bing, duckduckgo (default: google)"},
+                "engine": {
+                    "type": "string",
+                    "description": "Search engine: google, bing, duckduckgo (default: google)",
+                },
             },
             "required": ["query"],
         }

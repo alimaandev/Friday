@@ -96,7 +96,7 @@ class ScreenMonitor(BaseMonitor):
         GRID_COLS, GRID_ROWS = 4, 3
         w, h = img.size
         cell_w, cell_h = w // GRID_COLS, h // GRID_ROWS
-        if not hasattr(self, '_region_hashes') or self._region_hashes is None:
+        if not hasattr(self, "_region_hashes") or self._region_hashes is None:
             self._region_hashes = [[None] * GRID_COLS for _ in range(GRID_ROWS)]
         changed: list[str] = []
         for row in range(GRID_ROWS):
@@ -109,9 +109,20 @@ class ScreenMonitor(BaseMonitor):
                 h_val = hashlib.md5(region.tobytes()).hexdigest()
                 prev = self._region_hashes[row][col]
                 if prev is not None and h_val != prev:
-                    region_names = ["top-left", "top-center", "top-right", "top-rightmost",
-                                    "mid-left", "mid-center", "mid-right", "mid-rightmost",
-                                    "bottom-left", "bottom-center", "bottom-right", "bottom-rightmost"]
+                    region_names = [
+                        "top-left",
+                        "top-center",
+                        "top-right",
+                        "top-rightmost",
+                        "mid-left",
+                        "mid-center",
+                        "mid-right",
+                        "mid-rightmost",
+                        "bottom-left",
+                        "bottom-center",
+                        "bottom-right",
+                        "bottom-rightmost",
+                    ]
                     idx = row * GRID_COLS + col
                     changed.append(region_names[idx] if idx < len(region_names) else f"region-{idx}")
                 self._region_hashes[row][col] = h_val
@@ -132,20 +143,26 @@ class CalendarMonitor(BaseMonitor):
     async def check(self) -> Alert | None:
         try:
             from core.auth.google import get_calendar_service, is_authenticated
+
             if not is_authenticated():
                 return None
             from datetime import datetime, timedelta
+
             service = get_calendar_service()
             now = datetime.now(UTC)
             soon = (now + timedelta(hours=2)).isoformat()
-            events = service.events().list(
-                calendarId="primary",
-                timeMin=now.isoformat(),
-                timeMax=soon,
-                maxResults=5,
-                singleEvents=True,
-                orderBy="startTime",
-            ).execute()
+            events = (
+                service.events()
+                .list(
+                    calendarId="primary",
+                    timeMin=now.isoformat(),
+                    timeMax=soon,
+                    maxResults=5,
+                    singleEvents=True,
+                    orderBy="startTime",
+                )
+                .execute()
+            )
 
             for e in events.get("items", []):
                 eid = e.get("id", "")
@@ -187,12 +204,11 @@ class EmailMonitor(BaseMonitor):
     async def check(self) -> Alert | None:
         try:
             from core.auth.google import get_gmail_service, is_authenticated
+
             if not is_authenticated():
                 return None
             service = get_gmail_service()
-            results = service.users().messages().list(
-                userId="me", maxResults=5, q="is:unread"
-            ).execute()
+            results = service.users().messages().list(userId="me", maxResults=5, q="is:unread").execute()
             msgs = results.get("messages", [])
             current_ids = {m["id"] for m in msgs}
             new_ids = current_ids - self._known_ids
@@ -203,10 +219,17 @@ class EmailMonitor(BaseMonitor):
             urgencies = {"urgent", "important", "asap", "deadline", "action required"}
             for mid in list(new_ids)[:3]:
                 try:
-                    meta = service.users().messages().get(
-                        userId="me", id=mid, format="metadata",
-                        metadataHeaders=["From", "Subject"],
-                    ).execute()
+                    meta = (
+                        service.users()
+                        .messages()
+                        .get(
+                            userId="me",
+                            id=mid,
+                            format="metadata",
+                            metadataHeaders=["From", "Subject"],
+                        )
+                        .execute()
+                    )
                     headers = {h["name"]: h["value"] for h in meta.get("payload", {}).get("headers", [])}
                     subj = headers.get("Subject", "").lower()
                     frm = headers.get("From", "")
@@ -215,7 +238,7 @@ class EmailMonitor(BaseMonitor):
                             return Alert(
                                 type="email_urgent",
                                 title="Urgent email",
-                                description=f'From: {frm}\nSubject: {headers.get("Subject", "")}',
+                                description=f"From: {frm}\nSubject: {headers.get('Subject', '')}",
                                 severity="warning",
                                 action_label="Open inbox",
                                 action_payload={"source": "email"},

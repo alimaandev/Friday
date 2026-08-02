@@ -36,10 +36,12 @@ class TestSystem1:
 
     def test_cache(self, s1):
         call_count = 0
+
         def handler(q):
             nonlocal call_count
             call_count += 1
             return "cached_result"
+
         s1.register("cached", r"\bcache\b", handler, cache_ttl=60)
         result1 = s1.route("use cache")
         result2 = s1.route("use cache")
@@ -50,10 +52,12 @@ class TestSystem1:
 
     def test_cache_expiry(self, s1):
         call_count = 0
+
         def handler(q):
             nonlocal call_count
             call_count += 1
             return f"result_{call_count}"
+
         s1.register("expire", r"\bexpire\b", handler, cache_ttl=1)
         s1.route("expire test")
         s1.route("expire test")  # cached
@@ -62,7 +66,7 @@ class TestSystem1:
         assert call_count == 2
 
     def test_handler_exception_skips(self, s1):
-        s1.register("fails", r"\bfail\b", lambda q: 1/0)
+        s1.register("fails", r"\bfail\b", lambda q: 1 / 0)
         result = s1.route("this will fail")
         assert result is None
 
@@ -99,7 +103,12 @@ class TestDefaultSystem1:
         result = s1.route("what time is it")
         assert result is not None
         assert result["reflex"] == "time"
-        assert "20" in result["content"] or "AM" in result["content"] or "PM" in result["content"] or ":" in result["content"]
+        assert (
+            "20" in result["content"]
+            or "AM" in result["content"]
+            or "PM" in result["content"]
+            or ":" in result["content"]
+        )
 
     def test_date_reflex(self):
         s1 = build_default_system1()

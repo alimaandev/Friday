@@ -195,7 +195,10 @@ class RunFormatPlugin(ToolPlugin):
             "type": "object",
             "properties": {
                 "path": {"type": "string", "description": "File or directory to format (default: current dir)"},
-                "apply": {"type": "boolean", "description": "Apply formatting instead of just checking (default: false)"},
+                "apply": {
+                    "type": "boolean",
+                    "description": "Apply formatting instead of just checking (default: false)",
+                },
             },
             "required": [],
         }

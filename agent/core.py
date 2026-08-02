@@ -36,6 +36,7 @@ class Agent:
         if self.persona:
             try:
                 from core.persona import get_persona_prompt
+
                 persona_text = get_persona_prompt(self.persona)
                 base = persona_text + "\n\n" + base
             except ImportError:
@@ -82,9 +83,7 @@ class Agent:
             yield {"type": "task_start", "task": task.to_dict()}
             info(f"Executing task: {task.id} - {task.description}")
 
-            for event in self._executor.execute_task(
-                task, self.messages, self._tool_defs, MAX_ITERATIONS
-            ):
+            for event in self._executor.execute_task(task, self.messages, self._tool_defs, MAX_ITERATIONS):
                 yield event
 
             if task.status == "failed" and task.retries < task.max_retries:

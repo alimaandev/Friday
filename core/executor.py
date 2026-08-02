@@ -1,4 +1,4 @@
-﻿import json
+import json
 import os
 from collections.abc import Generator
 from typing import Any
@@ -58,11 +58,13 @@ class Executor:
                     tool_calls = event["tool_calls"]
 
             if tool_calls:
-                messages.append({
-                    "role": "assistant",
-                    "content": collected,
-                    "tool_calls": tool_calls,
-                })
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": collected,
+                        "tool_calls": tool_calls,
+                    }
+                )
 
                 tool_summary = []
                 for tc in tool_calls:
@@ -77,17 +79,19 @@ class Executor:
                     except json.JSONDecodeError as e:
                         warn(f"Failed to parse args for {func_name}: {e}")
                         result = {"error": f"Invalid tool arguments: {e}"}
-                        messages.append({
-                            "role": "tool",
-                            "tool_call_id": tc_id,
-                            "content": json.dumps(result, ensure_ascii=False),
-                        })
+                        messages.append(
+                            {
+                                "role": "tool",
+                                "tool_call_id": tc_id,
+                                "content": json.dumps(result, ensure_ascii=False),
+                            }
+                        )
                         continue
 
-                    if self.output_dir and func_name == 'write_file' and 'path' in args:
-                        p = args['path']
+                    if self.output_dir and func_name == "write_file" and "path" in args:
+                        p = args["path"]
                         if not os.path.isabs(p):
-                            args['path'] = os.path.join(self.output_dir, p)
+                            args["path"] = os.path.join(self.output_dir, p)
 
                     handler = self._tool_map.get(func_name)
                     if handler:
@@ -99,18 +103,22 @@ class Executor:
                     else:
                         result = {"error": f"Unknown tool: {func_name}"}
 
-                    messages.append({
-                        "role": "tool",
-                        "tool_call_id": tc_id,
-                        "content": json.dumps(result, ensure_ascii=False),
-                    })
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "tool_call_id": tc_id,
+                            "content": json.dumps(result, ensure_ascii=False),
+                        }
+                    )
 
                     args_str = ", ".join(f"{k}={v}" for k, v in args.items())
-                    tool_summary.append({
-                        "name": func_name,
-                        "args": args_str,
-                        "result": json.dumps(result, ensure_ascii=False)[:300],
-                    })
+                    tool_summary.append(
+                        {
+                            "name": func_name,
+                            "args": args_str,
+                            "result": json.dumps(result, ensure_ascii=False)[:300],
+                        }
+                    )
 
                     if result.get("error"):
                         task.error = str(result["error"])
@@ -135,19 +143,26 @@ class Executor:
         tool_definitions: list[dict],
     ) -> Generator[dict, None, None]:
         if task.retries >= task.max_retries:
-            yield {"type": "tool_result", "tools": [{
-                "name": "retry",
-                "args": f"task={task.id}",
-                "result": f"Max retries ({task.max_retries}) exceeded",
-            }]}
+            yield {
+                "type": "tool_result",
+                "tools": [
+                    {
+                        "name": "retry",
+                        "args": f"task={task.id}",
+                        "result": f"Max retries ({task.max_retries}) exceeded",
+                    }
+                ],
+            }
             return
 
         task.retries += 1
         task.status = "running"
         task.error = None
 
-        messages.append({
-            "role": "user",
-            "content": f"The previous attempt failed: {task.error}\n\nPlease try again with a different approach.",
-        })
+        messages.append(
+            {
+                "role": "user",
+                "content": f"The previous attempt failed: {task.error}\n\nPlease try again with a different approach.",
+            }
+        )
         yield from self._react_loop(messages, tool_definitions, 10, task)

@@ -51,6 +51,7 @@ class MemoryManager:
 
     def search(self, query: str, top_k: int = 5) -> list[dict]:
         import concurrent.futures
+
         seen_ids: set[str] = set()
         merged: list[dict] = []
 
@@ -67,12 +68,14 @@ class MemoryManager:
             scored.sort(key=lambda x: -x[0])
             kw_results = []
             for _, e in scored[:top_k]:
-                kw_results.append({
-                    "id": e.get("key", ""),
-                    "text": str(e.get("value", ""))[:200],
-                    "score": 0.3,
-                    "metadata": {"source": "long_term"},
-                })
+                kw_results.append(
+                    {
+                        "id": e.get("key", ""),
+                        "text": str(e.get("value", ""))[:200],
+                        "score": 0.3,
+                        "metadata": {"source": "long_term"},
+                    }
+                )
             return kw_results
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:

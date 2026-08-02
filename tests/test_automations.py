@@ -8,9 +8,13 @@ from core.automations import Automation, AutomationEngine, _cron_match
 class TestAutomation:
     def test_to_dict_roundtrip(self):
         auto = Automation(
-            id="test123", name="Test", trigger_type="cron",
-            trigger_config={"cron": "0 8 * * *"}, action="notification",
-            action_params={"message": "hello"}, run_count=0,
+            id="test123",
+            name="Test",
+            trigger_type="cron",
+            trigger_config={"cron": "0 8 * * *"},
+            action="notification",
+            action_params={"message": "hello"},
+            run_count=0,
         )
         d = auto.to_dict()
         restored = Automation.from_dict(d)
@@ -20,8 +24,12 @@ class TestAutomation:
 
     def test_default_values(self):
         auto = Automation(
-            id="a", name="A", trigger_type="event",
-            trigger_config={}, action="briefing", action_params={},
+            id="a",
+            name="A",
+            trigger_type="event",
+            trigger_config={},
+            action="briefing",
+            action_params={},
         )
         assert auto.enabled is True
         assert auto.run_count == 0
@@ -31,6 +39,7 @@ class TestAutomation:
 class TestCronMatch:
     def test_wildcard(self):
         import time as t
+
         now = t.localtime()
         assert _cron_match("* * * * *", now)
 
@@ -67,8 +76,7 @@ class TestAutomationEngine:
         return AutomationEngine(str(path))
 
     def test_create(self, engine):
-        auto = engine.create("Morning Briefing", "cron",
-                             {"cron": "0 8 * * *"}, "briefing")
+        auto = engine.create("Morning Briefing", "cron", {"cron": "0 8 * * *"}, "briefing")
         assert auto.name == "Morning Briefing"
         assert auto.id is not None
         assert auto.enabled is True
@@ -114,8 +122,7 @@ class TestAutomationEngine:
         assert engine.get(auto.id).enabled is True
 
     def test_execute_notification(self, engine):
-        auto = engine.create("Notif", "cron", {}, "notification",
-                             {"message": "test msg"})
+        auto = engine.create("Notif", "cron", {}, "notification", {"message": "test msg"})
         result = engine.execute(auto)
         assert result["type"] == "notification"
         assert result["message"] == "test msg"
@@ -126,8 +133,9 @@ class TestAutomationEngine:
         assert result["type"] == "briefing"
 
     def test_execute_tool_call(self, engine):
-        auto = engine.create("Tool", "cron", {}, "tool_call",
-                             {"tool": "web_fetch", "args": {"url": "https://example.com"}})
+        auto = engine.create(
+            "Tool", "cron", {}, "tool_call", {"tool": "web_fetch", "args": {"url": "https://example.com"}}
+        )
         result = engine.execute(auto)
         assert result["type"] == "tool_call"
         assert result["tool"] == "web_fetch"
@@ -154,6 +162,7 @@ class TestAutomationEngine:
 
     def test_check_triggers_cron(self, engine):
         import time as t
+
         now = t.localtime()
         cron_expr = f"{now.tm_min} {now.tm_hour} * * *"
         engine.create("NowTrigger", "cron", {"cron": cron_expr}, "notification")
@@ -174,6 +183,7 @@ class TestAutomationEngine:
 
     def test_should_fire_cron(self, engine):
         import time as t
+
         now = t.localtime()
         cron_expr = f"{now.tm_min} {now.tm_hour} * * *"
         auto = engine.create("FireCheck", "cron", {"cron": cron_expr}, "notification")
@@ -183,6 +193,7 @@ class TestAutomationEngine:
 
     def test_should_fire_cron_deduplicates(self, engine):
         import time as t
+
         now = t.localtime()
         cron_expr = f"{now.tm_min} {now.tm_hour} * * *"
         auto = engine.create("Dedup", "cron", {"cron": cron_expr}, "notification")

@@ -36,8 +36,10 @@ def get_auth_url(redirect_uri: str) -> str | None:
     flow.redirect_uri = redirect_uri
     state = secrets.token_urlsafe(16)
     auth_url, _ = flow.authorization_url(
-        prompt="consent", access_type="offline",
-        state=state, code_challenge_method="S256",
+        prompt="consent",
+        access_type="offline",
+        state=state,
+        code_challenge_method="S256",
     )
     _FLOW_STORE[state] = {"code_verifier": flow.code_verifier, "redirect_uri": redirect_uri}
     return auth_url

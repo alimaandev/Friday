@@ -26,6 +26,7 @@ class TestConfig:
 
     def test_provider_config(self):
         from config.providers import get_active_provider, get_provider_config
+
         provider = get_active_provider()
         assert provider in ("openrouter", "ollama"), f"unexpected provider {provider}"
         cfg = get_provider_config(provider)

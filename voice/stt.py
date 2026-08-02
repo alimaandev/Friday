@@ -88,6 +88,7 @@ def listen() -> dict:
 def is_voice_available() -> bool:
     try:
         import sounddevice as sd
+
         sd.query_devices(kind="input")
         return True
     except Exception:

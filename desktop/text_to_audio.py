@@ -76,9 +76,7 @@ def main():
         help="Read text from stdin (interactive mode).",
     )
     parser.add_argument("--rate", type=int, default=200, help="Speech rate (default 200).")
-    parser.add_argument(
-        "--volume", type=float, default=1.0, help="Volume 0.0-1.0 (default 1.0)."
-    )
+    parser.add_argument("--volume", type=float, default=1.0, help="Volume 0.0-1.0 (default 1.0).")
     args = parser.parse_args()
 
     # Determine the source of text

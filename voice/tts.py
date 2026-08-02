@@ -10,6 +10,7 @@ def _init_tts():
     global _tts_engine
     try:
         import pyttsx3
+
         _tts_engine = pyttsx3.init(driverName="sapi5")
         _tts_engine.setProperty("rate", 180)
         _tts_engine.setProperty("volume", 0.9)

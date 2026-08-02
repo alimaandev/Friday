@@ -88,8 +88,9 @@ class AutomationEngine:
 
     # ─── CRUD ─────────────────────────────────────────────────────
 
-    def create(self, name: str, trigger_type: str, trigger_config: dict,
-               action: str, action_params: dict | None = None) -> Automation:
+    def create(
+        self, name: str, trigger_type: str, trigger_config: dict, action: str, action_params: dict | None = None
+    ) -> Automation:
         auto = Automation(
             id=uuid.uuid4().hex[:12],
             name=name,
@@ -180,7 +181,11 @@ class AutomationEngine:
             elif auto.action == "briefing":
                 return {"type": "briefing", "source": "automation"}
             elif auto.action == "tool_call":
-                return {"type": "tool_call", "tool": auto.action_params.get("tool", ""), "args": auto.action_params.get("args", {})}
+                return {
+                    "type": "tool_call",
+                    "tool": auto.action_params.get("tool", ""),
+                    "args": auto.action_params.get("args", {}),
+                }
             return {"type": "unknown", "error": f"Unknown action: {auto.action}"}
         except Exception as e:
             return {"type": "error", "error": str(e)}

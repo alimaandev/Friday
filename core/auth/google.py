@@ -1,7 +1,6 @@
 import json
 import os
 import secrets
-import time
 from typing import Any
 
 from google.auth.transport.requests import Request
@@ -37,8 +36,10 @@ def get_auth_url(redirect_uri: str) -> str | None:
     flow.redirect_uri = redirect_uri
     state = secrets.token_urlsafe(16)
     auth_url, _ = flow.authorization_url(
-        prompt="consent", access_type="offline",
-        state=state, code_challenge_method="S256",
+        prompt="consent",
+        access_type="offline",
+        state=state,
+        code_challenge_method="S256",
     )
     _FLOW_STORE[state] = {"code_verifier": flow.code_verifier, "redirect_uri": redirect_uri}
     return auth_url
@@ -63,7 +64,7 @@ def _load_token() -> Credentials | None:
     if not os.path.exists(TOKEN_PATH):
         return None
     try:
-        with open(TOKEN_PATH, "r") as f:
+        with open(TOKEN_PATH) as f:
             data = json.load(f)
         creds = Credentials.from_authorized_user_info(data, _SCOPES)
         if creds and creds.expired and creds.refresh_token:

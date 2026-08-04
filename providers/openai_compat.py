@@ -1,11 +1,16 @@
-import time
-from typing import Any, Generator
+from __future__ import annotations
 
-from openai import OpenAI, APIError, APIConnectionError, APITimeoutError, RateLimitError
+import time
+from collections.abc import Generator
+from typing import TYPE_CHECKING, Any
+
 import httpx
 
 from providers.base import BaseProvider
 from providers.registry import register_provider
+
+if TYPE_CHECKING:
+    from openai import OpenAI
 
 
 def _is_retryable_err(e: Exception) -> bool:
@@ -30,6 +35,8 @@ class OpenAICompatibleProvider(BaseProvider):
     def _get_client(self) -> OpenAI:
         if self._client is not None:
             return self._client
+        from openai import OpenAI
+
         api_key = self.config.get("api_key", "") or ""
         base_url = self.config.get("base_url", "https://api.openai.com/v1")
         timeout = self.config.get("timeout", 30)
@@ -38,7 +45,12 @@ class OpenAICompatibleProvider(BaseProvider):
         return self._client
 
     def _stream(
-        self, model: str, messages: list[dict], tools: list[dict] | None, temperature: float, max_tokens: int,
+        self,
+        model: str,
+        messages: list[dict],
+        tools: list[dict] | None,
+        temperature: float,
+        max_tokens: int,
     ) -> Generator[dict, None, None]:
         kwargs = dict(
             model=model,
@@ -94,11 +106,7 @@ class OpenAICompatibleProvider(BaseProvider):
         if buffer:
             yield {"type": "tokens", "content": "".join(buffer)}
 
-        tool_calls = (
-            [v for _, v in sorted(tool_calls_acc.items())]
-            if tool_calls_acc
-            else None
-        )
+        tool_calls = [v for _, v in sorted(tool_calls_acc.items())] if tool_calls_acc else None
 
         yield {
             "type": "done",
@@ -126,7 +134,10 @@ class OpenAICompatibleProvider(BaseProvider):
                 if is_fallback or not _is_retryable_err(e):
                     yield {"type": "done", "content": f"Error: {err_msg}", "final": True}
                     return
-                yield {"type": "tokens", "content": f"[Primary model failed ({err_msg[:60]}), retrying with {fallback}…]\n\n"}
+                yield {
+                    "type": "tokens",
+                    "content": f"[Primary model failed ({err_msg[:60]}), retrying with {fallback}…]\n\n",
+                }
 
 
 register_provider("openai", OpenAICompatibleProvider)

@@ -1,6 +1,7 @@
-﻿import json
-from dataclasses import dataclass, field, asdict
+import json
+from dataclasses import asdict, dataclass, field
 from typing import Any
+
 
 def _format_tool_list(defs: list[dict]) -> str:
     lines = []
@@ -14,7 +15,7 @@ def _format_tool_list(defs: list[dict]) -> str:
     return "\n".join(lines)
 
 
-PLANNER_SYSTEM_PROMPT = '''You are a planning agent for a computer assistant. Decompose the user goal into concrete executable tasks.
+PLANNER_SYSTEM_PROMPT = """You are a planning agent for a computer assistant. Decompose the user goal into concrete executable tasks.
 
 AVAILABLE TOOLS:
 {tools}
@@ -41,8 +42,7 @@ Example 3: "hello how are you"
   {{"id": "task_1", "description": "Respond to greeting", "tool": "none", "args": {{}}, "dependencies": []}}
 ]
 
-Respond with ONLY the JSON array, no other text.'''
-
+Respond with ONLY the JSON array, no other text."""
 
 
 @dataclass
@@ -64,6 +64,7 @@ class Task:
 
 def _parse_tasks(text: str) -> list[Task]:
     import re
+
     match = re.search(r"\[.*\]", text, re.DOTALL)
     if not match:
         return [Task(id="task_1", description=text.strip()[:200], tool="none")]
@@ -71,13 +72,15 @@ def _parse_tasks(text: str) -> list[Task]:
         data = json.loads(match.group())
         tasks = []
         for item in data:
-            tasks.append(Task(
-                id=item.get("id", f"task_{len(tasks)+1}"),
-                description=item.get("description", ""),
-                tool=item.get("tool"),
-                args=item.get("args", {}),
-                dependencies=item.get("dependencies", []),
-            ))
+            tasks.append(
+                Task(
+                    id=item.get("id", f"task_{len(tasks) + 1}"),
+                    description=item.get("description", ""),
+                    tool=item.get("tool"),
+                    args=item.get("args", {}),
+                    dependencies=item.get("dependencies", []),
+                )
+            )
         return tasks if tasks else [Task(id="task_1", description=text.strip()[:200], tool="none")]
     except json.JSONDecodeError:
         return [Task(id="task_1", description=text.strip()[:200], tool="none")]
@@ -95,10 +98,12 @@ class Planner:
         messages = [{"role": "system", "content": prompt}]
         if context:
             last = context[-3:]
-            messages.append({
-                "role": "user",
-                "content": f"Conversation context:\n{json.dumps(last, indent=2)}\n\nNew goal: {goal}",
-            })
+            messages.append(
+                {
+                    "role": "user",
+                    "content": f"Conversation context:\n{json.dumps(last, indent=2)}\n\nNew goal: {goal}",
+                }
+            )
         else:
             messages.append({"role": "user", "content": goal})
 
@@ -122,12 +127,14 @@ def _toolcalls_to_tasks(tool_calls: list) -> list[Task]:
         fn = tc.get("function", tc.function if hasattr(tc, "function") else {})
         name = fn.get("name", fn.name if hasattr(fn, "name") else "?")
         args = fn.get("arguments", fn.arguments if hasattr(fn, "arguments") else {})
-        tasks.append(Task(
-            id=f"task_{i+1}",
-            description=f"Execute {name}",
-            tool=name,
-            args=args if isinstance(args, dict) else {},
-        ))
+        tasks.append(
+            Task(
+                id=f"task_{i + 1}",
+                description=f"Execute {name}",
+                tool=name,
+                args=args if isinstance(args, dict) else {},
+            )
+        )
     return tasks if tasks else [Task(id="task_1", description="No tasks generated", tool="none")]
 
     def revise_plan(self, tasks: list[Task], failed: Task, feedback: str) -> list[Task]:

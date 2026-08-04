@@ -1,10 +1,11 @@
-import sys
-import shutil
 import argparse
-from core.registry import discover_plugins
+import shutil
+import sys
+
 from agent.core import Agent
 from browser import close_browser
-
+from core.registry import discover_plugins
+from voice import is_voice_available, listen, speak
 
 BANNER = r"""
   _____  _     _     _
@@ -28,8 +29,9 @@ def print_colored(text: str, color_code: str = "37"):
 
 def main():
     parser = argparse.ArgumentParser(description="Friday — AI Assistant")
-    parser.add_argument("--lang", choices=["english", "hinglish"], default="english",
-                        help="Language (default: english)")
+    parser.add_argument(
+        "--lang", choices=["english", "hinglish"], default="english", help="Language (default: english)"
+    )
     args = parser.parse_args()
 
     if sys.platform == "win32":
@@ -143,7 +145,9 @@ def _handle_command(cmd: str, agent: Agent):
 
     elif cmd == "/clear":
         agent.clear()
-        print_colored("Conversation cleared! ✅" if agent.language == "english" else "Baat-cheet clear ho gayi! ✅", "33")
+        print_colored(
+            "Conversation cleared! ✅" if agent.language == "english" else "Baat-cheet clear ho gayi! ✅", "33"
+        )
 
     elif cmd == "/voice":
         _voice_loop(agent)
@@ -173,7 +177,8 @@ def _handle_command(cmd: str, agent: Agent):
 
 def _print_help(lang: str):
     if lang == "english":
-        print_colored("""
+        print_colored(
+            """
 Commands:
   /help               Show this help
   /clear              Reset conversation
@@ -188,9 +193,12 @@ The assistant has tools for:
   - Persistent memory (remember/recall)
   - File/content search
   - System information
-""", "33")
+""",
+            "33",
+        )
     else:
-        print_colored("""
+        print_colored(
+            """
 Commands:
   /help               Yeh help message
   /clear              Baat-cheet reset karo
@@ -205,7 +213,9 @@ Assistant ke paas tools hain:
   - Persistent memory (remember/recall)
   - File/content search
   - System information
-""", "33")
+""",
+            "33",
+        )
 
 
 if __name__ == "__main__":

@@ -87,13 +87,15 @@ class LongTermMemory:
     def list_all(self) -> dict:
         entries = []
         for key, entry in self._entries.items():
-            entries.append({
-                "key": key,
-                "importance": entry.importance,
-                "score": round(entry.score(), 3),
-                "access_count": entry.access_count,
-                "summary": entry.summary or str(entry.value)[:80],
-            })
+            entries.append(
+                {
+                    "key": key,
+                    "importance": entry.importance,
+                    "score": round(entry.score(), 3),
+                    "access_count": entry.access_count,
+                    "summary": entry.summary or str(entry.value)[:80],
+                }
+            )
         entries.sort(key=lambda e: e["score"], reverse=True)
         return {"entries": entries, "count": len(entries)}
 
@@ -138,7 +140,7 @@ class LongTermMemory:
     def _evict(self):
         scored = [(entry.score(), key) for key, entry in self._entries.items()]
         scored.sort()
-        to_remove = scored[:max(1, len(self._entries) - self._max_entries)]
+        to_remove = scored[: max(1, len(self._entries) - self._max_entries)]
         for _, key in to_remove:
             del self._entries[key]
         info(f"Evicted {len(to_remove)} low-importance memories")
@@ -147,7 +149,7 @@ class LongTermMemory:
         if not os.path.exists(self._file_path):
             return
         try:
-            with open(self._file_path, "r", encoding="utf-8") as f:
+            with open(self._file_path, encoding="utf-8") as f:
                 data = json.load(f)
             for item in data:
                 entry = MemoryEntry.from_dict(item)

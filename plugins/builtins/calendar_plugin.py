@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from plugins.base import ToolPlugin
@@ -22,26 +22,37 @@ class CalendarPlugin(ToolPlugin):
     def execute(self, max_results: int = 10, days_ahead: int = 7) -> dict[str, Any]:
         try:
             from core.auth.google import get_calendar_service, is_authenticated
+
             if not is_authenticated():
                 return {"error": "Not authenticated. Run the Google OAuth flow first."}
             service = get_calendar_service()
-            now = datetime.now(timezone.utc).isoformat()
-            later = (datetime.now(timezone.utc) + timedelta(days=days_ahead)).isoformat()
-            events = service.events().list(
-                calendarId="primary", timeMin=now, timeMax=later,
-                maxResults=max_results, singleEvents=True, orderBy="startTime",
-            ).execute()
+            now = datetime.now(UTC).isoformat()
+            later = (datetime.now(UTC) + timedelta(days=days_ahead)).isoformat()
+            events = (
+                service.events()
+                .list(
+                    calendarId="primary",
+                    timeMin=now,
+                    timeMax=later,
+                    maxResults=max_results,
+                    singleEvents=True,
+                    orderBy="startTime",
+                )
+                .execute()
+            )
             items = []
             for e in events.get("items", []):
                 start = e["start"].get("dateTime", e["start"].get("date", ""))
                 end = e["end"].get("dateTime", e["end"].get("date", ""))
-                items.append({
-                    "summary": e.get("summary", ""),
-                    "start": start,
-                    "end": end,
-                    "description": (e.get("description", "") or "")[:200],
-                    "location": e.get("location", ""),
-                })
+                items.append(
+                    {
+                        "summary": e.get("summary", ""),
+                        "start": start,
+                        "end": end,
+                        "description": (e.get("description", "") or "")[:200],
+                        "location": e.get("location", ""),
+                    }
+                )
             return {"events": items, "count": len(items)}
         except Exception as ex:
             return {"error": str(ex)}
@@ -67,6 +78,7 @@ class CreateEventPlugin(ToolPlugin):
     def execute(self, summary: str, start_time: str, end_time: str, description: str = "") -> dict[str, Any]:
         try:
             from core.auth.google import get_calendar_service, is_authenticated
+
             if not is_authenticated():
                 return {"error": "Not authenticated. Run the Google OAuth flow first."}
             service = get_calendar_service()

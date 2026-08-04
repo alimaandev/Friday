@@ -1,5 +1,5 @@
-from browser.browser import BrowserManager, get_browser, close_browser
+from browser.browser import BrowserManager, close_browser, get_browser
+from browser.clicking import click_coords, click_role, click_text, hover, smart_click
 from browser.navigation import navigate, search
-from browser.clicking import smart_click, click_text, click_role, click_coords, hover
-from browser.typing import type_text, type_by_label, press_key
-from browser.snapshot import get_text, get_page_text, screenshot, wait, scroll
+from browser.snapshot import get_page_text, get_text, screenshot, scroll, wait
+from browser.typing import press_key, type_by_label, type_text

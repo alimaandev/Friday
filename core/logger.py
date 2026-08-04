@@ -1,9 +1,9 @@
 import json
+import logging
 import os
 import time
-import logging
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
@@ -50,7 +50,7 @@ def _metrics_log(entry: dict[str, Any]):
 
 def log(level: str, message: str, **extra):
     entry = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "level": level.upper(),
         "message": message,
         **extra,
@@ -95,12 +95,14 @@ def record_tool_call(name: str, duration_ms: float, success: bool = True):
     if not success:
         _METRICS["tool_errors"][name] += 1
         _METRICS["failures"] += 1
-    _metrics_log({
-        "type": "tool_call",
-        "tool": name,
-        "duration_ms": round(duration_ms, 1),
-        "success": success,
-    })
+    _metrics_log(
+        {
+            "type": "tool_call",
+            "tool": name,
+            "duration_ms": round(duration_ms, 1),
+            "success": success,
+        }
+    )
 
 
 def record_llm_call(tokens: int = 0):
@@ -133,23 +135,25 @@ def get_metrics() -> dict:
 
 def reset_metrics():
     _METRICS.clear()
-    _METRICS.update({
-        "tools": defaultdict(int),
-        "tool_errors": defaultdict(int),
-        "tool_durations": defaultdict(list),
-        "tokens_used": 0,
-        "llm_calls": 0,
-        "failures": 0,
-        "retries": 0,
-        "started_at": time.time(),
-    })
+    _METRICS.update(
+        {
+            "tools": defaultdict(int),
+            "tool_errors": defaultdict(int),
+            "tool_durations": defaultdict(list),
+            "tokens_used": 0,
+            "llm_calls": 0,
+            "failures": 0,
+            "retries": 0,
+            "started_at": time.time(),
+        }
+    )
 
 
 def get_timeline(limit: int = 50) -> list[dict]:
     events = []
     if os.path.exists(_EVENT_LOG):
         try:
-            with open(_EVENT_LOG, "r", encoding="utf-8") as f:
+            with open(_EVENT_LOG, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     if line:

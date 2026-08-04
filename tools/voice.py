@@ -1,4 +1,5 @@
-from voice.stt import listen as _listen, is_voice_available as _check_avail
+from voice.stt import is_voice_available as _check_avail
+from voice.stt import listen as _listen
 from voice.tts import speak as _speak
 
 

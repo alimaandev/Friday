@@ -1,8 +1,14 @@
-import pytest
 from core.logger import (
-    info, warn, error, debug,
-    record_tool_call, record_llm_call, record_retry,
-    get_metrics, reset_metrics, Timer, get_timeline,
+    debug,
+    error,
+    get_metrics,
+    get_timeline,
+    info,
+    record_llm_call,
+    record_retry,
+    record_tool_call,
+    reset_metrics,
+    warn,
 )
 
 

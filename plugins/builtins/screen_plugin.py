@@ -3,7 +3,7 @@ import io
 import time
 from typing import Any
 
-from PIL import Image, ImageGrab
+from PIL import ImageGrab
 
 from plugins.base import ToolPlugin
 
@@ -25,6 +25,7 @@ def _get_window_titles() -> list[dict]:
                 title = win32gui.GetWindowText(hwnd)
                 if title:
                     titles.append({"handle": hwnd, "title": title})
+
         win32gui.EnumWindows(cb, None)
     except ImportError:
         pass
@@ -48,11 +49,11 @@ class ScreenCapturePlugin(ToolPlugin):
             "required": [],
         }
 
-    def execute(self, left: int | None = None, top: int | None = None,
-                right: int | None = None, bottom: int | None = None) -> dict[str, Any]:
+    def execute(
+        self, left: int | None = None, top: int | None = None, right: int | None = None, bottom: int | None = None
+    ) -> dict[str, Any]:
         region = (left, top, right, bottom) if all(x is not None for x in [left, top, right, bottom]) else None
         try:
-            from PIL import Image
             img = ImageGrab.grab(bbox=region)
             buf = io.BytesIO()
             img.save(buf, format="PNG", optimize=True)

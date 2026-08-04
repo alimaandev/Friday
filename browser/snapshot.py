@@ -2,7 +2,7 @@ import os
 import time
 from datetime import datetime
 
-from browser.browser import get_browser, SCREENSHOT_DIR
+from browser.browser import SCREENSHOT_DIR, get_browser
 
 
 def get_text(selector: str) -> dict:

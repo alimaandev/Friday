@@ -1,5 +1,4 @@
-import pytest
-from core.security import Sandbox, RateLimiter, PermissionManager, PermissionRule
+from core.security import PermissionManager, PermissionRule, RateLimiter, Sandbox
 
 
 class TestSandbox:

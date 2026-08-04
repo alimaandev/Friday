@@ -1,10 +1,10 @@
-from config import get_system_prompt, MAX_ITERATIONS
 from agent.llm import chat as llm_chat
-from core.registry import get_tool_definitions, get_tool_map
-from core.planner import Planner
+from config import MAX_ITERATIONS, get_system_prompt
 from core.executor import Executor
 from core.logger import info
 from core.memory import get_memory_manager
+from core.planner import Planner
+from core.registry import get_tool_definitions, get_tool_map
 from core.system1 import build_default_system1
 
 _system1 = None
@@ -36,6 +36,7 @@ class Agent:
         if self.persona:
             try:
                 from core.persona import get_persona_prompt
+
                 persona_text = get_persona_prompt(self.persona)
                 base = persona_text + "\n\n" + base
             except ImportError:
@@ -82,9 +83,7 @@ class Agent:
             yield {"type": "task_start", "task": task.to_dict()}
             info(f"Executing task: {task.id} - {task.description}")
 
-            for event in self._executor.execute_task(
-                task, self.messages, self._tool_defs, MAX_ITERATIONS
-            ):
+            for event in self._executor.execute_task(task, self.messages, self._tool_defs, MAX_ITERATIONS):
                 yield event
 
             if task.status == "failed" and task.retries < task.max_retries:

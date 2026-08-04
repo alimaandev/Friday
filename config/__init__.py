@@ -1,15 +1,14 @@
+from config.providers import load_provider_config
 from config.settings import (
-    OLLAMA_BASE_URL,
-    MODEL,
-    TEMPERATURE,
-    MAX_TOKENS,
-    MAX_ITERATIONS,
     LANGUAGE,
+    MAX_ITERATIONS,
+    MAX_TOKENS,
+    MODEL,
+    OLLAMA_BASE_URL,
     SYSTEM_PROMPT_EN,
     SYSTEM_PROMPT_HI,
+    TEMPERATURE,
     get_system_prompt,
 )
-
-from config.providers import load_provider_config
 
 PROVIDER_CONFIG = load_provider_config()

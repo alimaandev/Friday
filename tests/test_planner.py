@@ -1,5 +1,4 @@
-import pytest
-from core.planner import Task, _parse_tasks, Planner
+from core.planner import Task, _parse_tasks
 
 
 class TestTask:

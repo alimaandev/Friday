@@ -7,7 +7,7 @@ yfinance>=1.2.0
 sentence-transformers>=5.0.0
 requests>=2.31.0
 pyttsx3>=2.90
-pillow>=11.0.0
+pillow>=12.3.0
 
 # Development
 pytest>=9.0.0

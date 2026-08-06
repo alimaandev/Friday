@@ -8,8 +8,7 @@ class ToolPlugin(ABC):
     category: str = "general"
 
     @abstractmethod
-    def execute(self, **kwargs) -> dict[str, Any]:
-        ...
+    def execute(self, **kwargs) -> dict[str, Any]: ...
 
     def get_parameters_schema(self) -> dict[str, Any]:
         return {"type": "object", "properties": {}, "required": []}

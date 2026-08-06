@@ -524,7 +524,7 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
       },
     )
     abortRef.current = chatController
-  }, [loading, activeSessionId])
+  }, [loading, activeSessionId, persona])
 
   // Stable ref for handleSend so effects always have the latest version
   const handleSendRef = useRef<(text: string) => void>(null as any)

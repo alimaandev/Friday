@@ -1,7 +1,19 @@
 from browser import (
-    search, navigate, smart_click, click_text, click_role, click_coords,
-    type_text, type_by_label, press_key, hover, scroll,
-    get_text, get_page_text, screenshot, wait,
+    click_coords,
+    click_role,
+    click_text,
+    get_page_text,
+    get_text,
+    hover,
+    navigate,
+    press_key,
+    screenshot,
+    scroll,
+    search,
+    smart_click,
+    type_by_label,
+    type_text,
+    wait,
 )
 from plugins.base import ToolPlugin
 
@@ -16,7 +28,10 @@ class BrowseSearchPlugin(ToolPlugin):
             "type": "object",
             "properties": {
                 "query": {"type": "string", "description": "The search query"},
-                "engine": {"type": "string", "description": "Search engine: google, bing, duckduckgo (default: google)"},
+                "engine": {
+                    "type": "string",
+                    "description": "Search engine: google, bing, duckduckgo (default: google)",
+                },
             },
             "required": ["query"],
         }

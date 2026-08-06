@@ -1,11 +1,13 @@
 """Morning Pulse — daily briefing generator that aggregates all data sources."""
-import asyncio, time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-from typing import Any
-import httpx
+
+import asyncio
+import time
 import xml.etree.ElementTree as ET
-import re
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
+import httpx
 
 __all__ = ["Briefing", "BriefingEngine"]
 
@@ -33,9 +35,7 @@ _STOCK_SYMBOLS = ["AAPL", "GOOG", "MSFT", "NVDA", "BTC-USD"]
 
 class BriefingEngine:
     def __init__(self, client: httpx.AsyncClient | None = None):
-        self._client = client or httpx.AsyncClient(
-            timeout=10.0, headers={"User-Agent": "Friday/1.0"}
-        )
+        self._client = client or httpx.AsyncClient(timeout=10.0, headers={"User-Agent": "Friday/1.0"})
 
     async def synthesize(self) -> Briefing:
         data = await asyncio.gather(
@@ -45,9 +45,7 @@ class BriefingEngine:
             self._get_system_info(),
             return_exceptions=True,
         )
-        weather_data, news_data, crypto_data, sys_info = (
-            d if not isinstance(d, Exception) else None for d in data
-        )
+        weather_data, news_data, crypto_data, sys_info = (d if not isinstance(d, Exception) else None for d in data)
 
         greeting = self._greeting()
         sections: list[str] = []
@@ -74,7 +72,7 @@ class BriefingEngine:
 
     @staticmethod
     def _greeting() -> str:
-        hour = datetime.now(timezone.utc).hour
+        hour = datetime.now(UTC).hour
         if hour < 12:
             return "Good morning."
         if hour < 17:
@@ -130,7 +128,12 @@ class BriefingEngine:
             )
             data = resp.json()
             return [
-                {"symbol": c["symbol"].upper(), "name": c["name"], "price": c["current_price"], "change_24h": c["price_change_percentage_24h"]}
+                {
+                    "symbol": c["symbol"].upper(),
+                    "name": c["name"],
+                    "price": c["current_price"],
+                    "change_24h": c["price_change_percentage_24h"],
+                }
                 for c in data
             ]
         except Exception:
@@ -139,6 +142,7 @@ class BriefingEngine:
     async def _get_system_info(self) -> dict[str, Any] | None:
         try:
             import platform as pf
+
             return {
                 "hostname": pf.node(),
                 "cpu_cores": os.cpu_count(),
@@ -149,15 +153,24 @@ class BriefingEngine:
     async def _get_calendar_text(self) -> str | None:
         try:
             from core.auth.google import get_calendar_service, is_authenticated
+
             if not is_authenticated():
                 return None
             service = get_calendar_service()
-            now = datetime.now(timezone.utc).isoformat()
-            later = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
-            events = service.events().list(
-                calendarId="primary", timeMin=now, timeMax=later,
-                maxResults=5, singleEvents=True, orderBy="startTime",
-            ).execute()
+            now = datetime.now(UTC).isoformat()
+            later = (datetime.now(UTC) + timedelta(days=1)).isoformat()
+            events = (
+                service.events()
+                .list(
+                    calendarId="primary",
+                    timeMin=now,
+                    timeMax=later,
+                    maxResults=5,
+                    singleEvents=True,
+                    orderBy="startTime",
+                )
+                .execute()
+            )
             items = events.get("items", [])
             if not items:
                 return None
@@ -172,6 +185,7 @@ class BriefingEngine:
     async def _get_email_text(self) -> str | None:
         try:
             from core.auth.google import get_gmail_service, is_authenticated
+
             if not is_authenticated():
                 return None
             service = get_gmail_service()
@@ -199,10 +213,19 @@ class BriefingEngine:
     @staticmethod
     def _format_weather(w: dict) -> str:
         codes: dict[int, str] = {
-            0: "clear", 1: "mainly clear", 2: "partly cloudy", 3: "overcast",
-            45: "foggy", 48: "rime fog", 51: "light drizzle", 53: "moderate drizzle",
-            61: "light rain", 63: "moderate rain", 65: "heavy rain",
-            80: "rain showers", 95: "thunderstorms",
+            0: "clear",
+            1: "mainly clear",
+            2: "partly cloudy",
+            3: "overcast",
+            45: "foggy",
+            48: "rime fog",
+            51: "light drizzle",
+            53: "moderate drizzle",
+            61: "light rain",
+            63: "moderate rain",
+            65: "heavy rain",
+            80: "rain showers",
+            95: "thunderstorms",
         }
         cond = codes.get(w.get("weather_code", 0), "unknown")
         temp = w.get("temperature", "?")

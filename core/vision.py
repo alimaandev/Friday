@@ -2,12 +2,11 @@
 
 import base64
 import io
-import os
 import time
-from datetime import datetime
 
 try:
     from PIL import Image, ImageGrab
+
     HAS_PIL = True
 except ImportError:
     HAS_PIL = False
@@ -15,6 +14,7 @@ except ImportError:
 # Optional OCR
 try:
     import pytesseract
+
     HAS_OCR = True
 except ImportError:
     HAS_OCR = False
@@ -53,6 +53,7 @@ class VisionEngine:
             return False
         try:
             import hashlib
+
             img = ImageGrab.grab()
             h = hashlib.md5(img.tobytes()).hexdigest()
             if h != self._last_screen_hash:
@@ -70,6 +71,7 @@ class VisionEngine:
             prompt = "Describe what you see in this image in 2-3 sentences."
         try:
             from providers import get_provider
+
             provider = get_provider()
             messages = [
                 {

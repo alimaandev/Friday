@@ -1,5 +1,4 @@
 import subprocess
-import shlex
 
 
 def run_command(command: str, timeout: int = 30) -> dict:

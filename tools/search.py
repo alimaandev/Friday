@@ -22,14 +22,16 @@ def grep_files(pattern: str, path: str = ".", include: str = None) -> dict:
                     continue
                 fpath = os.path.join(root, fname)
                 try:
-                    with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
+                    with open(fpath, encoding="utf-8", errors="ignore") as f:
                         for i, line in enumerate(f, 1):
                             if compiled.search(line):
-                                results.append({
-                                    "file": fpath.replace("\\", "/"),
-                                    "line": i,
-                                    "text": line.strip()[:200],
-                                })
+                                results.append(
+                                    {
+                                        "file": fpath.replace("\\", "/"),
+                                        "line": i,
+                                        "text": line.strip()[:200],
+                                    }
+                                )
                 except Exception:
                     pass
         return {"results": results, "count": len(results), "error": None}

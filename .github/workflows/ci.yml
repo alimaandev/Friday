@@ -10,6 +10,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "22"
+
 jobs:
   backend:
     name: Backend (Python)
@@ -18,21 +22,32 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
 
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install quart quart-cors hypercorn yfinance cachetools
-          pip install pytest
+          pip install -r requirements.txt
+          pip install pytest pytest-cov httpx
 
-      - name: Run tests
-        run: python -m pytest tests/ -v
+      - name: Lint with Ruff
+        run: pip install ruff && ruff check --output-format=github
+
+      - name: Run tests with coverage
+        run: python -m pytest tests/ -v --cov --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          flags: backend
+          fail_ci_if_error: false
 
   frontend:
     name: Frontend (TypeScript)
@@ -42,19 +57,26 @@ jobs:
         shell: bash
         working-directory: desktop
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v7
         with:
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: desktop/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint with oxlint
+        run: npm run lint
+
       - name: TypeScript check
         run: npx tsc --noEmit
+
+      - name: Run tests
+        run: npm run test -- --reporter verbose
 
       - name: Build
         run: npm run build

@@ -4,6 +4,7 @@ from typing import Any
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "providers.toml")
 
+
 # ─── Env var helpers ─────────────────────────────────────────────
 def _load_dotenv():
     """Load .env file from project root if present."""
@@ -20,6 +21,7 @@ def _load_dotenv():
             key, val = key.strip(), val.strip().strip("\"'")
             if not os.environ.get(key):
                 os.environ[key] = val
+
 
 _load_dotenv()
 

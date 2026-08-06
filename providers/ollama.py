@@ -1,8 +1,7 @@
 import json
 import time
-from typing import Any, Generator
-
-import ollama
+from collections.abc import Generator
+from typing import Any
 
 from providers.base import BaseProvider
 from providers.registry import register_provider
@@ -15,9 +14,9 @@ class OllamaProvider(BaseProvider):
 
     def __init__(self, config: dict[str, Any]):
         super().__init__(config)
-        self._client = ollama.Client(
-            host=config.get("base_url", "http://localhost:11434")
-        )
+        import ollama
+
+        self._client = ollama.Client(host=config.get("base_url", "http://localhost:11434"))
 
     def chat(
         self,
@@ -67,11 +66,13 @@ class OllamaProvider(BaseProvider):
                     tc_id = tc.get("id", getattr(tc, "id", ""))
                     if isinstance(args, dict):
                         args = json.dumps(args, ensure_ascii=False)
-                    normalized.append({
-                        "id": tc_id,
-                        "type": "function",
-                        "function": {"name": name, "arguments": args},
-                    })
+                    normalized.append(
+                        {
+                            "id": tc_id,
+                            "type": "function",
+                            "function": {"name": name, "arguments": args},
+                        }
+                    )
                 tool_calls = normalized
 
         if buffer:

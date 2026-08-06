@@ -1,5 +1,4 @@
 import time
-from typing import Any
 
 from core.logger import info
 
@@ -21,7 +20,7 @@ class MemoryConsolidator:
             return
         self._last_dedup = now
 
-        engine = self._mm.vector._engine if hasattr(self._mm.vector, '_engine') else None
+        engine = self._mm.vector._engine if hasattr(self._mm.vector, "_engine") else None
         if engine is None:
             return
 
@@ -59,8 +58,8 @@ class MemoryConsolidator:
             return
         self._last_decay = now
 
-        ltm = getattr(self._mm, 'long_term', None)
-        if ltm and hasattr(ltm, 'decay'):
+        ltm = getattr(self._mm, "long_term", None)
+        if ltm and hasattr(ltm, "decay"):
             before = ltm.list_all().get("count", 0)
             ltm.decay(factor=0.95)
             after = ltm.list_all().get("count", 0)
@@ -68,7 +67,7 @@ class MemoryConsolidator:
                 info(f"Decayed long-term memory: {before} -> {after} entries")
 
     def _extract_semantic_patterns(self):
-        ltm = getattr(self._mm, 'long_term', None)
+        ltm = getattr(self._mm, "long_term", None)
         if not ltm:
             return
 
@@ -119,19 +118,58 @@ class MemoryConsolidator:
         jaccard = len(intersection) / len(union)
         if jaccard > 0.7:
             import difflib
+
             ratio = difflib.SequenceMatcher(None, a.lower(), b.lower()).ratio()
             return max(jaccard, ratio * 0.6)
         return jaccard
 
 
-import re
+import re  # noqa: E402
+
 _WORD_RE = re.compile(r"\w+")
 
 _STOP_WORDS = {
-    "this", "that", "with", "from", "have", "been", "were", "what",
-    "when", "where", "which", "their", "there", "about", "would",
-    "could", "should", "after", "before", "between", "other", "than",
-    "then", "also", "into", "more", "some", "such", "only", "very",
-    "just", "like", "over", "they", "them", "these", "those", "because",
-    "user", "asked", "assistant", "responded", "friday",
+    "this",
+    "that",
+    "with",
+    "from",
+    "have",
+    "been",
+    "were",
+    "what",
+    "when",
+    "where",
+    "which",
+    "their",
+    "there",
+    "about",
+    "would",
+    "could",
+    "should",
+    "after",
+    "before",
+    "between",
+    "other",
+    "than",
+    "then",
+    "also",
+    "into",
+    "more",
+    "some",
+    "such",
+    "only",
+    "very",
+    "just",
+    "like",
+    "over",
+    "they",
+    "them",
+    "these",
+    "those",
+    "because",
+    "user",
+    "asked",
+    "assistant",
+    "responded",
+    "friday",
 }

@@ -1,6 +1,4 @@
 from browser.browser import get_browser
-from core.logger import info
-
 
 _CLICK_STRATEGIES = ["text", "role", "css", "coords"]
 
@@ -40,7 +38,7 @@ def smart_click(target: str, strategy: str = "auto") -> dict:
                 page.mouse.click(x, y)
                 page.bring_to_front()
                 return {"status": "clicked", "strategy": "coords", "target": target}
-        except Exception as e:
+        except Exception:
             continue
 
     return {"status": "error", "error": f"Could not click '{target}' with any strategy", "target": target}

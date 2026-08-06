@@ -216,11 +216,11 @@ A single-page React frontend communicates with a Python Quart backend via SSE an
 |---------|--------|------------|
 | **v1** | ✅ Shipped | Core chat, 3D orb, intelligence dashboard |
 | **v2** | ✅ Shipped | Async backend, SSE push, voice/gesture, Google integration, performance overhaul |
-| **v3** | ✅ Shipped | Voice personality (3 personas), cron automations with NL creation, screen/camera vision, Holodeck 3D visualizations, ambient conversation mode |
-| **v4** | 📋 Planned | Plugin marketplace, custom tool builder, local RAG pipeline |
-| **v5** | 📋 Planned | Mobile companion app, multi-user mode, proactive automation engine |
+| **v3** | ✅ Shipped | Voice personality, cron automations, screen/camera vision, Holodeck 3D viz, ambient conversation |
+| **v4** | 📋 Planning | Plugin marketplace, custom tool builder, local RAG pipeline, Holodeck v2 |
+| **v5** | 📋 Backlog | Desktop app (Tauri), offline-first, multi-user mode |
 
-Track progress on the [open issues](https://github.com/alimaandev/Friday/issues).
+Track progress on the [project board](https://github.com/users/alimaandev/projects/2) and [open issues](https://github.com/alimaandev/Friday/issues).
 
 <div align="right">
   <a href="#readme-top">▲ back to top</a>

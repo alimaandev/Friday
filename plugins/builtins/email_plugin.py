@@ -34,22 +34,29 @@ class EmailPlugin(ToolPlugin):
     def execute(self, max_results: int = 10, query: str = "") -> dict[str, Any]:
         try:
             from core.auth.google import get_gmail_service, is_authenticated
+
             if not is_authenticated():
                 return {"error": "Not authenticated. Run the Google OAuth flow first."}
             service = get_gmail_service()
             results = service.users().messages().list(userId="me", q=query, maxResults=max_results).execute()
             messages = []
             for msg in results.get("messages", []):
-                meta = service.users().messages().get(userId="me", id=msg["id"], format="metadata",
-                    metadataHeaders=["From", "Subject", "Date"]).execute()
+                meta = (
+                    service.users()
+                    .messages()
+                    .get(userId="me", id=msg["id"], format="metadata", metadataHeaders=["From", "Subject", "Date"])
+                    .execute()
+                )
                 headers = {h["name"]: h["value"] for h in meta.get("payload", {}).get("headers", [])}
-                messages.append({
-                    "id": msg["id"],
-                    "from": headers.get("From", ""),
-                    "subject": headers.get("Subject", ""),
-                    "date": headers.get("Date", ""),
-                    "snippet": meta.get("snippet", ""),
-                })
+                messages.append(
+                    {
+                        "id": msg["id"],
+                        "from": headers.get("From", ""),
+                        "subject": headers.get("Subject", ""),
+                        "date": headers.get("Date", ""),
+                        "snippet": meta.get("snippet", ""),
+                    }
+                )
             return {"messages": messages, "count": len(messages)}
         except Exception as ex:
             return {"error": str(ex)}
@@ -74,6 +81,7 @@ class SendEmailPlugin(ToolPlugin):
     def execute(self, to: str, subject: str, body: str) -> dict[str, Any]:
         try:
             from core.auth.google import get_gmail_service, is_authenticated
+
             if not is_authenticated():
                 return {"error": "Not authenticated. Run the Google OAuth flow first."}
             service = get_gmail_service()
@@ -96,6 +104,7 @@ class GetUnreadCountPlugin(ToolPlugin):
     def execute(self) -> dict[str, Any]:
         try:
             from core.auth.google import get_gmail_service, is_authenticated
+
             if not is_authenticated():
                 return {"error": "Not authenticated"}
             service = get_gmail_service()

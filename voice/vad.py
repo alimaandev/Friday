@@ -19,7 +19,7 @@ class VoiceActivityDetector:
         start = 0
 
         for i in range(0, len(audio), frame_size):
-            frame = audio[i:i + frame_size]
+            frame = audio[i : i + frame_size]
             speech = self.is_speech(frame)
             if speech and not in_speech:
                 start = i

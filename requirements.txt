@@ -5,7 +5,7 @@ httpx>=0.28.0
 cachetools>=7.0.0
 yfinance>=1.2.0
 sentence-transformers>=5.0.0
-requests>=2.31.0
+requests>=2.34.2
 pyttsx3>=2.90
 pillow>=12.3.0
 

@@ -39,10 +39,16 @@
 <details>
   <summary><kbd>📖 Table of Contents</kbd></summary>
 
+  - [🤔 Why Friday?](#-why-friday)
+  - [🎬 Demo](#-demo)
   - [⚡ Quick Start](#-quick-start)
   - [🚀 Features](#-features)
+  - [🔒 Privacy & Security](#-privacy--security)
+  - [📁 Project Structure](#-project-structure)
+  - [⚙️ Configuration](#configuration)
   - [🏗 Architecture](#-architecture)
-  - [📘 API Reference](docs/api.md)
+  - [🛠 Development](#-development)
+  - [❓ FAQ](#-faq)
   - [🛣 Roadmap](#-roadmap)
   - [🤝 Contributing](#-contributing)
   - [⭐ Star History](#-star-history)
@@ -65,6 +71,42 @@
 docker compose up -d
 # → Frontend: http://localhost:5173 · Backend: http://localhost:8080
 ```
+
+<br>
+
+---
+
+## 🤔 Why Friday?
+
+**Cloud assistants are convenient — and that's the problem.** They live behind a website, own your conversation history, upload your screen on request to a vendor you didn't choose, and charge a subscription for features you could run yourself.
+
+**Friday is the alternative that puts you back in control:**
+
+- 🖥️ **Desktop-first** — it runs where you work. No tab required, no "sorry, I can only do that in the cloud" moments.
+- 🔑 **Bring your own LLM** — plug in OpenRouter, OpenAI, Ollama, or any OpenAI-compatible endpoint. Your key, your provider, your billing, your rules. No Friday servers exist — there is nothing to charge you for.
+- 🔒 **Local by design** — memory, automation definitions, and Google tokens live in a `memory_store/` folder on *your* machine, not in someone else's database. See [Privacy & Security](#-privacy--security).
+- 🎭 **A personality, not a chatbot** — three voice personas, ambient conversation, and a 3D orb that reacts to you. It *feels* like a companion, because that's the whole point.
+- 🧩 **Extensible** — plugins, custom tools, and a planner that breaks big goals into executed steps. If you can script it, Friday can run it.
+
+> **The pitch in one sentence:** Friday is a JARVIS-class AI assistant you actually own — free, open source (MIT), and running entirely on your hardware.
+
+<div align="right">
+  <a href="#readme-top">▲ back to top</a>
+</div>
+
+<br>
+
+---
+
+## 🎬 Demo
+
+<img src="desktop/public/dashboard.png" alt="Friday dashboard — 3D orb, intelligence panel, and chat" width="100%">
+
+> 🎥 *A short GIF/video walkthrough of the orb, voice, and Holodeck is coming soon. In the meantime, the dashboard above shows the full interface — and the best demo is running it yourself (30 seconds, below).*
+
+<div align="right">
+  <a href="#readme-top">▲ back to top</a>
+</div>
 
 <br>
 
@@ -194,6 +236,103 @@ cd .. && npm install && npm run dev
 
 ---
 
+## 🔒 Privacy & Security
+
+Friday is designed so that *your data stays yours*. Here is exactly what happens with it — no fine print.
+
+### Where your data lives
+
+| Data | Location | Notes |
+|------|----------|-------|
+| **API keys** | `config/providers.toml` | Only read by Friday to call the provider *you* configured. Never uploaded anywhere. |
+| **Conversation memory** | `memory_store/long_term.json` | Plain JSON on your disk — easy to inspect, back up, or delete. |
+| **Vector/embedding index** | `memory_store/vector_store.pkl`, `embeddings.pkl` | Local search indexes for semantic recall. |
+| **Google OAuth tokens** | `memory_store/` | Stored locally after you authorize Calendar/Gmail. |
+
+### What leaves your machine
+
+- **Only calls to your configured LLM provider** (OpenRouter, OpenAI, Ollama, etc.) — and only the content you ask Friday to process. If you run Ollama locally, **nothing** related to AI leaves your machine at all.
+- **Live data modules** (news, weather, stocks, crypto, CVE, etc.) fetch public APIs — standard HTTP requests, same as any dashboard.
+- **Google Calendar/Gmail** are only contacted when *you* use those features, under your own OAuth consent.
+
+### What never leaves your machine
+
+- **Screen & camera analysis** — your screen is captured only when *you* ask for it, and only the frames you request are sent to your provider for vision analysis. The background screen-change monitor runs entirely locally (it only compares image hashes — it never uploads pixels).
+- **Voice & wake word** — "Hey Friday" detection and speech-to-text run **offline in your browser**. No audio is uploaded.
+
+### Your controls
+
+- 🗑️ **Wipe it all**: delete the `memory_store/` directory and your `config/providers.toml`.
+- 🔄 **Go fully local**: switch the provider to Ollama — AI processing stops leaving your machine entirely.
+- 👀 **Audit it**: memory is plain JSON. Open it and see exactly what Friday remembers about you.
+- 🚫 **No telemetry** — Friday has no analytics, no crash reporters, and no phone-home code.
+
+<div align="right">
+  <a href="#readme-top">▲ back to top</a>
+</div>
+
+<br>
+
+---
+
+## 📁 Project Structure
+
+```text
+Friday/
+├── core/                  # Business logic
+│   ├── executor.py        #   Tool-call execution & streaming
+│   ├── memory/            #   Three parallel memory engines (TF-IDF, vector, embeddings)
+│   ├── proactive.py       #   Background monitors → SSE alerts
+│   ├── automations.py     #   Cron-triggered automations engine
+│   ├── vision.py          #   Screen/camera capture + analysis
+│   └── auth/              #   Google OAuth (Calendar, Gmail)
+├── providers/             # LLM provider abstraction (pluggable)
+│   ├── registry.py        #   Auto-registration
+│   ├── openai_compat.py   #   OpenRouter/OpenAI/any OpenAI-compatible API
+│   └── ollama.py          #   Local models
+├── plugins/               # Tool plugins (auto-discovered at startup)
+│   └── builtins/          #   Screen, email, calendar, web, system tools…
+├── voice/                 # Voice I/O & wake word (offline, in-browser)
+├── browser/               # Headless browser automation
+├── desktop/               # Frontend (React 19 + Three.js + Vite + Tailwind)
+│   ├── src/               #   Components, stores, hooks
+│   ├── public/            #   Assets & feature images
+│   └── api_server.py      #   Quart backend (REST + SSE, port 8080)
+├── config/                # providers.toml — your API keys & providers
+├── memory_store/          # Local memory (JSON + pickle) — created at runtime
+├── docs/                  # API reference
+└── tests/                 # 180+ pytest tests · desktop/src/test/ (48 vitest)
+```
+
+### ⚙️ Configuration
+
+All configuration lives in a single file: `config/providers.toml` (copy from `config/providers.toml.example`).
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `[default] provider` | `"openrouter"` | Active provider — `openrouter`, `openai`, `ollama`, or any OpenAI-compatible API |
+| `[openrouter] api_key` | — | Your OpenRouter key |
+| `[openrouter] model` | `"openrouter/free"` | Model to use (free tier by default) |
+| `[openrouter] fallback_model` | `"meta-llama/llama-3.2-3b-instruct:free"` | Used when the primary model is unavailable |
+| `[openai] base_url` | `"https://api.openai.com/v1"` | Any OpenAI-compatible endpoint |
+| `[ollama] base_url` | `"http://localhost:11434"` | Local Ollama server |
+| `temperature` | `0.7` | Response randomness (per provider) |
+| `max_tokens` | `4096` | Max response length (per provider) |
+| `[embeddings] engine` | `"sentence"` | Memory embedding engine |
+
+**Switch providers in three steps:**
+1. Paste the API key in the provider's section
+2. Change `[default] provider` to that provider's name
+3. Restart the backend — done
+
+<div align="right">
+  <a href="#readme-top">▲ back to top</a>
+</div>
+
+<br>
+
+---
+
 ## 🏗 Architecture
 
 <p align="center">
@@ -201,6 +340,81 @@ cd .. && npm install && npm run dev
 </p>
 
 A single-page React frontend communicates with a Python Quart backend via SSE and REST. The backend pools connections to any OpenAI-compatible LLM provider. Three parallel memory engines (TF-IDF, Jaccard, Vector) enable cross-session semantic recall.
+
+<div align="right">
+  <a href="#readme-top">▲ back to top</a>
+</div>
+
+<br>
+
+---
+
+## 🛠 Development
+
+Everything is tested and linted — CI runs both suites on every pull request.
+
+### Backend (Python)
+
+```bash
+pip install -r requirements.txt
+python -m pytest tests/ -v          # 180+ tests
+python -m pytest tests/ --cov       # with coverage report
+ruff check .                        # lint
+ruff format --check .               # format check
+```
+
+### Frontend (TypeScript)
+
+```bash
+cd desktop
+npm install
+npm run test                        # 48 vitest tests
+npm run lint                        # oxlint
+npx tsc --noEmit                    # type check
+npm run build
+```
+
+### Architecture notes for contributors
+
+- **API server** — `desktop/api_server.py` (Quart, port 8080); module-level code runs at import time, so tests patch `core.registry.discover_plugins` and `desktop.api_server._proactive` before import
+- **Adding a tool** — create a plugin class in `plugins/builtins/` extending `ToolPlugin`; it's auto-discovered at startup
+- **Adding an endpoint** — define the route in `desktop/api_server.py`, use `@require_auth` for authenticated endpoints
+- **Memory** — three engines run in parallel: keyword (TF-IDF), vector (cosine), embeddings (sentence-transformers)
+- **Conventions** — PEP 8, line length 120, `async/await` for I/O, `asyncio.to_thread` for blocking calls; conventional commits (`feat:`, `fix:`, `test:`…)
+
+<div align="right">
+  <a href="#readme-top">▲ back to top</a>
+</div>
+
+<br>
+
+---
+
+## ❓ FAQ
+
+**Does Friday work offline?**
+Partially. The frontend, voice, wake word, memory, and automations run locally. LLM responses need an LLM provider — use [Ollama](https://ollama.com) and everything runs 100% offline.
+
+**Which LLMs can I use?**
+Any OpenAI-compatible API: OpenRouter (default), OpenAI, Anthropic, Ollama, or a custom `base_url`. Bring your own key.
+
+**Is my screen data sent to an AI company?**
+Only when *you* ask Friday to analyze the screen, and only to the provider *you* configured. The background screen-change monitor compares hashes locally and never uploads pixels.
+
+**How do I make Friday fully local?**
+Set `[default] provider = "ollama"` in `config/providers.toml` — no data leaves your machine.
+
+**Can I customize Friday's personality?**
+Yes — three voice personas (JARVIS, FRIDAY, Cortana) ship built-in, each with its own TTS voice and system prompt. Switch anytime via settings or ⌘K.
+
+**What are automations?**
+Cron-scheduled actions you create in natural language ("create automation for daily briefing at 8am"). The background engine checks every 30s and fires results via SSE.
+
+**Is Friday free?**
+Yes — MIT licensed and free forever. You only pay your LLM provider if you use a paid one (Ollama is free).
+
+**How do I uninstall / wipe my data?**
+Delete `memory_store/` and `config/providers.toml`, then stop the containers (`docker compose down`).
 
 <div align="right">
   <a href="#readme-top">▲ back to top</a>

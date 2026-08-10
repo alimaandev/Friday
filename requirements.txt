@@ -11,6 +11,6 @@ pillow>=11.0.0
 
 # Development
 pytest>=9.0.0
-pytest-cov>=7.0.0
+pytest-cov>=7.1.0
 pytest-asyncio>=1.0.0
 ruff>=0.16.1

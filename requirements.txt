@@ -6,7 +6,7 @@ cachetools>=7.1.7
 yfinance>=1.5.2
 sentence-transformers>=5.6.1
 requests>=2.34.2
-pyttsx3>=2.90
+pyttsx3>=2.99
 pillow>=12.3.0
 
 # Development

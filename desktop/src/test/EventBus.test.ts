@@ -57,4 +57,35 @@ describe('EventBus', () => {
     EventBus.get().emit('shared', 42)
     expect(fn).toHaveBeenCalledWith(42)
   })
+
+  it('listenerCount should track registered listeners', () => {
+    expect(bus.listenerCount('test')).toBe(0)
+    bus.on('test', vi.fn())
+    bus.on('test', vi.fn())
+    expect(bus.listenerCount('test')).toBe(2)
+    bus.emit('test')
+    expect(bus.listenerCount('test')).toBe(2)
+  })
+
+  it('listenerCount should return 0 after unsubscribe', () => {
+    const unsub = bus.on('test', vi.fn())
+    expect(bus.listenerCount('test')).toBe(1)
+    unsub()
+    expect(bus.listenerCount('test')).toBe(0)
+  })
+
+  it('eventNames should list registered events', () => {
+    expect(bus.eventNames()).toEqual([])
+    bus.on('alpha', vi.fn())
+    bus.on('beta', vi.fn())
+    bus.on('gamma', vi.fn())
+    expect(bus.eventNames()).toContain('alpha')
+    expect(bus.eventNames()).toContain('beta')
+    expect(bus.eventNames()).toContain('gamma')
+  })
+
+  it('eventNames should not include unregistered events', () => {
+    bus.on('alpha', vi.fn())
+    expect(bus.eventNames()).not.toContain('nonexistent')
+  })
 })

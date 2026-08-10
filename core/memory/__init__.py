@@ -46,6 +46,20 @@ class MemoryManager:
         self.working.delete(key)
         return self.long_term.forget(key)
 
+    def delete_entry(self, entry_id: str) -> dict:
+        """Delete a memory by id across all engines. Returns what was removed."""
+        removed: list[str] = []
+        if self.vector.delete(entry_id):
+            removed.append("vector")
+        if self.embeddings.delete(entry_id):
+            removed.append("embeddings")
+        self.long_term.forget(entry_id)
+        if removed:
+            self.vector.persist()
+            self.embeddings.persist()
+            self.long_term.persist()
+        return {"deleted": removed, "success": bool(removed)}
+
     def list_all(self) -> dict:
         return self.long_term.list_all()
 

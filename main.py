@@ -32,6 +32,9 @@ def main():
     parser.add_argument(
         "--lang", choices=["english", "hinglish"], default="english", help="Language (default: english)"
     )
+    parser.add_argument(
+        "--no-confirm", action="store_true", help="Skip confirmation prompts for destructive tool calls"
+    )
     args = parser.parse_args()
 
     if sys.platform == "win32":
@@ -48,7 +51,7 @@ def main():
     print()
 
     discover_plugins()
-    agent = Agent(language=lang)
+    agent = Agent(language=lang, confirm_enabled=not args.no_confirm)
 
     try:
         _repl_loop(agent)
@@ -78,6 +81,20 @@ def _repl_loop(agent: Agent):
         for event in agent.run(user_input):
             if event["type"] == "tokens":
                 print(event["content"], end="", flush=True)
+            elif event["type"] == "requires_confirmation":
+                print_colored(f"  ⚠ Tool '{event['tool']}' requires confirmation:", "33")
+                print_colored(f"     Args: {event.get('args') or '{}'}", "90")
+                while True:
+                    try:
+                        answer = input("\033[33m  Allow? [y/N]\033[0m ").strip().lower()
+                    except (EOFError, KeyboardInterrupt):
+                        answer = "n"
+                    if answer in ("y", "yes"):
+                        agent.resolve_approval(event["request_id"], True)
+                        break
+                    if answer in ("n", "no", ""):
+                        agent.resolve_approval(event["request_id"], False)
+                        break
             elif event["type"] == "tool_result":
                 for t in event.get("tools", []):
                     print_colored(f"  🛠 {t['name']}({t['args']})", "90")

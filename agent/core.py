@@ -5,6 +5,7 @@ from core.logger import info
 from core.memory import get_memory_manager
 from core.planner import Planner
 from core.registry import get_tool_definitions, get_tool_map
+from core.security import get_approval_registry, get_permission_manager
 from core.system1 import build_default_system1
 
 _system1 = None
@@ -21,15 +22,20 @@ _TRANSIENT_ERRORS = ["timeout", "not found", "connection", "rate limit"]
 
 
 class Agent:
-    def __init__(self, language="english", persona=None):
+    def __init__(self, language="english", persona=None, confirm_enabled=True):
         self.language = language
         self.persona = persona
+        self.confirm_enabled = confirm_enabled
+        get_permission_manager().set_interactive(confirm_enabled)
         self.messages = self._build_messages()
         self._tool_defs = get_tool_definitions()
         tool_map = get_tool_map()
         self._planner = Planner(llm_chat, tool_definitions=self._tool_defs)
         self._executor = Executor(llm_chat, tool_map)
         self._output_dir: str | None = None
+
+    def resolve_approval(self, request_id: str, allowed: bool) -> bool:
+        return get_approval_registry().resolve(request_id, allowed)
 
     def _build_messages(self):
         base = get_system_prompt(self.language)

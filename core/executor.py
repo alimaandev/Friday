@@ -5,13 +5,15 @@ from typing import Any
 
 from core.logger import Timer, error, warn
 from core.planner import Task
+from core.security import get_approval_registry, get_permission_manager
 
 
 class Executor:
-    def __init__(self, llm_provider, tool_map: dict[str, Any]):
+    def __init__(self, llm_provider, tool_map: dict[str, Any], confirm_timeout: float = 120.0):
         self._llm = llm_provider
         self._tool_map = tool_map
         self.output_dir: str | None = None
+        self.confirm_timeout = confirm_timeout
 
     def execute_task(
         self,
@@ -97,7 +99,7 @@ class Executor:
                     if handler:
                         try:
                             with Timer(f"tool:{func_name}"):
-                                result = handler(**args)
+                                result = yield from self._execute_with_confirmation(func_name, args, handler)
                         except Exception as e:
                             result = {"error": str(e)}
                     else:
@@ -135,6 +137,25 @@ class Executor:
         task.status = "failed"
         task.error = "Max iterations reached"
         yield {"type": "done", "content": "Max iterations reached."}
+
+    def _execute_with_confirmation(self, func_name: str, args: dict, handler) -> "Generator[dict, None, dict]":
+        """Run permission checks and, if required, a confirmation gate before the handler."""
+        perm = get_permission_manager().check_tool(func_name, args)
+        if not perm.get("allowed"):
+            return {"error": f"Blocked by security policy: {perm.get('reason', 'denied')}"}
+
+        if not perm.get("requires_confirmation"):
+            with Timer(f"tool:{func_name}"):
+                return handler(**args)
+
+        registry = get_approval_registry()
+        request_id = registry.request(func_name, args)
+        yield {"type": "requires_confirmation", "request_id": request_id, "tool": func_name, "args": args}
+
+        if registry.wait(request_id, timeout=self.confirm_timeout):
+            with Timer(f"tool:{func_name}"):
+                return handler(**args)
+        return {"error": f"Tool call '{func_name}' cancelled by user"}
 
     def retry_task(
         self,

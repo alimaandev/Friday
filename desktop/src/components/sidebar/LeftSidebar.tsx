@@ -28,7 +28,7 @@ export const LeftSidebar = memo(function LeftSidebar({
 
   return (
     <div
-      className="w-60 flex flex-col h-full shrink-0 glass"
+      className="w-60 max-w-[22vw] min-w-[180px] flex flex-col h-full shrink-0 glass"
       style={{
         borderRight: '1px solid var(--glass-border)',
       }}

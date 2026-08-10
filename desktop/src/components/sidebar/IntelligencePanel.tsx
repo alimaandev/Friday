@@ -35,6 +35,7 @@ interface IntelligencePanelProps {
   cve?: CveItem[]
   clocks?: WorldClock[]
   memoryData?: MemoryData | null
+  onMemoryDelete?: (id: string) => void
   screenData?: ScreenData | null
   calendarEvents?: CalendarEvent[]
   calendarAuth?: string
@@ -77,6 +78,15 @@ const LANG_COLORS: Record<string, string> = {
 
 function Label({ children }: { children: React.ReactNode }) {
   return <div className="text-[10px] tracking-[0.2em] mb-2 px-3" style={{ color: '#666' }}>{children}</div>
+}
+
+function UnavailableSection({ label }: { label: string }) {
+  return (
+    <div className="px-3 pb-1" data-testid={`unavailable-${label.toLowerCase().replace(/\s+/g, '-')}`}>
+      <Label>{label}</Label>
+      <div className="text-[11px] italic" style={{ color: '#555' }}>unavailable</div>
+    </div>
+  )
 }
 
 /* ─── World Clocks ─── */
@@ -150,7 +160,7 @@ const CryptoSections = memo(function CryptoSections({ crypto }: { crypto: Crypto
 /* ─── Space ─── */
 
 const SpaceSection = memo(function SpaceSection({ space }: { space: SpaceData | null }) {
-  if (!space) return null
+  if (!space) return <UnavailableSection label="SPACE" />
   return (
     <>
       <Label>🛰 SPACE</Label>
@@ -171,7 +181,7 @@ const SpaceSection = memo(function SpaceSection({ space }: { space: SpaceData | 
 /* ─── CVE ─── */
 
 const CveSection = memo(function CveSection({ cve }: { cve: CveItem[] }) {
-  if (cve.length === 0) return null
+  if (cve.length === 0) return <UnavailableSection label="SECURITY" />
   return (
     <>
       <Label>🔐 SECURITY</Label>
@@ -195,7 +205,7 @@ const CveSection = memo(function CveSection({ cve }: { cve: CveItem[] }) {
 /* ─── World News ─── */
 
 const NewsSection = memo(function NewsSection({ news }: { news: NewsItem[] }) {
-  if (news.length === 0) return null
+  if (news.length === 0) return <UnavailableSection label="WORLD NEWS" />
   return (
     <>
       <Label>📰 WORLD NEWS</Label>
@@ -228,7 +238,7 @@ const NewsSection = memo(function NewsSection({ news }: { news: NewsItem[] }) {
 /* ─── Markets ─── */
 
 const MarketsSection = memo(function MarketsSection({ stocks }: { stocks: StockData[] }) {
-  if (stocks.length === 0) return null
+  if (stocks.length === 0) return <UnavailableSection label="MARKETS" />
   return (
     <>
       <Label>📈 MARKETS</Label>
@@ -253,7 +263,7 @@ const MarketsSection = memo(function MarketsSection({ stocks }: { stocks: StockD
 /* ─── GitHub ─── */
 
 const GitHubSection = memo(function GitHubSection({ repos }: { repos: RepoData[] }) {
-  if (repos.length === 0) return null
+  if (repos.length === 0) return <UnavailableSection label="GITHUB TRENDING" />
   return (
     <>
       <Label>💻 GITHUB</Label>
@@ -280,7 +290,7 @@ const GitHubSection = memo(function GitHubSection({ repos }: { repos: RepoData[]
 /* ─── Weather ─── */
 
 const WeatherSection = memo(function WeatherSection({ weather }: { weather: WeatherData | null }) {
-  if (!weather) return null
+  if (!weather) return <UnavailableSection label="WEATHER" />
   const wc = WEATHER_CODES[weather.weather_code]
   return (
     <>
@@ -373,7 +383,7 @@ function PanelCell({ children, index = 0 }: { children: React.ReactNode; index?:
 
 export const IntelligencePanel = memo(function IntelligencePanel({
   news, weather, stocks, repos, systemInfo, recentTools, loading,
-  earthquakes, crypto, space, cve, clocks, memoryData, screenData,
+  earthquakes, crypto, space, cve, clocks, memoryData, onMemoryDelete, screenData,
   calendarEvents, calendarAuth, emailMessages, emailUnread, emailAuth,
   onCalendarConnect, onEmailConnect,
   briefing, onPlayBriefing, voiceOutputEnabled,
@@ -383,7 +393,7 @@ export const IntelligencePanel = memo(function IntelligencePanel({
 }: IntelligencePanelProps) {
   return (
     <div
-      className="w-[640px] flex flex-col h-full shrink-0 overflow-y-auto glass"
+      className="w-[min(640px,42vw)] min-w-[300px] flex flex-col h-full shrink-0 overflow-y-auto glass"
       style={{
         borderLeft: '1px solid var(--glass-border)',
         scrollbarWidth: 'thin',
@@ -410,23 +420,25 @@ export const IntelligencePanel = memo(function IntelligencePanel({
                 <span className="text-[10px] mt-1" style={{ color: '#444' }}>python api_server.py</span>
               </div>
             )}
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               <PanelCell><ClocksSection clocks={clocks || []} /></PanelCell>
               <PanelCell><NewsSection news={news} /></PanelCell>
               <PanelCell><MarketsSection stocks={stocks} /></PanelCell>
               <PanelCell><SystemSection info={systemInfo} /></PanelCell>
             </div>
-            <div className="space-y-4">
-              <PanelCell><EarthquakesSection earthquakes={earthquakes || []} /></PanelCell>
-              <PanelCell><CryptoSections crypto={crypto || []} /></PanelCell>
+            <div className="flex flex-col gap-4">
+              <PanelCell>
+                <EarthquakesSection earthquakes={earthquakes || []} />
+                <CryptoSections crypto={crypto || []} />
+                {(earthquakes || []).length > 0 && (crypto || []).length > 0 && <div className="h-3" />}
+              </PanelCell>
               <PanelCell>
                 <SpaceSection space={space || null} />
-                <div className="h-3" />
                 <WeatherSection weather={weather} />
               </PanelCell>
               <PanelCell>
                 <GitHubSection repos={repos} />
-                <div className="h-3" />
+                {repos.length > 0 && cve && cve.length > 0 && <div className="h-3" />}
                 <CveSection cve={cve || []} />
               </PanelCell>
               <PanelCell>
@@ -441,12 +453,12 @@ export const IntelligencePanel = memo(function IntelligencePanel({
         )}
         {screenData !== undefined && (
           <div className="mt-4">
-            <ScreenPanel data={screenData} />
+            <ScreenPanel data={screenData} loading={loading} />
           </div>
         )}
         {memoryData !== undefined && (
           <div className="mt-4">
-            <MemoryPanel data={memoryData} />
+            <MemoryPanel data={memoryData} onDelete={onMemoryDelete} />
           </div>
         )}
         {automations !== undefined && (

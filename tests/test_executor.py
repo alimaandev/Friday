@@ -2,6 +2,7 @@ import json
 
 from core.executor import Executor
 from core.planner import Task
+from core.security import get_approval_registry, get_permission_manager
 
 
 def _make_llm(*event_lists):
@@ -228,3 +229,110 @@ def test_react_loop_catches_exception():
     assert results[0]["type"] == "done"
     assert "Boom!" in results[0]["content"]
     assert task.status == "failed"
+
+
+def test_execute_task_confirmation_denied():
+    task = Task(id="t11", description="destructive")
+    tool_map = {"delete_file": lambda path: {"result": "deleted"}}
+
+    llm = _make_llm(
+        [
+            {
+                "type": "done",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "cd",
+                        "function": {
+                            "name": "delete_file",
+                            "arguments": json.dumps({"path": "rm -rf project"}),
+                        },
+                    }
+                ],
+            }
+        ],
+        [{"type": "done", "content": "Final", "tool_calls": None}],
+    )
+    # Enable interactive mode so destructive tools require confirmation
+    get_permission_manager().set_interactive(True)
+    ex = Executor(llm, tool_map)
+
+    results = []
+    gen = ex.execute_task(task, [], [], max_iterations=5)
+    for event in gen:
+        results.append(event)
+        if event["type"] == "requires_confirmation":
+            get_approval_registry().resolve(event["request_id"], False)
+
+    confirm_events = [r for r in results if r["type"] == "requires_confirmation"]
+    assert len(confirm_events) == 1
+    assert confirm_events[0]["tool"] == "delete_file"
+    tool_result = [r for r in results if r["type"] == "tool_result"][0]
+    assert "cancelled by user" in tool_result["tools"][0]["result"]
+
+
+def test_execute_task_confirmation_approved():
+    task = Task(id="t11", description="destructive approved")
+    tool_map = {"delete_file": lambda path: {"result": f"deleted {path}"}}
+
+    llm = _make_llm(
+        [
+            {
+                "type": "done",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "ca",
+                        "function": {
+                            "name": "delete_file",
+                            "arguments": json.dumps({"path": "rm -rf backup"}),
+                        },
+                    }
+                ],
+            }
+        ],
+        [{"type": "done", "content": "Final", "tool_calls": None}],
+    )
+
+    get_permission_manager().set_interactive(True)
+    ex = Executor(llm, tool_map)
+
+    results = []
+    gen = ex.execute_task(task, [], [], max_iterations=5)
+    for event in gen:
+        results.append(event)
+        if event["type"] == "requires_confirmation":
+            get_approval_registry().resolve(event["request_id"], True)
+
+    confirm_events = [r for r in results if r["type"] == "requires_confirmation"]
+    assert len(confirm_events) == 1
+    tool_result = [r for r in results if r["type"] == "tool_result"][0]
+    assert "deleted rm -rf backup" in tool_result["tools"][0]["result"]
+    assert task.status == "completed"
+
+
+def test_execute_task_denied_tool_blocked():
+    task = Task(id="t12", description="denied tool")
+    tool_map = {"delete_file": lambda path: {"result": "deleted"}}
+
+    llm = _make_llm(
+        [
+            {
+                "type": "done",
+                "content": "",
+                "tool_calls": [
+                    {"id": "cn", "function": {"name": "delete_file", "arguments": json.dumps({"path": "x"})}},
+                ],
+            }
+        ],
+        [{"type": "done", "content": "Final", "tool_calls": None}],
+    )
+
+    get_permission_manager().deny_tool("delete_file")
+    ex = Executor(llm, tool_map)
+    results = list(ex.execute_task(task, [], [], max_iterations=5))
+
+    confirm_events = [r for r in results if r["type"] == "requires_confirmation"]
+    assert len(confirm_events) == 0
+    tool_result = [r for r in results if r["type"] == "tool_result"][0]
+    assert "Blocked by security policy" in tool_result["tools"][0]["result"]

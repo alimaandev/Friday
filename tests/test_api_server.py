@@ -338,6 +338,33 @@ class TestVision:
         assert resp.status_code == 200
 
 
+class TestApprovals:
+    async def test_list_approvals_empty(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/approvals", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert data["approvals"] == []
+
+    async def test_resolve_unknown_approval_404(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/approvals/nope", json={"allowed": True}, headers=headers)
+        assert resp.status_code == 404
+
+    async def test_resolve_approval(self, app, headers):
+        from core.security import get_approval_registry
+
+        request_id = get_approval_registry().request("delete_file", {"path": "x"})
+        async with app.test_client() as client:
+            resp = await client.post(
+                f"/api/v1/approvals/{request_id}", json={"allowed": True}, headers=headers
+            )
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert data["allowed"] is True
+        assert get_approval_registry().wait(request_id, timeout=0.1) is True
+
+
 class TestAuth:
     async def test_unauthorized_without_key(self, app):
         async with app.test_client() as client:

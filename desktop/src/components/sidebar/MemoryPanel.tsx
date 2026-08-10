@@ -4,9 +4,10 @@ import { Skeleton } from '../common/Skeleton'
 
 interface MemoryPanelProps {
   data: MemoryData | null
+  onDelete?: (id: string) => void
 }
 
-export const MemoryPanel = memo(function MemoryPanel({ data }: MemoryPanelProps) {
+export const MemoryPanel = memo(function MemoryPanel({ data, onDelete }: MemoryPanelProps) {
   const [search, setSearch] = useState('')
   const [tab, setTab] = useState<'semantic' | 'embedding'>('embedding')
 
@@ -89,6 +90,16 @@ export const MemoryPanel = memo(function MemoryPanel({ data }: MemoryPanelProps)
                 <div className="mt-1 flex items-center gap-2 text-[10px]" style={{ color: '#555' }}>
                   {mem.score != null && <span>score: {mem.score.toFixed(3)}</span>}
                   <span>{new Date(mem.created_at * 1000).toLocaleDateString()}</span>
+                  {mem.id && onDelete && (
+                    <button
+                      onClick={() => onDelete(mem.id)}
+                      title="Delete memory"
+                      className="ml-auto px-1.5 py-0.5 rounded transition-all hover:bg-red-500/10 hover:text-red-400"
+                      style={{ color: '#555' }}
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

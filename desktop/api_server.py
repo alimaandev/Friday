@@ -29,6 +29,7 @@ from core.logger import get_metrics
 from core.memory import get_memory_manager
 from core.proactive import CalendarMonitor, EmailMonitor, ProactiveMonitor, ScreenMonitor, SystemMonitor
 from core.registry import discover_plugins
+from core.security import get_approval_registry
 from core.vision import get_vision_engine
 
 # ─── API Version Prefix ──────────────────────────────────────────
@@ -312,6 +313,24 @@ async def get_output_dir():
     session_id = request.args.get("session_id", "default")
     agent = _get_agent(session_id)
     return jsonify({"output_dir": agent.output_dir or ""})
+
+
+# ─── Tool call approvals ─────────────────────────────────────────
+@app.route(f"{API_PREFIX}/approvals", methods=["GET"])
+@require_auth
+async def list_approvals():
+    return jsonify({"approvals": get_approval_registry().pending()})
+
+
+@app.route(f"{API_PREFIX}/approvals/<request_id>", methods=["POST"])
+@require_auth
+async def resolve_approval(request_id):
+    data = await request.get_json() or {}
+    allowed = bool(data.get("allowed", False))
+    resolved = get_approval_registry().resolve(request_id, allowed)
+    if not resolved:
+        return jsonify({"error": "approval request not found"}), 404
+    return jsonify({"status": "ok", "request_id": request_id, "allowed": allowed})
 
 
 # ─── Metrics & Health ────────────────────────────────────────────
@@ -883,6 +902,14 @@ async def memory_clear():
     memory = get_memory_manager()
     memory.vector.clear()
     return jsonify({"success": True, "message": "Vector memory cleared"})
+
+
+@app.route(f"{API_PREFIX}/memory/<entry_id>", methods=["DELETE"])
+@require_auth
+async def memory_delete(entry_id: str):
+    memory = get_memory_manager()
+    result = memory.delete_entry(entry_id)
+    return jsonify(result), 200 if result["success"] else 404
 
 
 # ─── Unified SSE Events ─────────────────────────────────────────

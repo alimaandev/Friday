@@ -528,58 +528,58 @@ interface AiCoreProps {
 export const AiCore = memo(function AiCore({ orbState, metrics, onCommand, hasMessages, handPosition = null, voiceActivity = false }: AiCoreProps) {
   const isOnline = orbState !== 'offline'
 
-  if (hasMessages) {
-    return (
-      <div className="flex items-center gap-4 mb-6 px-8 pt-6 animate-fade-slide-in">
-        <div className="w-12 h-12 shrink-0">
-          <JarvisOrb orbState={orbState} handPosition={handPosition} voiceActivity={voiceActivity} />
+  return (
+    <div className="w-full transition-all duration-700 ease-in-out" key={hasMessages ? 'compact' : 'full'}>
+      {hasMessages ? (
+        <div className="flex items-center gap-4 mb-6 px-8 pt-6 animate-fade-in">
+          <div className="w-12 h-12 shrink-0 transition-transform duration-700 ease-in-out">
+            <JarvisOrb orbState={orbState} handPosition={handPosition} voiceActivity={voiceActivity} />
+          </div>
+          <div>
+            <div className="text-lg font-light tracking-wider blue-text" style={{ fontWeight: 200 }}>
+              FRIDAY
+            </div>
+            <div className="flex items-center gap-2 text-[11px] mt-0.5" style={{ color: '#606068' }}>
+              <span className={`inline-block w-1.5 h-1.5 rounded-full ${isOnline ? 'animate-pulse-glow' : ''}`}
+                style={{ background: isOnline ? ACCENT : '#606068', boxShadow: isOnline ? `0 0 8px ${ACCENT}` : 'none' }}
+              />
+              <span style={{ color: isOnline ? ACCENT : '#606068' }}>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+              <span>{metrics.model}</span>
+              <span>{metrics.latency}ms</span>
+            </div>
+          </div>
         </div>
-        <div>
-          <div className="text-lg font-light tracking-wider blue-text" style={{ fontWeight: 200 }}>
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center px-8 relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none">
+            <JarvisOrb orbState={orbState} handPosition={handPosition} voiceActivity={voiceActivity} />
+          </div>
+          <div className="text-[56px] font-thin tracking-[0.15em] blue-text animate-fade-slide-up" style={{ fontWeight: 100 }}>
             FRIDAY
           </div>
-          <div className="flex items-center gap-2 text-[11px] mt-0.5" style={{ color: '#606068' }}>
-            <span className={`inline-block w-1.5 h-1.5 rounded-full ${isOnline ? 'animate-pulse-glow' : ''}`}
-              style={{ background: isOnline ? ACCENT : '#606068', boxShadow: isOnline ? `0 0 8px ${ACCENT}` : 'none' }}
-            />
-            <span style={{ color: isOnline ? ACCENT : '#606068' }}>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+
+          <div className="flex items-center gap-3 mt-3 text-xs animate-fade-in" style={{ color: '#606068' }}>
+            <div className="flex items-center gap-1.5">
+              <span className={`inline-block w-1.5 h-1.5 rounded-full ${isOnline ? 'animate-pulse-glow' : ''}`}
+                style={{ background: isOnline ? ACCENT : '#606068', boxShadow: isOnline ? `0 0 8px ${ACCENT}` : 'none' }}
+              />
+              <span style={{ color: isOnline ? ACCENT : '#606068' }}>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+            </div>
+            <span className="w-px h-3 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
             <span>{metrics.model}</span>
-            <span>{metrics.latency}ms</span>
+            <span className="w-px h-3 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
+            <span>{metrics.latency}ms latency</span>
+            <span className="w-px h-3 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
+            <span>{metrics.memory}% RAM</span>
+          </div>
+
+          <div className="flex items-center gap-2 mt-8 animate-fade-slide-up" style={{ animationDelay: '0.15s' }}>
+            {COMMANDS.map(c => (
+              <CommandCard key={c.id} label={c.label} prompt={c.prompt} onClick={onCommand} />
+            ))}
           </div>
         </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center px-8 relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <JarvisOrb orbState={orbState} handPosition={handPosition} voiceActivity={voiceActivity} />
-      </div>
-      <div className="text-[56px] font-thin tracking-[0.15em] blue-text animate-fade-slide-up" style={{ fontWeight: 100 }}>
-        FRIDAY
-      </div>
-
-      <div className="flex items-center gap-3 mt-3 text-xs animate-fade-in" style={{ color: '#606068' }}>
-        <div className="flex items-center gap-1.5">
-          <span className={`inline-block w-1.5 h-1.5 rounded-full ${isOnline ? 'animate-pulse-glow' : ''}`}
-            style={{ background: isOnline ? ACCENT : '#606068', boxShadow: isOnline ? `0 0 8px ${ACCENT}` : 'none' }}
-          />
-          <span style={{ color: isOnline ? ACCENT : '#606068' }}>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
-        </div>
-        <span className="w-px h-3 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
-        <span>{metrics.model}</span>
-        <span className="w-px h-3 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
-        <span>{metrics.latency}ms latency</span>
-        <span className="w-px h-3 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
-        <span>{metrics.memory}% RAM</span>
-      </div>
-
-      <div className="flex items-center gap-2 mt-8 animate-fade-slide-up" style={{ animationDelay: '0.15s' }}>
-        {COMMANDS.map(c => (
-          <CommandCard key={c.id} label={c.label} prompt={c.prompt} onClick={onCommand} />
-        ))}
-      </div>
+      )}
     </div>
   )
 })

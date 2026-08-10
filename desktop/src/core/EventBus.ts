@@ -22,4 +22,12 @@ export class EventBus {
   off(event: string, fn: Listener) {
     this.listeners.get(event)?.delete(fn)
   }
+
+  listenerCount(event: string): number {
+    return this.listeners.get(event)?.size ?? 0
+  }
+
+  eventNames(): string[] {
+    return [...this.listeners.keys()]
+  }
 }

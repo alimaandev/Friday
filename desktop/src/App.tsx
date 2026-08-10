@@ -13,12 +13,14 @@ import { useVoiceInput } from './hooks/useVoiceInput'
 import { useVoiceOutput } from './hooks/useVoiceOutput'
 import { useWakeWord } from './hooks/useWakeWord'
 import { captureFrame } from './hooks/useCameraCapture'
-import type { SystemInfo, NewsItem, WeatherData, Earthquake, CryptoData, SpaceData, CveItem, WorldClock, MemoryData, ScreenData, CalendarEvent, EmailMessage, ProactiveAlert, Automation } from './types'
+import type { SystemInfo, NewsItem, WeatherData, Earthquake, CryptoData, SpaceData, CveItem, WorldClock, MemoryData, ScreenData, CalendarEvent, EmailMessage, ProactiveAlert, Automation, ApprovalRequest } from './types'
 import { AlertToast } from './components/chat/AlertToast'
+import { ApprovalDialog } from './components/chat/ApprovalDialog'
+import { ToastContainer, toast } from './components/common/Toast'
 const IntelligencePanel = lazy(() => import('./components/sidebar/IntelligencePanel').then(m => ({ default: m.IntelligencePanel })))
 const CommandPalette = lazy(() => import('./components/command/CommandPalette').then(m => ({ default: m.CommandPalette })))
 const SettingsPanel = lazy(() => import('./components/settings/SettingsPanel').then(m => ({ default: m.SettingsPanel })))
-import { fetchApi, streamChat, checkHealth, getSessions, getGoogleAuth, connectEventSource, getAutomations, toggleAutomation, deleteAutomation, triggerAutomation, analyzeVisionImage, getVisionScreen } from './core/api'
+import { streamChat, checkHealth, getSessions, createSession, deleteSession, getOutputDir, setOutputDir, getGoogleAuth, getNews, getWeather, getStocks, getGithubTrending, getEarthquakes, getCrypto, getSpace, getCve, getScreen, getMemory, deleteMemory, getCalendarEvents, getEmailInbox, getEmailUnread, connectEventSource, getAutomations, toggleAutomation, deleteAutomation, triggerAutomation, analyzeVisionImage, getVisionScreen, resolveApproval } from './core/api'
 import type { ServerEvent } from './core/api'
 
 let msgId = 0
@@ -47,7 +49,7 @@ function App() {
   const [commandOpen, setCommandOpen] = useState(false)
   const [camActive, setCamActive] = useState(false)
   const [backendOnline, setBackendOnline] = useState(true)
-  const [outputDir, setOutputDir] = useState(() => localStorage.getItem('friday_output_dir') || '')
+  const [outputDir, setOutputDirState] = useState(() => localStorage.getItem('friday_output_dir') || '')
   const [dataLoaded, setDataLoaded] = useState(false)
   const [sseConnected, setSseConnected] = useState(false)
   const [alerts, setAlerts] = useState<ProactiveAlert[]>([])
@@ -58,6 +60,7 @@ const [visionScreenResult, setVisionScreenResult] = useState<{ description: stri
 const [visionCameraResult, setVisionCameraResult] = useState<{ description: string; text: string | null; timestamp: number } | null>(null)
 const [visionAnalyzing, setVisionAnalyzing] = useState(false)
 const [holodeckExpanded, setHolodeckExpanded] = useState(true)
+const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(null)
 
   // ─── Fine-grained Zustand selectors (before any hooks that use them) ───
   const sessions = useStore(s => s.sessions)
@@ -266,11 +269,16 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
     }
 
     const unsub = connectEventSource(handleEvent, () => {
-      if (!cancelled) setBackendOnline(false)
+      if (!cancelled) {
+        setBackendOnline(false)
+        toast('warning', 'Lost connection to Friday backend\u2026')
+      }
     }, (connected) => {
       if (!cancelled) {
         setSseConnected(connected)
-        if (connected) setBackendOnline(true)
+        if (connected) {
+          setBackendOnline(true)
+        }
       }
     })
 
@@ -298,7 +306,7 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
           }))
           state.set({ sessions: synced, activeSessionId: sessions.sessions[0].id })
         } else {
-          const created = await fetchApi('/api/sessions', { method: 'POST', body: JSON.stringify({}) })
+          const created = await createSession()
           if (!cancelled) {
             state.set({
               sessions: [{ id: created.session_id, title: 'Session', messages: [], createdAt: Date.now() }],
@@ -311,16 +319,16 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
         const fetchRemaining = async () => {
           const [authResp] = await Promise.all([
             getGoogleAuth(),
-            fetchApi('/api/news').then(d => setNews(d.articles || [])).catch(() => {}),
-            fetchApi('/api/weather').then(d => setWeather(d)).catch(() => {}),
-            fetchApi('/api/stocks').then(d => setStocks(d.stocks || [])).catch(() => {}),
-            fetchApi('/api/github-trending').then(d => setRepos(d.repos || [])).catch(() => {}),
-            fetchApi('/api/earthquakes').then(d => setEarthquakes(d.earthquakes || [])).catch(() => {}),
-            fetchApi('/api/crypto').then(d => setCrypto(d.crypto || [])).catch(() => {}),
-            fetchApi('/api/space').then(d => setSpace(d)).catch(() => {}),
-            fetchApi('/api/cve').then(d => setCve(d.cve || [])).catch(() => {}),
-            fetchApi('/api/memory').then(d => setMemoryData(d)).catch(() => {}),
-            fetchApi('/api/screen').then(d => setScreenData(d)).catch(() => {}),
+            getNews().then(d => setNews(d.articles || [])).catch(() => {}),
+            getWeather().then(d => setWeather(d)).catch(() => {}),
+            getStocks().then(d => setStocks(d.stocks || [])).catch(() => {}),
+            getGithubTrending().then(d => setRepos(d.repos || [])).catch(() => {}),
+            getEarthquakes().then(d => setEarthquakes(d.earthquakes || [])).catch(() => {}),
+            getCrypto().then(d => setCrypto(d.crypto || [])).catch(() => {}),
+            getSpace().then(d => setSpace(d)).catch(() => {}),
+            getCve().then(d => setCve(d.cve || [])).catch(() => {}),
+            getMemory().then(d => setMemoryData(d)).catch(() => {}),
+            getScreen().then(d => setScreenData(d)).catch(() => {}),
             getAutomations().then(d => setAutomations(d.automations || [])).catch(() => {}),
           ])
           const authStatus = authResp?.status || ''
@@ -328,16 +336,19 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
           setEmailAuth(authStatus)
           if (authStatus === 'authenticated') {
             Promise.all([
-              fetchApi('/api/calendar/events').then(d => setCalendarEvents(d.events || [])).catch(() => {}),
-              fetchApi('/api/email/inbox').then(d => setEmailMessages(d.messages || [])).catch(() => {}),
-              fetchApi('/api/email/unread').then(d => setEmailUnread(d.unread || 0)).catch(() => {}),
+              getCalendarEvents().then(d => setCalendarEvents(d.events || [])).catch(() => {}),
+              getEmailInbox().then(d => setEmailMessages(d.messages || [])).catch(() => {}),
+              getEmailUnread().then(d => setEmailUnread(d.unread || 0)).catch(() => {}),
             ])
           }
         }
         await fetchRemaining()
         if (!cancelled) setDataLoaded(true)
       } catch {
-        if (!cancelled) setBackendOnline(false)
+        if (!cancelled) {
+          setBackendOnline(false)
+          toast('error', 'Could not reach Friday backend. Is the API server running?')
+        }
       }
     }
     init()
@@ -358,7 +369,7 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
 
   // Fetch output dir on session change
   useEffect(() => {
-    fetchApi(`/api/output-dir?session_id=${activeSessionId}`).then((d: any) => { if (d) setOutputDir(d.output_dir) }).catch(() => {})
+    getOutputDir(activeSessionId).then((d: any) => { if (d) setOutputDirState(d.output_dir) }).catch(() => {})
   }, [activeSessionId])
 
   // Auto-speak assistant responses when voice output is enabled
@@ -388,7 +399,7 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
   const handleNewSession = useCallback(async () => {
     const curSessions = state.get().sessions
     try {
-      const data = await fetchApi('/api/sessions', { method: 'POST', body: JSON.stringify({}) })
+      const data = await createSession()
       state.set({
         sessions: [...curSessions, { id: data.session_id, title: 'Session', messages: [], createdAt: Date.now() }],
         activeSessionId: data.session_id,
@@ -403,19 +414,59 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
   }, [])
 
   const handleSetOutputDir = useCallback(async (path: string) => {
-    setOutputDir(path)
+    setOutputDirState(path)
     localStorage.setItem('friday_output_dir', path)
     try {
-      await fetchApi('/api/output-dir', { method: 'PUT', body: JSON.stringify({ session_id: state.get().activeSessionId, path }) })
+      await setOutputDir(path, state.get().activeSessionId)
     } catch {}
   }, [])
 
   const handleDeleteSession = useCallback((id: string) => {
-    fetchApi(`/api/sessions/${id}`, { method: 'DELETE' }).catch(() => {})
+    deleteSession(id).catch(() => {})
     const cur = state.get()
     const next = cur.sessions.filter(x => x.id !== id)
     state.set({ sessions: next, activeSessionId: cur.activeSessionId === id ? (next[0]?.id || 'default') : cur.activeSessionId })
   }, [])
+
+  const handleDeleteMemory = useCallback((id: string) => {
+    deleteMemory(id).catch(() => {})
+    setMemoryData(prev => {
+      if (!prev) return prev
+      const filter = (list?: any[]) => (list || []).filter(m => m.id !== id)
+      return {
+        ...prev,
+        vector_memories: filter(prev.vector_memories),
+        embedding_memories: filter(prev.embedding_memories),
+        vector_count: Math.max(0, (prev.vector_count ?? 0) - 1),
+        embedding_count: Math.max(0, (prev.embedding_count ?? 0) - 1),
+      }
+    })
+  }, [])
+
+  const handleApproval = useCallback((requestId: string, allowed: boolean) => {
+    setPendingApproval(null)
+    resolveApproval(requestId, allowed).catch(() => {})
+  }, [])
+
+  // ─── Power-user keyboard shortcuts ───
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey
+      if (!mod) return
+      if (e.key === 'n' && !e.shiftKey) {
+        e.preventDefault()
+        handleNewSession()
+      } else if (e.key === ',') {
+        e.preventDefault()
+        setSettingsOpen(true)
+      } else if (e.key === 'b' && !e.shiftKey) {
+        e.preventDefault()
+        setSidebarOpen(o => !o)
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [handleNewSession])
 
   const abortRef = useRef<AbortController | null>(null)
 
@@ -485,6 +536,10 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
               m.id === aid ? { ...m, toolCalls: [...(m.toolCalls || []), ...(ev.tools || [])] } : m
             ))
             state.setOrb('executing')
+            break
+          case 'requires_confirmation':
+            setPendingApproval({ id: ev.request_id, tool: ev.tool, args: ev.args })
+            state.setOrb('idle')
             break
           case 'task_done':
             flushTokens()
@@ -727,6 +782,13 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
         </div>
       )}
 
+      {/* Tool call approval */}
+      {pendingApproval && (
+        <ApprovalDialog request={pendingApproval} onResolve={handleApproval} />
+      )}
+
+      <ToastContainer />
+
       <CameraIndicator
         stream={camActive ? stream : null}
         active={camActive}
@@ -884,6 +946,7 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
               cve={cve}
               clocks={clocks}
               memoryData={memoryData}
+              onMemoryDelete={handleDeleteMemory}
               screenData={screenData}
               calendarEvents={calendarEvents}
               calendarAuth={calendarAuth}

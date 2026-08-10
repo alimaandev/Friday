@@ -1,4 +1,4 @@
-quart>=0.20.0
+quart>=0.21.0
 quart-cors>=0.8.0
 hypercorn>=0.18.0
 httpx>=0.28.1

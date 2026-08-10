@@ -16,7 +16,8 @@ import { captureFrame } from './hooks/useCameraCapture'
 import type { SystemInfo, NewsItem, WeatherData, Earthquake, CryptoData, SpaceData, CveItem, WorldClock, MemoryData, ScreenData, CalendarEvent, EmailMessage, ProactiveAlert, Automation, ApprovalRequest } from './types'
 import { AlertToast } from './components/chat/AlertToast'
 import { ApprovalDialog } from './components/chat/ApprovalDialog'
-import { ToastContainer, toast } from './components/common/Toast'
+import { ToastContainer } from './components/common/Toast'
+import { toast } from './core/ToastStore'
 const IntelligencePanel = lazy(() => import('./components/sidebar/IntelligencePanel').then(m => ({ default: m.IntelligencePanel })))
 const CommandPalette = lazy(() => import('./components/command/CommandPalette').then(m => ({ default: m.CommandPalette })))
 const SettingsPanel = lazy(() => import('./components/settings/SettingsPanel').then(m => ({ default: m.SettingsPanel })))

@@ -430,7 +430,7 @@ export const IntelligencePanel = memo(function IntelligencePanel({
               <PanelCell>
                 <EarthquakesSection earthquakes={earthquakes || []} />
                 <CryptoSections crypto={crypto || []} />
-                {earthquakes?.length > 0 && crypto?.length > 0 && <div className="h-3" />}
+                {(earthquakes || []).length > 0 && (crypto || []).length > 0 && <div className="h-3" />}
               </PanelCell>
               <PanelCell>
                 <SpaceSection space={space || null} />

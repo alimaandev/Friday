@@ -176,6 +176,12 @@ export interface ProactiveAlert {
   timestamp: number
 }
 
+export interface ApprovalRequest {
+  id: string
+  tool: string
+  args?: Record<string, unknown>
+}
+
 export interface Automation {
   id: string
   name: string

@@ -1,11 +1,13 @@
 import { memo, useState } from 'react'
 import type { ScreenData } from '../../types'
+import { Skeleton } from '../common/Skeleton'
 
 interface ScreenPanelProps {
   data: ScreenData | null
+  loading?: boolean
 }
 
-export const ScreenPanel = memo(function ScreenPanel({ data }: ScreenPanelProps) {
+export const ScreenPanel = memo(function ScreenPanel({ data, loading }: ScreenPanelProps) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -17,11 +19,19 @@ export const ScreenPanel = memo(function ScreenPanel({ data }: ScreenPanelProps)
       >
         <span>SCREEN</span>
         <span className="text-[10px]" style={{ color: '#555' }}>
-          {data ? `${data.width}x${data.height}` : 'offline'}
+          {loading ? 'loading…' : data ? `${data.width}x${data.height}` : 'offline'}
           <span className="ml-2">{expanded ? '\u25BC' : '\u25B6'}</span>
         </span>
       </button>
-      {expanded && data?.image && (
+      {expanded && loading && (
+        <div className="p-2 space-y-2">
+          <Skeleton width="100%" height="160px" rounded="lg" />
+          <div className="flex justify-center">
+            <Skeleton width="120px" height="10px" rounded="md" />
+          </div>
+        </div>
+      )}
+      {expanded && !loading && data?.image && (
         <div className="p-2">
           <img
             src={`data:image/png;base64,${data.image}`}
@@ -34,7 +44,7 @@ export const ScreenPanel = memo(function ScreenPanel({ data }: ScreenPanelProps)
           </div>
         </div>
       )}
-      {expanded && !data && (
+      {expanded && !loading && !data && (
         <div className="text-center py-6 text-xs" style={{ color: '#555' }}>
           Backend offline
         </div>

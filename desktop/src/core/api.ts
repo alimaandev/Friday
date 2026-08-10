@@ -156,6 +156,19 @@ export async function setOutputDir(path: string, sessionId = 'default') {
   })
 }
 
+/* ─── Tool call approvals ──────────────────────────────────────── */
+
+export async function getApprovals(): Promise<{ approvals: any[] }> {
+  return fetchApi('/approvals')
+}
+
+export async function resolveApproval(requestId: string, allowed: boolean) {
+  return fetchApi(`/approvals/${encodeURIComponent(requestId)}`, {
+    method: 'POST',
+    body: JSON.stringify({ allowed }),
+  })
+}
+
 export async function getSystemInfo(): Promise<any> {
   return fetchApi('/system-info')
 }
@@ -213,6 +226,10 @@ export async function searchMemory(query: string, topK = 5): Promise<any> {
 
 export async function clearMemory() {
   return fetchApi('/memory', { method: 'DELETE' })
+}
+
+export async function deleteMemory(entryId: string) {
+  return fetchApi(`/memory/${encodeURIComponent(entryId)}`, { method: 'DELETE' })
 }
 
 export async function getGoogleAuth(): Promise<any> {

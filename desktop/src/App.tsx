@@ -69,6 +69,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
   const [now, setNow] = useState(() => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }))
   const [continuity, setContinuity] = useState('')
   const [computerReady, setComputerReady] = useState(false)
+  const [computerStatus, setComputerStatus] = useState<{ platform: string; mouse_keyboard: boolean; window_management: boolean } | null>(null)
 
   // ─── Fine-grained Zustand selectors (before any hooks that use them) ───
   const sessions = useStore(s => s.sessions)
@@ -374,7 +375,11 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
         }
         await fetchRemaining()
         getKnowledgeContinuity().then(d => { if (!cancelled) setContinuity(d.continuity || '') }).catch(() => {})
-        getComputerStatus().then(d => { if (!cancelled) setComputerReady(Boolean(d.mouse_keyboard && d.window_management)) }).catch(() => {})
+        getComputerStatus().then(d => {
+          if (cancelled) return
+          setComputerReady(Boolean(d.mouse_keyboard && d.window_management))
+          setComputerStatus(d)
+        }).catch(() => {})
         if (!cancelled) setDataLoaded(true)      } catch {
         if (!cancelled) {
           setBackendOnline(false)
@@ -1153,6 +1158,10 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
               memoryData={memoryData}
               onMemoryDelete={handleDeleteMemory}
               screenData={screenData}
+              computerStatus={computerStatus}
+              onRefreshComputer={() => {
+                getComputerStatus().then(d => { setComputerReady(Boolean(d.mouse_keyboard && d.window_management)); setComputerStatus(d) }).catch(() => {})
+              }}
               calendarEvents={calendarEvents}
               calendarAuth={calendarAuth}
               emailMessages={emailMessages}

@@ -298,6 +298,30 @@ export async function getComputerStatus(): Promise<ComputerStatus> {
   return fetchApi('/computer/status')
 }
 
+export interface ComputerWindow {
+  handle: number
+  title: string
+}
+
+export interface ComputerWindows {
+  windows: ComputerWindow[]
+  count: number
+}
+
+export async function getComputerWindows(): Promise<ComputerWindows> {
+  return fetchApi('/computer/windows')
+}
+
+export interface ComputerSummary extends ComputerStatus {
+  windows: ComputerWindow[]
+  count: number
+  size: { success: boolean; width?: number; height?: number; error?: string }
+}
+
+export async function getComputerSummary(): Promise<ComputerSummary> {
+  return fetchApi('/computer/summary')
+}
+
 /* ─── Diary API ───────────────────────────────────────────────── */
 
 export async function getDiaryRecent(): Promise<{ days: DiaryDay[] }> {

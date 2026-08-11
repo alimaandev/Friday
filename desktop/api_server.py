@@ -903,6 +903,22 @@ async def computer_status():
     return jsonify(get_computer_control().available)
 
 
+@app.route(f"{API_PREFIX}/computer/windows", methods=["GET"])
+@require_auth
+async def computer_windows():
+    from core.computer import get_computer_control
+
+    return jsonify(get_computer_control().list_windows())
+
+
+@app.route(f"{API_PREFIX}/computer/summary", methods=["GET"])
+@require_auth
+async def computer_summary():
+    from core.computer import get_computer_control
+
+    return jsonify(get_computer_control().desktop_summary())
+
+
 # ─── Google Auth ─────────────────────────────────────────────────
 @app.route(f"{API_PREFIX}/auth/google")
 @require_auth

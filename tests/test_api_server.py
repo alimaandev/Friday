@@ -227,6 +227,21 @@ class TestComputerControl:
         assert "platform" in data
         assert "mouse_keyboard" in data
 
+    async def test_computer_windows(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/computer/windows", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "windows" in data
+
+    async def test_computer_summary(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/computer/summary", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "available" in data
+        assert "windows" in data
+
 
 class TestAutomations:
     async def test_list_automations_empty(self, app, headers):

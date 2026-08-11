@@ -63,6 +63,26 @@ class ComputerControl:
         self._win32gui.EnumWindows(_cb, None)
         return {"windows": titles, "count": len(titles)}
 
+    def close_app(self, name: str) -> dict:
+        """Close an application by window title fragment (Windows)."""
+        if self._win32gui is None:
+            return {"success": False, "error": "pywin32 not available (Windows only)"}
+
+        def _cb(hwnd, _):
+            if self._win32gui.IsWindowVisible(hwnd) and name.lower() in self._win32gui.GetWindowText(hwnd).lower():
+                try:
+                    self._win32gui.PostMessage(hwnd, 0x0010, 0, 0)  # WM_CLOSE
+                    _cb.closed = True
+                except Exception:
+                    pass
+            return True
+
+        _cb.closed = False
+        self._win32gui.EnumWindows(_cb, None)
+        if getattr(_cb, "closed", False):
+            return {"success": True, "app": name}
+        return {"success": False, "error": f"No visible window matched '{name}'"}
+
     def focus_window(self, title: str) -> dict:
         if self._win32gui is None:
             return {"success": False, "error": "pywin32 not available (Windows only)"}
@@ -141,6 +161,17 @@ class ComputerControl:
             return {"success": False, "error": "pyautogui not installed"}
         w, h = self._pyautogui.size()
         return {"success": True, "width": w, "height": h}
+
+    # ─── Desktop summary (drives the autopilot "organize" goal) ──
+
+    def desktop_summary(self) -> dict:
+        """Snapshot of the current desktop: status, open windows, screen size.
+        Used to seed the autopilot planner when a desktop-organization goal is set."""
+        summary = {"available": self.available}
+        windows = self.list_windows()
+        summary.update(windows)
+        summary["size"] = self.screen_size()
+        return summary
 
 
 _engine: ComputerControl | None = None

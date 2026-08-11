@@ -24,6 +24,7 @@ _CONTROL_TOOLS: set[str] = {
     "type_text",
     "press_key",
     "click_mouse",
+    "close_app",
 }
 
 

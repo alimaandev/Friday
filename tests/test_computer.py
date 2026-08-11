@@ -38,8 +38,25 @@ def test_list_windows_without_win32_is_graceful(monkeypatch):
     assert "windows" in result
 
 
+def test_close_app_without_win32_is_graceful(monkeypatch):
+    cc = ComputerControl()
+    monkeypatch.setattr(cc, "_win32gui", None)
+    result = cc.close_app("notepad")
+    assert result["success"] is False
+
+
+def test_desktop_summary_merges_state(monkeypatch):
+    cc = ComputerControl()
+    monkeypatch.setattr(cc, "_win32gui", None)
+    monkeypatch.setattr(cc, "_pyautogui", None)
+    summary = cc.desktop_summary()
+    assert "available" in summary
+    assert "windows" in summary
+    assert "size" in summary
+
+
 def test_control_tools_require_confirmation():
     perm = get_permission_manager()
-    for tool in ("open_app", "type_text", "click_mouse", "press_key", "focus_window"):
+    for tool in ("open_app", "type_text", "click_mouse", "press_key", "focus_window", "close_app"):
         result = perm.check_tool(tool, {"app": "notepad", "text": "hi", "x": 1, "y": 1, "key": "enter", "title": "x"})
         assert result.get("requires_confirmation") is True, tool

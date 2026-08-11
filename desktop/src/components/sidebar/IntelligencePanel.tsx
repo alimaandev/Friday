@@ -38,6 +38,8 @@ interface IntelligencePanelProps {
   memoryData?: MemoryData | null
   onMemoryDelete?: (id: string) => void
   screenData?: ScreenData | null
+  computerStatus?: { platform: string; mouse_keyboard: boolean; window_management: boolean } | null
+  onRefreshComputer?: () => void
   calendarEvents?: CalendarEvent[]
   calendarAuth?: string
   emailMessages?: EmailMessage[]
@@ -385,7 +387,7 @@ function PanelCell({ children, index = 0 }: { children: React.ReactNode; index?:
 
 export const IntelligencePanel = memo(function IntelligencePanel({
   news, weather, stocks, repos, systemInfo, recentTools, loading,
-  earthquakes, crypto, space, cve, clocks, memoryData, onMemoryDelete, screenData,
+  earthquakes, crypto, space, cve, clocks, memoryData, onMemoryDelete, screenData, computerStatus, onRefreshComputer,
   calendarEvents, calendarAuth, emailMessages, emailUnread, emailAuth,
   onCalendarConnect, onEmailConnect,
   briefing, onPlayBriefing, voiceOutputEnabled,
@@ -456,7 +458,7 @@ export const IntelligencePanel = memo(function IntelligencePanel({
         )}
         {screenData !== undefined && (
           <div className="mt-4">
-            <ScreenPanel data={screenData} loading={loading} />
+            <ScreenPanel data={screenData} loading={loading} computerStatus={computerStatus} onRefreshComputer={onRefreshComputer} />
           </div>
         )}
         {memoryData !== undefined && (

@@ -26,6 +26,9 @@ class TestRegistry:
             "click_mouse",
             "focus_window",
             "get_cursor",
+            "list_windows",
+            "close_app",
+            "desktop_summary",
         ]:
             assert tool in tmap, f"{tool} missing"
 

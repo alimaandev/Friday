@@ -120,3 +120,46 @@ class GetScreenSizePlugin(ToolPlugin):
 
     def execute(self) -> dict[str, Any]:
         return get_computer_control().screen_size()
+
+
+class ListWindowsPlugin(ToolPlugin):
+    name = "list_windows"
+    description = "List all visible open windows with their titles and handles (Windows)."
+    category = "control"
+
+    def get_parameters_schema(self):
+        return {"type": "object", "properties": {}, "required": []}
+
+    def execute(self) -> dict[str, Any]:
+        return get_computer_control().list_windows()
+
+
+class CloseAppPlugin(ToolPlugin):
+    name = "close_app"
+    description = "Close an application window by title fragment. Requires user confirmation."
+    category = "control"
+
+    def get_parameters_schema(self):
+        return {
+            "type": "object",
+            "properties": {"name": {"type": "string", "description": "Window title fragment to close"}},
+            "required": ["name"],
+        }
+
+    def execute(self, name: str) -> dict[str, Any]:
+        return get_computer_control().close_app(name)
+
+
+class DesktopSummaryPlugin(ToolPlugin):
+    name = "desktop_summary"
+    description = (
+        "Snapshot the current desktop state: available control capabilities, "
+        "open windows, and screen size. Use before planning desktop organization."
+    )
+    category = "control"
+
+    def get_parameters_schema(self):
+        return {"type": "object", "properties": {}, "required": []}
+
+    def execute(self) -> dict[str, Any]:
+        return get_computer_control().desktop_summary()

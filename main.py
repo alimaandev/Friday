@@ -7,7 +7,6 @@ import time
 import webbrowser
 
 from agent.core import Agent
-from browser import close_browser
 from core.registry import discover_plugins
 from voice import is_voice_available, listen, speak
 
@@ -67,6 +66,10 @@ def main():
     try:
         _repl_loop(agent)
     finally:
+        try:
+            from browser import close_browser
+        except ImportError:
+            return
         close_browser()
 
 

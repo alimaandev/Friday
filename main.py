@@ -94,7 +94,9 @@ def _launch_ui():
         procs.append(api)
         time.sleep(2.0)
 
-        front = subprocess.Popen(front_cmd, cwd=desktop, creationflags=subprocess.CREATE_NEW_CONSOLE if sys.platform == "win32" else 0)
+        front = subprocess.Popen(
+            front_cmd, cwd=desktop, creationflags=subprocess.CREATE_NEW_CONSOLE if sys.platform == "win32" else 0
+        )
         procs.append(front)
 
         time.sleep(5.0)

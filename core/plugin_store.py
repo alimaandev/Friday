@@ -10,7 +10,6 @@ This mirrors the v4-plan's "manifest registry, install/remove UI in settings".
 
 import json
 import os
-import shutil
 
 from core.logger import info
 
@@ -30,7 +29,7 @@ def _load_manifest() -> list[dict]:
     if not os.path.exists(_MANIFEST_PATH):
         return []
     try:
-        with open(_MANIFEST_PATH, "r", encoding="utf-8") as f:
+        with open(_MANIFEST_PATH, encoding="utf-8") as f:
             data = json.load(f)
         return data if isinstance(data, list) else []
     except Exception:

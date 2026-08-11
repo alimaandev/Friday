@@ -17,7 +17,6 @@ def _clean_manifest(tmp_path, monkeypatch):
 
 
 def test_install_adds_to_manifest(tmp_path):
-    import core.plugin_store as ps
 
     result = install_plugin("fun")
     assert result["success"]

@@ -53,4 +53,18 @@ Minimal stage by default: **monochrome orb centered + chat below + minimal input
 
 ---
 
-**Execution order:** 0 → 1 → 2 → 3 → 4 → 5, then 6 as scoped issues, 7 as release polish. Deferred to v5: Tauri desktop packaging, PWA/multi-user, light theme, persona auction.
+## Phase 6 — Roadmap pillars ✅ (scoped issues shipped)
+- **#52 Plugin marketplace** — `core/plugin_store.py` manifest registry + Settings install/remove UI; community plugins in `plugins/community/`.
+- **#54 Custom tool builder** — `core/custom_tools.py` natural-language → persisted tool def, Settings UI.
+- **#53 Local RAG pipeline** — `core/rag.py` chunking + reranking over the memory engines (`ingest_document`, `rag_search`).
+- **#55 Holodeck v2** — floating draggable cards + gesture-openness interactions in `HolodeckCards.tsx`.
+
+## Phase 7 — Launch polish ✅
+- **P3 — Onboarding "Hello, I'm Friday":** first-launch orb greeting + flagship suggestions (`zen/Onboarding.tsx`).
+- **P6 — Single-command start:** `python main.py --ui` (or `npm run friday`) boots API + frontend together.
+- **P2 — System-level global hotkey:** `Ctrl+Alt+F` summons/focuses the frontend (`core/hotkey.py`, needs `pip install keyboard`).
+- **P5 — Blackout mode:** one-toggle local-only privacy (`core/blackout.py`), network tools blocked, Ollama provider forced, PRIVATE seal on orb.
+
+---
+
+**Execution order:** 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 — **all shipped.** Deferred to v5: Tauri desktop packaging, PWA/multi-user, light theme, persona auction.

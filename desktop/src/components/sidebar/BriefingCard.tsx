@@ -4,6 +4,7 @@ interface Briefing {
   summary: string
   sections: string[]
   greeting: string
+  yesterday?: string
 }
 
 interface BriefingCardProps {
@@ -32,6 +33,12 @@ export const BriefingCard = memo(function BriefingCard({ briefing, onPlay, voice
           <p className="text-xs leading-relaxed" style={{ color: '#d0d0d0' }}>
             {briefing.summary}
           </p>
+          {briefing.yesterday && (
+            <div className="mt-2 text-[11px] leading-relaxed" style={{ color: '#8a8a92', borderTop: '1px solid rgba(0,168,255,0.1)', paddingTop: '6px' }}>
+              <span style={{ color: '#00a8ff' }}>📖 From yesterday's diary:</span>
+              <span className="line-clamp-3 inline"> {briefing.yesterday}</span>
+            </div>
+          )}
         </div>
         {voiceOutputEnabled && (
           <button

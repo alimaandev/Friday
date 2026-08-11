@@ -11,7 +11,7 @@ import sys
 import time
 import uuid
 import xml.etree.ElementTree as ET
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from functools import wraps
 from pathlib import Path
 
@@ -25,6 +25,7 @@ from quart_cors import cors
 from agent.core import Agent
 from core.automations import get_automation_engine
 from core.briefing import BriefingEngine
+from core.diary import get_diary
 from core.logger import get_metrics
 from core.memory import get_memory_manager
 from core.proactive import CalendarMonitor, EmailMonitor, ProactiveMonitor, ScreenMonitor, SystemMonitor
@@ -163,6 +164,7 @@ discover_plugins()
 
 _agents: dict[str, Agent] = {}
 _proactive: ProactiveMonitor | None = None
+_diary = get_diary()
 
 
 def get_proactive() -> ProactiveMonitor:
@@ -240,12 +242,22 @@ async def chat():
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
         def _run():
+            last_text = ""
             try:
                 for event in agent.run(user_input):
+                    last_text = event.get("content", last_text)
                     loop.call_soon_threadsafe(queue.put_nowait, event)
             except Exception as e:
                 loop.call_soon_threadsafe(queue.put_nowait, {"type": "done", "content": f"Error: {e}", "final": True})
             finally:
+                try:
+                    _diary.record(
+                        title=(user_input.strip() or "Chat")[:160],
+                        body=(last_text.strip() or "_no response_")[:500],
+                        kind="conversation",
+                    )
+                except Exception:
+                    pass
                 loop.call_soon_threadsafe(queue.put_nowait, None)
 
         executor.submit(_run)
@@ -257,6 +269,66 @@ async def chat():
                 yield json.dumps(event, ensure_ascii=False) + "\n"
         except TimeoutError:
             yield json.dumps({"type": "done", "content": "Request timed out", "final": True}) + "\n"
+        finally:
+            executor.shutdown(wait=False)
+
+    return Response(generate(), mimetype="text/event-stream")
+
+
+# ─── Autopilot ────────────────────────────────────────────────────
+@app.route(f"{API_PREFIX}/autopilot", methods=["POST"])
+@require_auth
+async def autopilot():
+    """Stream an autonomous multi-task run: plan -> ordered steps -> verify."""
+    data = await request.get_json() or {}
+    goal = data.get("goal", "")
+    if not goal:
+        return jsonify({"error": "goal is required"}), 422
+    session_id = data.get("session_id", "default")
+    workspace = data.get("workspace") or os.getenv("FRIDAY_WORKSPACE")
+    if workspace:
+        err = validate_output_path(workspace)
+        if err:
+            return jsonify({"error": err}), 422
+    agent = _get_agent(session_id)
+
+    async def generate():
+        loop = asyncio.get_event_loop()
+        queue: asyncio.Queue = asyncio.Queue()
+        import concurrent.futures
+
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+        def _run():
+            last_text = ""
+            try:
+                for event in agent.run_autopilot(goal, workspace):
+                    last_text = event.get("content", last_text)
+                    loop.call_soon_threadsafe(queue.put_nowait, event)
+            except Exception as e:
+                loop.call_soon_threadsafe(
+                    queue.put_nowait, {"type": "done", "content": f"Autopilot error: {e}", "final": True}
+                )
+            finally:
+                try:
+                    _diary.record(
+                        title=(goal.strip() or "Autopilot run")[:160],
+                        body=(last_text.strip() or "_run finished_")[:500],
+                        kind="autopilot",
+                    )
+                except Exception:
+                    pass
+                loop.call_soon_threadsafe(queue.put_nowait, None)
+
+        executor.submit(_run)
+        try:
+            while True:
+                event = await asyncio.wait_for(queue.get(), timeout=600)
+                if event is None:
+                    break
+                yield json.dumps(event, ensure_ascii=False) + "\n"
+        except TimeoutError:
+            yield json.dumps({"type": "done", "content": "Autopilot timed out", "final": True}) + "\n"
         finally:
             executor.shutdown(wait=False)
 
@@ -965,12 +1037,58 @@ async def _push_briefing():
                         "summary": briefing.summary,
                         "sections": briefing.sections,
                         "greeting": briefing.greeting,
+                        "yesterday": _diary.morning_note(),
                     },
                 )
                 last_briefing_date = today
         except Exception:
             pass
         await asyncio.sleep(300)
+
+
+# ─── Diary ────────────────────────────────────────────────────────
+@app.route(f"{API_PREFIX}/diary")
+@require_auth
+async def get_diary_page():
+    day = request.args.get("date")
+    if day:
+        try:
+            from datetime import date as date_cls
+
+            date_cls.fromisoformat(day)
+        except ValueError:
+            return jsonify({"error": "invalid date"}), 422
+    return jsonify({"date": day or str(date.today()), "content": _diary.read(date.fromisoformat(day) if day else None)})
+
+
+@app.route(f"{API_PREFIX}/diary/recent")
+@require_auth
+async def get_diary_recent():
+    return jsonify({"days": _diary.recent()})
+
+
+@app.route(f"{API_PREFIX}/diary/nightly", methods=["POST"])
+@require_auth
+async def post_diary_nightly():
+    path = _diary.write_day_entry()
+    return jsonify({"path": path, "success": True})
+
+
+async def _push_nightly_digest():
+    await asyncio.sleep(15)
+    last_write = None
+    while True:
+        try:
+            today = datetime.now(UTC).date()
+            if last_write != today:
+                today_page = _diary.read()
+                if "nightly digest" not in today_page.lower():
+                    _diary.write_day_entry()
+                    await _broadcaster.broadcast("diary", {"date": today.isoformat(), "status": "written"})
+                last_write = today
+        except Exception:
+            pass
+        await asyncio.sleep(3600)
 
 
 # ─── Automations ─────────────────────────────────────────────────
@@ -1296,6 +1414,7 @@ if __name__ == "__main__":
     loop.create_task(_proactive_loop())
     loop.create_task(_push_metrics())
     loop.create_task(_push_briefing())
+    loop.create_task(_push_nightly_digest())
     loop.create_task(_push_automations())
     loop.create_task(_push_vision())
     loop.create_task(_push_system_info())

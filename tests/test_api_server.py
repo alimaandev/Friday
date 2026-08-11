@@ -356,9 +356,7 @@ class TestApprovals:
 
         request_id = get_approval_registry().request("delete_file", {"path": "x"})
         async with app.test_client() as client:
-            resp = await client.post(
-                f"/api/v1/approvals/{request_id}", json={"allowed": True}, headers=headers
-            )
+            resp = await client.post(f"/api/v1/approvals/{request_id}", json={"allowed": True}, headers=headers)
             data = await resp.get_json()
         assert resp.status_code == 200
         assert data["allowed"] is True

@@ -108,3 +108,20 @@ class Agent:
             memory.store_conversation_memory(user_input, final)
 
         yield {"type": "done", "content": final or "Done.", "final": True}
+
+    def run_autopilot(self, goal: str, workspace: str | None = None):
+        """Run a goal through the Autopilot loop (plan -> ordered steps -> verify).
+
+        Yields executor events interleaved with ``autopilot`` orchestration
+        events for the brain-view UI.
+        """
+        from core.autopilot import Autopilot
+
+        auto = Autopilot(
+            planner=self._planner,
+            llm_provider=llm_chat,
+            tool_map=get_tool_map(),
+            tool_definitions=get_tool_definitions(),
+            workspace=workspace or self._output_dir,
+        )
+        yield from auto.run(goal, context=self.messages)

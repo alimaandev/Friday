@@ -1,3 +1,5 @@
+import type { DiaryDay, DiaryPage } from '../types'
+
 const API_BASE = 'http://localhost:8080/api/v1'
 
 const AUTH_KEY = 'friday_api_secret'
@@ -53,6 +55,69 @@ export async function fetchApi<T = any>(
 }
 
 /* ─── SSE streaming helper ─── */
+async function streamEndpoint(
+  path: string,
+  body: Record<string, unknown>,
+  onEvent: (event: any) => void,
+  onError: (err: any) => void,
+  onDone: () => void,
+  controller: AbortController,
+) {
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders(),
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    })
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      onError({ status: res.status, message: data?.error || res.statusText })
+      onDone()
+      return
+    }
+
+    const reader = res.body?.getReader()
+    if (!reader) {
+      onError({ message: 'No response body' })
+      onDone()
+      return
+    }
+
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+
+      for (const line of lines) {
+        if (!line.trim()) continue
+        try {
+          const event = JSON.parse(line)
+          onEvent(event)
+        } catch {
+          // skip malformed lines
+        }
+      }
+    }
+    onDone()
+  } catch (err: any) {
+    if (err?.name !== 'AbortError') {
+      onError(err)
+      onDone()
+    }
+  }
+}
+
 export function streamChat(
   body: { message: string; session_id?: string; persona?: string },
   onEvent: (event: any) => void,
@@ -60,63 +125,18 @@ export function streamChat(
   onDone: () => void,
 ): AbortController {
   const controller = new AbortController()
+  streamEndpoint('/chat', body, onEvent, onError, onDone, controller)
+  return controller
+}
 
-  ;(async () => {
-    try {
-      const res = await fetch(`${API_BASE}/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders(),
-        },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      })
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null)
-        onError({ status: res.status, message: data?.error || res.statusText })
-        onDone()
-        return
-      }
-
-      const reader = res.body?.getReader()
-      if (!reader) {
-        onError({ message: 'No response body' })
-        onDone()
-        return
-      }
-
-      const decoder = new TextDecoder()
-      let buffer = ''
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
-
-        for (const line of lines) {
-          if (!line.trim()) continue
-          try {
-            const event = JSON.parse(line)
-            onEvent(event)
-          } catch {
-            // skip malformed lines
-          }
-        }
-      }
-      onDone()
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') {
-        onError(err)
-        onDone()
-      }
-    }
-  })()
-
+export function streamAutopilot(
+  body: { goal: string; session_id?: string },
+  onEvent: (event: any) => void,
+  onError: (err: any) => void,
+  onDone: () => void,
+): AbortController {
+  const controller = new AbortController()
+  streamEndpoint('/autopilot', body, onEvent, onError, onDone, controller)
   return controller
 }
 
@@ -230,6 +250,21 @@ export async function clearMemory() {
 
 export async function deleteMemory(entryId: string) {
   return fetchApi(`/memory/${encodeURIComponent(entryId)}`, { method: 'DELETE' })
+}
+
+/* ─── Diary API ───────────────────────────────────────────────── */
+
+export async function getDiaryRecent(): Promise<{ days: DiaryDay[] }> {
+  return fetchApi('/diary/recent')
+}
+
+export async function getDiaryPage(dateStr?: string): Promise<DiaryPage> {
+  const q = dateStr ? `?date=${encodeURIComponent(dateStr)}` : ''
+  return fetchApi(`/diary${q}`)
+}
+
+export async function writeNightlyDigest(): Promise<{ path: string; success: boolean }> {
+  return fetchApi('/diary/nightly', { method: 'POST' })
 }
 
 export async function getGoogleAuth(): Promise<any> {

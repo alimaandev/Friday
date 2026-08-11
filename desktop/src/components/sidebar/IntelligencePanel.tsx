@@ -3,6 +3,7 @@ import type { MemoryData, NewsItem, WeatherData, SystemInfo, Earthquake, CryptoD
 import { WEATHER_CODES } from '../../types'
 import { SkeletonSection } from '../common/Skeleton'
 import { MemoryPanel } from './MemoryPanel'
+import { DiaryPanel } from './DiaryPanel'
 import { ScreenPanel } from './ScreenPanel'
 import { CalendarPanel } from './CalendarPanel'
 import { EmailPanel } from './EmailPanel'
@@ -61,6 +62,7 @@ interface IntelligencePanelProps {
   holodeckGestureOpenness?: number
   holodeckExpanded?: boolean
   onHolodeckToggle?: () => void
+  diaryRefreshToken?: number
 }
 
 const timeAgo = (dateStr: string) => {
@@ -390,6 +392,7 @@ export const IntelligencePanel = memo(function IntelligencePanel({
   automations, onAutomationToggle, onAutomationDelete, onAutomationTrigger,
   visionScreenResult, visionCameraResult, onVisionCaptureCamera, onVisionCaptureScreen, visionAnalyzing,
   holodeckMetrics, holodeckGesturePosition, holodeckGestureOpenness, holodeckExpanded, onHolodeckToggle,
+  diaryRefreshToken,
 }: IntelligencePanelProps) {
   return (
     <div
@@ -471,6 +474,9 @@ export const IntelligencePanel = memo(function IntelligencePanel({
             />
           </div>
         )}
+        <div className="mt-4">
+          <DiaryPanel refreshToken={diaryRefreshToken} />
+        </div>
         <div className="mt-4">
           <VisionPanel
             screenResult={visionScreenResult || null}

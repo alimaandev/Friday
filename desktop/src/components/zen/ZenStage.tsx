@@ -29,6 +29,7 @@ interface ZenStageProps {
   persona?: string
   greeting?: string
   continuity?: string
+  computerReady?: boolean
   temperature?: number | null
   location?: string
   time?: string
@@ -59,6 +60,7 @@ export const ZenStage = memo(function ZenStage({
   persona = 'friday',
   greeting = 'FRIDAY',
   continuity = '',
+  computerReady = false,
   temperature = null,
   location = '',
   time = '',
@@ -91,6 +93,15 @@ export const ZenStage = memo(function ZenStage({
           )}
         </div>
         <div className="flex items-center gap-2">
+          {computerReady && (
+            <span
+              className="text-[9px] font-mono tracking-widest px-1.5 py-0.5 rounded"
+              style={{ color: '#a0a0a8', border: '1px solid rgba(255,255,255,0.08)' }}
+              title="Desktop control available — ask Friday to open apps, type, or click"
+            >
+              CONTROL
+            </span>
+          )}
           <button
             onClick={() => setMomentOpen(true)}
             className="flex items-center gap-1.5 text-[10px] font-mono tracking-widest px-2.5 py-1 rounded-md transition-all duration-200 hover:bg-white/[.06]"

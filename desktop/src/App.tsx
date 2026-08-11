@@ -21,7 +21,7 @@ import { toast } from './core/ToastStore'
 const IntelligencePanel = lazy(() => import('./components/sidebar/IntelligencePanel').then(m => ({ default: m.IntelligencePanel })))
 const CommandPalette = lazy(() => import('./components/command/CommandPalette').then(m => ({ default: m.CommandPalette })))
 const SettingsPanel = lazy(() => import('./components/settings/SettingsPanel').then(m => ({ default: m.SettingsPanel })))
-import { streamChat, checkHealth, getSessions, createSession, deleteSession, getOutputDir, setOutputDir, getGoogleAuth, getNews, getWeather, getStocks, getGithubTrending, getEarthquakes, getCrypto, getSpace, getCve, getScreen, getMemory, deleteMemory, getCalendarEvents, getEmailInbox, getEmailUnread, connectEventSource, getAutomations, toggleAutomation, deleteAutomation, triggerAutomation, analyzeVisionImage, getVisionScreen, resolveApproval, streamAutopilot, getKnowledgeContinuity } from './core/api'
+import { streamChat, checkHealth, getSessions, createSession, deleteSession, getOutputDir, setOutputDir, getGoogleAuth, getNews, getWeather, getStocks, getGithubTrending, getEarthquakes, getCrypto, getSpace, getCve, getScreen, getMemory, deleteMemory, getCalendarEvents, getEmailInbox, getEmailUnread, connectEventSource, getAutomations, toggleAutomation, deleteAutomation, triggerAutomation, analyzeVisionImage, getVisionScreen, resolveApproval, streamAutopilot, getKnowledgeContinuity, getComputerStatus } from './core/api'
 import type { ServerEvent } from './core/api'
 import { BrainView } from './components/autopilot/BrainView'
 import { ZenStage } from './components/zen/ZenStage'
@@ -68,6 +68,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
   const [autopilotRun, setAutopilotRun] = useState<AutopilotRun | null>(null)
   const [now, setNow] = useState(() => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }))
   const [continuity, setContinuity] = useState('')
+  const [computerReady, setComputerReady] = useState(false)
 
   // ─── Fine-grained Zustand selectors (before any hooks that use them) ───
   const sessions = useStore(s => s.sessions)
@@ -373,6 +374,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
         }
         await fetchRemaining()
         getKnowledgeContinuity().then(d => { if (!cancelled) setContinuity(d.continuity || '') }).catch(() => {})
+        getComputerStatus().then(d => { if (!cancelled) setComputerReady(Boolean(d.mouse_keyboard && d.window_management)) }).catch(() => {})
         if (!cancelled) setDataLoaded(true)      } catch {
         if (!cancelled) {
           setBackendOnline(false)
@@ -1026,6 +1028,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
             onToggleHandsFree={handleToggleHandsFree}
             persona={persona}
             continuity={continuity}
+            computerReady={computerReady}
             temperature={weather?.temperature ?? null}
             location={weather?.location ?? ''}
             time={now}

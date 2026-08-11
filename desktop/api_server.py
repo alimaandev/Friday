@@ -895,6 +895,14 @@ async def knowledge_continuity():
     return jsonify({"continuity": get_knowledge_graph().continuity()})
 
 
+@app.route(f"{API_PREFIX}/computer/status", methods=["GET"])
+@require_auth
+async def computer_status():
+    from core.computer import get_computer_control
+
+    return jsonify(get_computer_control().available)
+
+
 # ─── Google Auth ─────────────────────────────────────────────────
 @app.route(f"{API_PREFIX}/auth/google")
 @require_auth

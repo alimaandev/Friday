@@ -285,6 +285,19 @@ export async function getKnowledgeContinuity(): Promise<{ continuity: string }> 
   return fetchApi('/knowledge/continuity')
 }
 
+/* ─── Computer control API ─────────────────────────────────────── */
+
+export interface ComputerStatus {
+  platform: string
+  mouse_keyboard: boolean
+  window_management: boolean
+  note?: string
+}
+
+export async function getComputerStatus(): Promise<ComputerStatus> {
+  return fetchApi('/computer/status')
+}
+
 /* ─── Diary API ───────────────────────────────────────────────── */
 
 export async function getDiaryRecent(): Promise<{ days: DiaryDay[] }> {

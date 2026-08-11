@@ -218,6 +218,16 @@ class TestKnowledgeGraph:
         assert "continuity" in data
 
 
+class TestComputerControl:
+    async def test_computer_status(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/computer/status", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "platform" in data
+        assert "mouse_keyboard" in data
+
+
 class TestAutomations:
     async def test_list_automations_empty(self, app, headers):
         async with app.test_client() as client:

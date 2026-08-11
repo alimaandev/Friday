@@ -8,6 +8,7 @@ sentence-transformers>=5.6.1
 requests>=2.34.2
 pyttsx3>=2.99
 pillow>=12.3.0
+pyautogui>=0.9.54
 
 # Development
 pytest>=9.0.0

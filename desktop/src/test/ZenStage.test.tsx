@@ -90,4 +90,14 @@ describe('ZenStage', () => {
     ]} />)
     expect(screen.queryByText(/Context from previous sessions/)).toBeNull()
   })
+
+  it('shows CONTROL chip when desktop control is ready', () => {
+    render(<ZenStage {...baseProps} computerReady />)
+    expect(screen.getByText('CONTROL')).toBeTruthy()
+  })
+
+  it('hides CONTROL chip when desktop control is unavailable', () => {
+    render(<ZenStage {...baseProps} computerReady={false} />)
+    expect(screen.queryByText('CONTROL')).toBeNull()
+  })
 })

@@ -35,6 +35,12 @@ def discover_plugins():
     _scan_package("plugins.builtins")
     _scan_community_packages()
     _scan_tools_fallback()
+    try:
+        from core.custom_tools import register_custom_tools
+
+        register_custom_tools()
+    except Exception as e:  # noqa: BLE001
+        warn(f"Custom tool registration skipped: {e}")
 
     info(f"Tool discovery complete: {len(_TOOL_MAP)} tools, {len(_TOOL_DEFINITIONS)} definitions")
 

@@ -957,6 +957,40 @@ async def uninstall_plugin_api():
     return jsonify(result)
 
 
+@app.route(f"{API_PREFIX}/tools/custom", methods=["GET"])
+@require_auth
+async def list_custom_tools():
+    from core.custom_tools import list_custom_tools
+
+    return jsonify({"tools": list_custom_tools()})
+
+
+@app.route(f"{API_PREFIX}/tools/custom", methods=["POST"])
+@require_auth
+async def create_custom_tool():
+    data = await request.get_json() or {}
+    description = (data.get("description") or "").strip()
+    if not description:
+        return jsonify({"error": "description is required"}), 422
+    from core.custom_tools import create_custom_tool
+
+    try:
+        tool = create_custom_tool(description)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
+    return jsonify({"tool": tool}), 201
+
+
+@app.route(f"{API_PREFIX}/tools/custom/<name>", methods=["DELETE"])
+@require_auth
+async def delete_custom_tool(name: str):
+    from core.custom_tools import delete_custom_tool
+
+    if not delete_custom_tool(name):
+        return jsonify({"error": f"Custom tool '{name}' not found"}), 404
+    return jsonify({"success": True})
+
+
 # ─── Google Auth ─────────────────────────────────────────────────
 @app.route(f"{API_PREFIX}/auth/google")
 @require_auth

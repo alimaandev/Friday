@@ -263,6 +263,20 @@ class TestPluginMarketplace:
         assert resp.status_code == 422
 
 
+class TestCustomTools:
+    async def test_list_custom_tools(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/tools/custom", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "tools" in data
+
+    async def test_create_requires_description(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/tools/custom", headers=headers, json={})
+        assert resp.status_code == 422
+
+
 class TestAutomations:
     async def test_list_automations_empty(self, app, headers):
         async with app.test_client() as client:

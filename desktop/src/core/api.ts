@@ -345,6 +345,29 @@ export async function uninstallPlugin(name: string): Promise<{ success: boolean;
   return fetchApi('/plugins/uninstall', { method: 'POST', body: JSON.stringify({ name }) })
 }
 
+/* ─── Custom tool builder API ─────────────────────────────────── */
+
+export interface CustomTool {
+  name: string
+  description: string
+  parameters: { type: string; properties: Record<string, unknown>; required: string[] }
+  body: string
+  source: string
+}
+
+export async function getCustomTools(): Promise<CustomTool[]> {
+  const res = await fetchApi<{ tools: CustomTool[] }>('/tools/custom')
+  return res.tools
+}
+
+export async function createCustomTool(description: string): Promise<{ tool?: CustomTool; error?: string }> {
+  return fetchApi('/tools/custom', { method: 'POST', body: JSON.stringify({ description }) })
+}
+
+export async function deleteCustomTool(name: string): Promise<{ success?: boolean; error?: string }> {
+  return fetchApi(`/tools/custom/${encodeURIComponent(name)}`, { method: 'DELETE' })
+}
+
 /* ─── Diary API ───────────────────────────────────────────────── */
 
 export async function getDiaryRecent(): Promise<{ days: DiaryDay[] }> {

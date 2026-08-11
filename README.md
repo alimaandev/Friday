@@ -5,24 +5,35 @@
 
   <br>
 
+  <h1 align="center"><code>Friday</code> — Your Desktop AI Command Center</h1>
+
+  <p align="center">
+    <b>Open-source JARVIS-class AI that runs entirely on your hardware.</b><br>
+    Speak · Gesture · Type — it sees your screen, controls your computer, runs automations,<br>
+    visualizes data in 3D, and talks back with personality. No cloud lock-in. No subscriptions.
+  </p>
+
   <!-- Hero badges -->
   <p align="center">
-    <a href="https://github.com/alimaandev/Friday/stargazers"><img src="https://img.shields.io/github/stars/alimaandev/Friday?style=for-the-badge&logo=github&color=gold" alt="Stars"></a>
-    <a href="https://github.com/alimaandev/Friday/issues"><img src="https://img.shields.io/github/issues/alimaandev/Friday?style=for-the-badge&logo=github" alt="Issues"></a>
-    <a href="https://github.com/alimaandev/Friday/actions"><img src="https://img.shields.io/github/actions/workflow/status/alimaandev/Friday/ci.yml?style=for-the-badge&logo=githubactions" alt="CI"></a>
-    <a href="https://github.com/alimaandev/Friday/blob/main/LICENSE"><img src="https://img.shields.io/github/license/alimaandev/Friday?style=for-the-badge&color=green" alt="License"></a>
+    <a href="https://github.com/alimaandev/Friday/releases"><img src="https://img.shields.io/github/v/release/alimaandev/Friday?style=for-the-badge&logo=github&color=8b5cf6" alt="Release"></a>
+    <a href="https://github.com/alimaandev/Friday/stargazers"><img src="https://img.shields.io/github/stars/alimaandev/Friday?style=for-the-badge&logo=github&color=f59e0b" alt="Stars"></a>
+    <a href="https://github.com/alimaandev/Friday/issues"><img src="https://img.shields.io/github/issues/alimaandev/Friday?style=for-the-badge&logo=github&color=3b82f6" alt="Issues"></a>
+    <a href="https://github.com/alimaandev/Friday/actions"><img src="https://img.shields.io/github/actions/workflow/status/alimaandev/Friday/ci.yml?style=for-the-badge&logo=githubactions&color=22c55e" alt="CI"></a>
+    <a href="https://github.com/alimaandev/Friday/blob/main/LICENSE"><img src="https://img.shields.io/github/license/alimaandev/Friday?style=for-the-badge&color=10b981" alt="License"></a>
     <br>
-    <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react" alt="React 19"></a>
-    <a href="https://threejs.org"><img src="https://img.shields.io/badge/Three.js-0.185-000000?style=for-the-badge&logo=threedotjs" alt="Three.js"></a>
-    <a href="https://www.python.org"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python" alt="Python 3.11+"></a>
-    <a href="https://vite.dev"><img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite" alt="Vite 8"></a>
-    <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss" alt="Tailwind CSS v4"></a>
-    <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript 6"></a>
-    <br>
-    <a href="https://github.com/sponsors/alimaandev"><img src="https://img.shields.io/badge/Sponsor-30363D?style=for-the-badge&logo=githubsponsors" alt="Sponsor"></a>
-    <a href="#"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
-    <a href="https://twitter.com/intent/tweet?text=Check%20out%20Friday%20-%20The%20Open-Source%20JARVIS%20for%20Your%20Desktop&url=https://github.com/alimaandev/Friday"><img src="https://img.shields.io/badge/Tweet-000000?style=for-the-badge&logo=x&logoColor=white" alt="X / Twitter"></a>
-    <a href="https://www.youtube.com/@alimaandev"><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube"></a>
+    <a href="https://react.dev"><img src="https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=000" alt="React 19"></a>
+    <a href="https://threejs.org"><img src="https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=threedotjs&logoColor=fff" alt="Three.js"></a>
+    <a href="https://www.python.org"><img src="https://img.shields.io/badge/Python_3.11-3776AB?style=for-the-badge&logo=python&logoColor=fff" alt="Python 3.11+"></a>
+    <a href="https://vite.dev"><img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=fff" alt="Vite"></a>
+    <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=000" alt="Tailwind CSS v4"></a>
+    <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=fff" alt="TypeScript"></a>
+  </p>
+
+  <p align="center">
+    <a href="https://github.com/sponsors/alimaandev"><img src="https://img.shields.io/badge/Sponsor-30363D?style=for-the-badge&logo=githubsponsors&logoColor=fff" alt="Sponsor"></a>
+    <a href="#"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=fff" alt="Discord"></a>
+    <a href="https://twitter.com/intent/tweet?text=Check%20out%20Friday%20-%20The%20Open-Source%20JARVIS%20for%20Your%20Desktop&url=https://github.com/alimaandev/Friday"><img src="https://img.shields.io/badge/Tweet-000000?style=for-the-badge&logo=x&logoColor=fff" alt="X / Twitter"></a>
+    <a href="https://www.youtube.com/@alimaandev"><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=fff" alt="YouTube"></a>
   </p>
 
   <p align="center">
@@ -63,14 +74,87 @@
 
 ## 🎯 Your Desktop AI Command Center
 
-**Friday** is an open-source JARVIS-class AI that lives on your desktop. Speak to it, gesture at it, or type — it sees your screen, runs automations, visualizes data in 3D, and talks back with personality. Everything runs locally. Your API key, your LLM, your rules.
+**Friday** is an open-source JARVIS-class AI that lives on your desktop. Speak to it, gesture at it, or type — it sees your screen, controls your computer, runs automations, visualizes data in 3D, and talks back with personality. Everything runs locally. Your API key, your LLM, your rules.
 
-> The 3D orb reacts to your voice. The Intelligence panel streams 10 live data sources. The Holodeck renders your metrics as animated 3D bars. And it all starts with one command.
+> The 3D orb reacts to your voice. The Intelligence panel streams 10 live data sources. The Holodeck renders your metrics as animated 3D bars. Zen mode turns everything into a monochrome orb + chat. And it all starts with one command.
 
 ```bash
-docker compose up -d
-# → Frontend: http://localhost:5173 · Backend: http://localhost:8080
+npm run friday        # → boots API server + frontend together (Windows)
+# or
+docker compose up -d  # → Frontend: http://localhost:5173 · Backend: http://localhost:8080
 ```
+
+<br>
+
+---
+
+## ✨ What's New in v4 — "The Orb"
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <p align="center"><strong>🧘 Zen Mode</strong></p>
+      <p align="center">
+        A radical minimal UI — one monochrome orb + chat by default. ⌘B toggles to the full dashboard.
+        Ambient floating widgets orbit the orb; hover/drag to expand.
+      </p>
+    </td>
+    <td width="50%" valign="top">
+      <p align="center"><strong>🖥️ Computer Control</strong></p>
+      <p align="center">
+        Open apps, focus windows, type, click, and summarize your desktop. "Organize my desktop" is one
+        goal for the autopilot — every action asks for your confirmation first.
+      </p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <p align="center"><strong>🧩 Plugin Marketplace</strong></p>
+      <p align="center">
+        Install & remove community plugins from Settings. Ships with built-ins for screen, email,
+        calendar, web, and system — plus a community plugin registry.
+      </p>
+    </td>
+    <td width="50%" valign="top">
+      <p align="center"><strong>🛠 Custom Tool Builder</strong></p>
+      <p align="center">
+        Describe a tool in natural language and Friday generates, registers, and persists it —
+        no code required.
+      </p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <p align="center"><strong>📚 Local RAG Pipeline</strong></p>
+      <p align="center">
+        Ingest documents and search them with sentence-aligned chunking + lexical reranking on top of
+        your three parallel memory engines.
+      </p>
+    </td>
+    <td width="50%" valign="top">
+      <p align="center"><strong>🧠 Knowledge Graph</strong></p>
+      <p align="center">
+        Entities & relations extracted from your chats. Every new session seeds context from the graph
+        + diary — "Last time you were working on…"
+      </p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <p align="center"><strong>🚫 Blackout Mode</strong></p>
+      <p align="center">
+        One toggle for total privacy: network tools blocked, local Ollama forced, PRIVATE seal on the orb.
+      </p>
+    </td>
+    <td width="50%" valign="top">
+      <p align="center"><strong>⚡ Single-Command Start</strong></p>
+      <p align="center">
+        <code>python main.py --ui</code> or <code>npm run friday</code> boots API + frontend together and
+        opens your browser. Global <code>Ctrl+Alt+F</code> summons Friday from anywhere.
+      </p>
+    </td>
+  </tr>
+</table>
 
 <br>
 
@@ -114,13 +198,23 @@ docker compose up -d
 
 ## ⚡ Quick Start
 
-### 🐳 Docker (recommended)
+### 🚀 Single command (recommended)
 
 ```bash
 git clone https://github.com/alimaandev/Friday.git
 cd Friday
 cp config/providers.toml.example config/providers.toml
 # Edit config/providers.toml — paste your OpenRouter (or other) API key
+npm run friday        # boots API server + frontend, opens your browser
+```
+
+### 🐳 Docker
+
+```bash
+git clone https://github.com/alimaandev/Friday.git
+cd Friday
+cp config/providers.toml.example config/providers.toml
+# Edit config/providers.toml — paste your API key
 docker compose up -d
 ```
 
@@ -222,6 +316,11 @@ cd .. && npm install && npm run dev
 | **Google Calendar** | OAuth 2.0 | View upcoming events inline |
 | **Gmail** | OAuth 2.0 | Unread count + inbox preview |
 | **Memory** | TF-IDF + Jaccard + Vector | Cross-session semantic search |
+| **Knowledge Graph** | Entity/relation extraction | Session continuity + proactive connections |
+| **Local RAG** | Chunking + reranking | Document ingest + semantic retrieval |
+| **Computer Control** | pyautogui + pywin32 | Open apps, type, click, windows, desktop summary |
+| **Plugin Marketplace** | Manifest registry | Install/remove community plugins |
+| **Custom Tools** | Natural-language builder | Persisted, code-free tool definitions |
 | **Proactive Alerts** | SSE | System anomalies, reminders, notifications |
 | **LLM Providers** | Pluggable | OpenRouter, OpenAI, Ollama, Anthropic, custom |
 | **Morning Pulse Briefing** | Template | Daily weather, news, crypto, calendar, email summary |
@@ -248,6 +347,8 @@ Friday is designed so that *your data stays yours*. Here is exactly what happens
 | **Conversation memory** | `memory_store/long_term.json` | Plain JSON on your disk — easy to inspect, back up, or delete. |
 | **Vector/embedding index** | `memory_store/vector_store.pkl`, `embeddings.pkl` | Local search indexes for semantic recall. |
 | **Google OAuth tokens** | `memory_store/` | Stored locally after you authorize Calendar/Gmail. |
+| **Custom tools** | `memory_store/custom_tools.json` | Tool definitions you build stay on your machine. |
+| **Blackout state** | `memory_store/blackout.json` | Privacy toggle state is persisted locally. |
 
 ### What leaves your machine
 
@@ -259,6 +360,11 @@ Friday is designed so that *your data stays yours*. Here is exactly what happens
 
 - **Screen & camera analysis** — your screen is captured only when *you* ask for it, and only the frames you request are sent to your provider for vision analysis. The background screen-change monitor runs entirely locally (it only compares image hashes — it never uploads pixels).
 - **Voice & wake word** — "Hey Friday" detection and speech-to-text run **offline in your browser**. No audio is uploaded.
+- **Computer control** — click, type, and window actions run locally. Control tools always require your confirmation first.
+
+### 🚫 Blackout Mode
+
+Flip one toggle in Settings and Friday goes fully local: **all network tool calls are blocked**, the provider is forced to **Ollama**, and a **PRIVATE seal** appears on the orb. Zero outbound AI traffic. [Learn more →](docs/v4-plan.md)
 
 ### Your controls
 
@@ -281,6 +387,14 @@ Friday is designed so that *your data stays yours*. Here is exactly what happens
 Friday/
 ├── core/                  # Business logic
 │   ├── executor.py        #   Tool-call execution & streaming
+│   ├── computer.py        #   Desktop control (apps, windows, input)
+│   ├── rag.py             #   Local document chunking + reranking
+│   ├── knowledge.py       #   Entity/relation knowledge graph
+│   ├── plugin_store.py    #   Plugin marketplace manifest registry
+│   ├── custom_tools.py    #   Natural-language tool builder
+│   ├── blackout.py        #   Local-only privacy mode
+│   ├── hotkey.py          #   System-level global hotkey
+│   ├── autopilot.py       #   Goal decomposition → executed steps
 │   ├── memory/            #   Three parallel memory engines (TF-IDF, vector, embeddings)
 │   ├── proactive.py       #   Background monitors → SSE alerts
 │   ├── automations.py     #   Cron-triggered automations engine
@@ -291,7 +405,10 @@ Friday/
 │   ├── openai_compat.py   #   OpenRouter/OpenAI/any OpenAI-compatible API
 │   └── ollama.py          #   Local models
 ├── plugins/               # Tool plugins (auto-discovered at startup)
-│   └── builtins/          #   Screen, email, calendar, web, system tools…
+│   ├── builtins/          #   Screen, email, calendar, web, system, computer…
+│   ├── community/         #   Community plugin registry (marketplace)
+│   └── manifest.json      #   Plugin manifests
+├── agent/                 # Agent core (goals, planning, desktop context)
 ├── voice/                 # Voice I/O & wake word (offline, in-browser)
 ├── browser/               # Headless browser automation
 ├── desktop/               # Frontend (React 19 + Three.js + Vite + Tailwind)
@@ -300,8 +417,8 @@ Friday/
 │   └── api_server.py      #   Quart backend (REST + SSE, port 8080)
 ├── config/                # providers.toml — your API keys & providers
 ├── memory_store/          # Local memory (JSON + pickle) — created at runtime
-├── docs/                  # API reference
-└── tests/                 # 180+ pytest tests · desktop/src/test/ (48 vitest)
+├── docs/                  # API reference & v4 plan
+└── tests/                 # 270+ pytest tests · desktop/src/test/ (107 vitest)
 ```
 
 ### ⚙️ Configuration
@@ -339,7 +456,7 @@ All configuration lives in a single file: `config/providers.toml` (copy from `co
   <img src="architecture.svg" alt="Friday System Architecture" width="90%">
 </p>
 
-A single-page React frontend communicates with a Python Quart backend via SSE and REST. The backend pools connections to any OpenAI-compatible LLM provider. Three parallel memory engines (TF-IDF, Jaccard, Vector) enable cross-session semantic recall.
+A single-page React frontend communicates with a Python Quart backend via SSE and REST. The backend pools connections to any OpenAI-compatible LLM provider. Three parallel memory engines (TF-IDF, Jaccard, Vector) enable cross-session semantic recall, now augmented with a local RAG pipeline and a knowledge graph.
 
 <div align="right">
   <a href="#readme-top">▲ back to top</a>
@@ -357,7 +474,7 @@ Everything is tested and linted — CI runs both suites on every pull request.
 
 ```bash
 pip install -r requirements.txt
-python -m pytest tests/ -v          # 180+ tests
+python -m pytest tests/ -v          # 270+ tests
 python -m pytest tests/ --cov       # with coverage report
 ruff check .                        # lint
 ruff format --check .               # format check
@@ -368,7 +485,7 @@ ruff format --check .               # format check
 ```bash
 cd desktop
 npm install
-npm run test                        # 48 vitest tests
+npm run test                        # 107 vitest tests
 npm run lint                        # oxlint
 npx tsc --noEmit                    # type check
 npm run build
@@ -378,6 +495,7 @@ npm run build
 
 - **API server** — `desktop/api_server.py` (Quart, port 8080); module-level code runs at import time, so tests patch `core.registry.discover_plugins` and `desktop.api_server._proactive` before import
 - **Adding a tool** — create a plugin class in `plugins/builtins/` extending `ToolPlugin`; it's auto-discovered at startup
+- **Adding a plugin to the marketplace** — add a manifest to `plugins/manifest.json` and a package under `plugins/community/`
 - **Adding an endpoint** — define the route in `desktop/api_server.py`, use `@require_auth` for authenticated endpoints
 - **Memory** — three engines run in parallel: keyword (TF-IDF), vector (cosine), embeddings (sentence-transformers)
 - **Conventions** — PEP 8, line length 120, `async/await` for I/O, `asyncio.to_thread` for blocking calls; conventional commits (`feat:`, `fix:`, `test:`…)
@@ -393,19 +511,25 @@ npm run build
 ## ❓ FAQ
 
 **Does Friday work offline?**
-Partially. The frontend, voice, wake word, memory, and automations run locally. LLM responses need an LLM provider — use [Ollama](https://ollama.com) and everything runs 100% offline.
+Partially. The frontend, voice, wake word, memory, automations, and computer control run locally. LLM responses need an LLM provider — use [Ollama](https://ollama.com) and everything runs 100% offline.
 
 **Which LLMs can I use?**
 Any OpenAI-compatible API: OpenRouter (default), OpenAI, Anthropic, Ollama, or a custom `base_url`. Bring your own key.
 
 **Is my screen data sent to an AI company?**
-Only when *you* ask Friday to analyze the screen, and only to the provider *you* configured. The background screen-change monitor compares hashes locally and never uploads pixels.
+Only when *you* ask Friday to analyze the screen, and only to the provider *you* configured. The background screen-change monitor compares hashes locally and never uploads pixels. Computer control actions always ask for your confirmation first.
+
+**What is Blackout mode?**
+One toggle that blocks all network tools, forces the Ollama provider, and shows a PRIVATE seal on the orb — total local-only privacy. Perfect for sensitive work.
 
 **How do I make Friday fully local?**
-Set `[default] provider = "ollama"` in `config/providers.toml` — no data leaves your machine.
+Set `[default] provider = "ollama"` in `config/providers.toml`, or just enable **Blackout mode** from Settings.
 
 **Can I customize Friday's personality?**
 Yes — three voice personas (JARVIS, FRIDAY, Cortana) ship built-in, each with its own TTS voice and system prompt. Switch anytime via settings or ⌘K.
+
+**Can I build my own tools?**
+Yes — the Custom Tool Builder turns plain-English descriptions into working, persisted tools. And the Plugin Marketplace lets you install community plugins in one click.
 
 **What are automations?**
 Cron-scheduled actions you create in natural language ("create automation for daily briefing at 8am"). The background engine checks every 30s and fires results via SSE.
@@ -431,7 +555,7 @@ Delete `memory_store/` and `config/providers.toml`, then stop the containers (`d
 | **v1** | ✅ Shipped | Core chat, 3D orb, intelligence dashboard |
 | **v2** | ✅ Shipped | Async backend, SSE push, voice/gesture, Google integration, performance overhaul |
 | **v3** | ✅ Shipped | Voice personality, cron automations, screen/camera vision, Holodeck 3D viz, ambient conversation |
-| **v4** | 📋 Planning | Plugin marketplace, custom tool builder, local RAG pipeline, Holodeck v2 |
+| **v4** | ✅ Shipped | Zen mode, computer control, plugin marketplace, custom tools, local RAG, knowledge graph, blackout mode |
 | **v5** | 📋 Backlog | Desktop app (Tauri), offline-first, multi-user mode |
 
 Track progress on the [project board](https://github.com/users/alimaandev/projects/2) and [open issues](https://github.com/alimaandev/Friday/issues).
@@ -538,8 +662,8 @@ MIT — use it, modify it, ship it. See [LICENSE](LICENSE) for details.
 ---
 
 <p align="center">
-  <sub>Built with ❤️ by <a href="https://github.com/alimaandev">alimaandev</a> · 
-  <a href="https://github.com/alimaandev/Friday/discussions">Discussions</a> · 
+  <sub>Built with ❤️ by <a href="https://github.com/alimaandev">alimaandev</a> ·
+  <a href="https://github.com/alimaandev/Friday/discussions">Discussions</a> ·
   <a href="https://github.com/alimaandev/Friday/issues">Issues</a></sub>
 </p>
 

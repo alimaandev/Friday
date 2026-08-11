@@ -1,5 +1,28 @@
 # Changelog
 
+## v4 — "The Orb" (2026-08-11)
+
+### 🚀 Features
+
+- **Zen Mode** — radical minimal UI: one monochrome orb + chat by default; ⌘B toggles the full dashboard
+- **Orb Ambient Widgets** — floating monochrome cards (time, memory, active tool, CPU) orbiting the orb, hover/drag to expand
+- **Computer Control** — open apps, focus/list/close windows, type, press keys, click, cursor, screen size, desktop summary
+- **Autopilot Desktop Organization** — "organize my desktop and summarize" is one goal; status streams to the orb + Control tab
+- **Plugin Marketplace** — manifest registry, one-click install/remove from Settings, community plugin registry
+- **Custom Tool Builder** — natural-language → persisted tool definition, zero code required
+- **Local RAG Pipeline** — sentence-aligned chunking + lexical reranking over the three memory engines
+- **Knowledge Graph** — entity/relation extraction, proactive connections, session continuity ("Last time you were working on…")
+- **Blackout Mode** — one toggle: network tools blocked, Ollama forced, PRIVATE seal on the orb
+- **Onboarding** — first-launch "Hello, I'm Friday" orb greeting with flagship suggestions
+- **Single-command start** — `python main.py --ui` (or `npm run friday`) boots API + frontend and opens the browser
+- **Global hotkey** — `Ctrl+Alt+F` summons/focuses Friday from anywhere
+- **Shareable Moments** — capture canvas + message snapshots as share cards (download/Web Share)
+
+### 🔧 Improvements
+
+- 278 Python tests + 107 TypeScript tests; ruff + oxlint + tsc clean
+- Lazy browser import + graceful computer-control degradation on headless systems
+
 ## v3 (2026-07-28)
 
 ### 🚀 Features

@@ -178,6 +178,168 @@ After successful auth, subsequent calls return:
 
 ---
 
+## Autopilot
+
+### `POST /autopilot` — Decompose & run a goal
+
+| Field | Type | Required |
+|-------|------|----------|
+| `goal` | string | ✅ |
+
+```json
+{ "message": "organize my desktop and summarize" }
+```
+
+Executes a goal as a multi-step plan; emits SSE `plan` / `task_start` / `task_done` / `done` events on the chat stream.
+
+---
+
+## Knowledge Graph
+
+### `GET /knowledge` — List entities & relations
+
+```json
+{ "entities": [{ "id": "...", "name": "Alice", "type": "person", "mentions": 5 }], "relations": [{ "source": "...", "target": "...", "type": "works_with" }] }
+```
+
+### `POST /knowledge` — Extract entities from text
+
+| Field | Type | Required |
+|-------|------|----------|
+| `text` | string | ✅ |
+
+```json
+{ "extracted": [{ "name": "Alice", "type": "person" }] }
+```
+
+### `POST /knowledge/query` — Semantic graph query
+
+```json
+{ "query": "what projects does Alice work on", "top_k": 5 }
+```
+
+```json
+{ "results": [{ "entity": "Alice", "relation": "works_on", "target": "Friday", "score": 0.9 }], "count": 2 }
+```
+
+### `GET /knowledge/continuity` — Session continuity context
+
+```json
+{ "context": "Last time you were working on the autopilot engine...", "entities": ["autopilot", "diary"] }
+```
+
+---
+
+## Computer Control
+
+All control actions require user confirmation first (security gate). On non-Windows / headless systems, missing `pyautogui`/`pywin32` degrade gracefully.
+
+### `GET /computer/status`
+
+```json
+{ "platform": "Windows", "mouse_keyboard": true, "window_management": true }
+```
+
+### `GET /computer/windows`
+
+```json
+{ "windows": [{ "title": "Friday — VS Code", "handle": 123456 }] }
+```
+
+### `GET /computer/summary`
+
+```json
+{ "desktop": { "platform": "Windows", "window_count": 4, "suggestions": ["open vscode", "close terminal"] } }
+```
+
+---
+
+## Plugin Marketplace
+
+### `GET /plugins` — List installed + available
+
+```json
+{ "installed": [{ "name": "computer_control", "version": "1.0.0" }], "marketplace": [{ "name": "fun", "description": "...", "version": "1.0.0", "installed": false }] }
+```
+
+### `POST /plugins/install`
+
+| Field | Type | Required |
+|-------|------|----------|
+| `name` | string | ✅ |
+
+### `POST /plugins/uninstall`
+
+| Field | Type | Required |
+|-------|------|----------|
+| `name` | string | ✅ |
+
+---
+
+## Custom Tools
+
+### `GET /tools/custom` — List built tools
+
+### `POST /tools/custom` — Build a tool from natural language
+
+| Field | Type | Required |
+|-------|------|----------|
+| `description` | string | ✅ |
+
+```json
+{ "name": "get_weather", "description": "Fetches weather for a city", "status": "created" }
+```
+
+### `DELETE /tools/custom/<name>` — Remove a tool
+
+---
+
+## Local RAG
+
+### `POST /rag/ingest`
+
+| Field | Type | Required |
+|-------|------|----------|
+| `text` | string | ✅ |
+| `source` | string | |
+
+```json
+{ "status": "ingested", "chunks": 12, "source": "notes.txt" }
+```
+
+### `POST /rag/search`
+
+| Field | Type | Required |
+|-------|------|----------|
+| `query` | string | ✅ |
+| `top_k` | int | |
+
+```json
+{ "results": [{ "text": "...", "score": 0.91, "source": "notes.txt" }], "count": 3 }
+```
+
+---
+
+## Privacy / Blackout
+
+### `GET /privacy`
+
+```json
+{ "blackout": false, "network_tools_blocked": 0, "local_provider": "ollama" }
+```
+
+### `POST /privacy`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `blackout` | bool | Enable/disable local-only mode |
+
+```json
+{ "blackout": true }
+```
+
+---
+
 ## Briefing
 
 ### `GET /briefing`

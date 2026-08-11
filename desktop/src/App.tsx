@@ -21,7 +21,7 @@ import { toast } from './core/ToastStore'
 const IntelligencePanel = lazy(() => import('./components/sidebar/IntelligencePanel').then(m => ({ default: m.IntelligencePanel })))
 const CommandPalette = lazy(() => import('./components/command/CommandPalette').then(m => ({ default: m.CommandPalette })))
 const SettingsPanel = lazy(() => import('./components/settings/SettingsPanel').then(m => ({ default: m.SettingsPanel })))
-import { streamChat, checkHealth, getSessions, createSession, deleteSession, getOutputDir, setOutputDir, getGoogleAuth, getNews, getWeather, getStocks, getGithubTrending, getEarthquakes, getCrypto, getSpace, getCve, getScreen, getMemory, deleteMemory, getCalendarEvents, getEmailInbox, getEmailUnread, connectEventSource, getAutomations, toggleAutomation, deleteAutomation, triggerAutomation, analyzeVisionImage, getVisionScreen, resolveApproval, streamAutopilot, getKnowledgeContinuity, getComputerStatus } from './core/api'
+import { streamChat, checkHealth, getSessions, createSession, deleteSession, getOutputDir, setOutputDir, getGoogleAuth, getNews, getWeather, getStocks, getGithubTrending, getEarthquakes, getCrypto, getSpace, getCve, getScreen, getMemory, deleteMemory, getCalendarEvents, getEmailInbox, getEmailUnread, connectEventSource, getAutomations, toggleAutomation, deleteAutomation, triggerAutomation, analyzeVisionImage, getVisionScreen, resolveApproval, streamAutopilot, getKnowledgeContinuity, getComputerStatus, getPrivacyStatus } from './core/api'
 import type { ServerEvent } from './core/api'
 import { BrainView } from './components/autopilot/BrainView'
 import { ZenStage } from './components/zen/ZenStage'
@@ -71,6 +71,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
   const [continuity, setContinuity] = useState('')
   const [computerReady, setComputerReady] = useState(false)
   const [computerStatus, setComputerStatus] = useState<{ platform: string; mouse_keyboard: boolean; window_management: boolean } | null>(null)
+  const [blackout, setBlackout] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try { return localStorage.getItem('friday_onboarded') !== '1' } catch { return true }
   })
@@ -384,6 +385,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
           setComputerReady(Boolean(d.mouse_keyboard && d.window_management))
           setComputerStatus(d)
         }).catch(() => {})
+        getPrivacyStatus().then(d => { if (!cancelled) setBlackout(d.enabled) }).catch(() => {})
         if (!cancelled) setDataLoaded(true)      } catch {
         if (!cancelled) {
           setBackendOnline(false)
@@ -1039,6 +1041,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
               persona={persona}
               continuity={continuity}
             computerReady={computerReady}
+            blackout={blackout}
             temperature={weather?.temperature ?? null}
             location={weather?.location ?? ''}
             time={now}

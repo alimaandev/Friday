@@ -1020,6 +1020,24 @@ async def rag_search():
     return jsonify(retrieve(query, top_k=top_k))
 
 
+@app.route(f"{API_PREFIX}/privacy", methods=["GET"])
+@require_auth
+async def privacy_status():
+    from core.blackout import get_blackout_status
+
+    return jsonify(get_blackout_status())
+
+
+@app.route(f"{API_PREFIX}/privacy", methods=["POST"])
+@require_auth
+async def privacy_set():
+    data = await request.get_json() or {}
+    enabled = bool(data.get("enabled"))
+    from core.blackout import set_blackout
+
+    return jsonify(set_blackout(enabled))
+
+
 # ─── Google Auth ─────────────────────────────────────────────────
 @app.route(f"{API_PREFIX}/auth/google")
 @require_auth
@@ -1575,6 +1593,13 @@ if __name__ == "__main__":
     from core.memory.embeddings import SentenceEngine
 
     SentenceEngine.start_background_load()
+
+    import os as _os
+
+    if _os.environ.get("FRIDAY_HOTKEY", "1") not in ("0", "false", "no"):
+        from core.hotkey import start_hotkey_listener
+
+        start_hotkey_listener()
 
     import hypercorn.asyncio
     from hypercorn.config import Config

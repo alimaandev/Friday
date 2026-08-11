@@ -289,6 +289,23 @@ class TestRag:
         assert resp.status_code == 422
 
 
+class TestPrivacy:
+    async def test_privacy_status(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/privacy", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "enabled" in data
+        assert "local_provider" in data
+
+    async def test_privacy_toggle(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/privacy", headers=headers, json={"enabled": True})
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert data["enabled"] is True
+
+
 class TestAutomations:
     async def test_list_automations_empty(self, app, headers):
         async with app.test_client() as client:

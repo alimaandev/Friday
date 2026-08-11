@@ -100,4 +100,14 @@ describe('ZenStage', () => {
     render(<ZenStage {...baseProps} computerReady={false} />)
     expect(screen.queryByText('CONTROL')).toBeNull()
   })
+
+  it('shows PRIVATE seal when blackout mode is active', () => {
+    render(<ZenStage {...baseProps} blackout />)
+    expect(screen.getByText('PRIVATE')).toBeTruthy()
+  })
+
+  it('hides PRIVATE seal when blackout is off', () => {
+    render(<ZenStage {...baseProps} blackout={false} />)
+    expect(screen.queryByText('PRIVATE')).toBeNull()
+  })
 })

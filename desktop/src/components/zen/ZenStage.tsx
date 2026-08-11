@@ -30,6 +30,7 @@ interface ZenStageProps {
   greeting?: string
   continuity?: string
   computerReady?: boolean
+  blackout?: boolean
   temperature?: number | null
   location?: string
   time?: string
@@ -61,6 +62,7 @@ export const ZenStage = memo(function ZenStage({
   greeting = 'FRIDAY',
   continuity = '',
   computerReady = false,
+  blackout = false,
   temperature = null,
   location = '',
   time = '',
@@ -93,6 +95,15 @@ export const ZenStage = memo(function ZenStage({
           )}
         </div>
         <div className="flex items-center gap-2">
+          {blackout && (
+            <span
+              className="text-[9px] font-mono tracking-widest px-1.5 py-0.5 rounded"
+              style={{ color: '#4ade80', border: '1px solid rgba(74,222,128,0.3)', background: 'rgba(74,222,128,0.06)' }}
+              title="Blackout mode — local-only, no outbound network"
+            >
+              PRIVATE
+            </span>
+          )}
           {computerReady && (
             <span
               className="text-[9px] font-mono tracking-widest px-1.5 py-0.5 rounded"

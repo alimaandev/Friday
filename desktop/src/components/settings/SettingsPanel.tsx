@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { MarketplacePlugin, CustomTool } from '../../core/api'
-import { getPlugins, installPlugin, uninstallPlugin, getCustomTools, createCustomTool, deleteCustomTool } from '../../core/api'
+import { getPlugins, installPlugin, uninstallPlugin, getCustomTools, createCustomTool, deleteCustomTool, getPrivacyStatus, setPrivacy } from '../../core/api'
 
 interface SettingsPanelProps {
   onClose: () => void
@@ -44,10 +44,12 @@ export function SettingsPanel({
   const [toolDesc, setToolDesc] = useState('')
   const [toolMsg, setToolMsg] = useState('')
   const [toolBusy, setToolBusy] = useState(false)
+  const [blackout, setBlackout] = useState(false)
 
   useEffect(() => {
     getPlugins().then(setPlugins).catch(() => setPlugins([]))
     getCustomTools().then(setCustomTools).catch(() => setCustomTools([]))
+    getPrivacyStatus().then(s => setBlackout(s.enabled)).catch(() => {})
   }, [])
 
   const handleInstall = async (name: string) => {
@@ -255,6 +257,13 @@ export function SettingsPanel({
               )}
             </div>
           ))}
+
+          {/* Section: Privacy */}
+          <div className="text-[10px] tracking-[0.15em] py-2" style={{ color: '#555' }}>PRIVACY</div>
+          {toggleRow('Blackout Mode (local-only, no outbound)', blackout, () => {
+            setPrivacy(!blackout).then(s => setBlackout(s.enabled)).catch(() => {})
+          })}
+          {blackout && <div className="text-[11px] py-2" style={{ color: '#4ade80' }}>Local-only — network tools blocked, Ollama provider.</div>}
 
           {/* Section: Custom Tools */}
           <div className="text-[10px] tracking-[0.15em] py-2" style={{ color: '#555' }}>CUSTOM TOOLS</div>

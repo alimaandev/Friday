@@ -14,6 +14,8 @@ vi.mock('../core/api', () => ({
   ]),
   createCustomTool: vi.fn().mockResolvedValue({ tool: { name: 'new_tool', description: 'd' } }),
   deleteCustomTool: vi.fn().mockResolvedValue({ success: true }),
+  getPrivacyStatus: vi.fn().mockResolvedValue({ enabled: false, local_provider: 'ollama', blocked_tools: [] }),
+  setPrivacy: vi.fn().mockResolvedValue({ enabled: true, local_provider: 'ollama', blocked_tools: [] }),
 }))
 
 const baseProps = {
@@ -48,5 +50,10 @@ describe('SettingsPanel', () => {
     expect(screen.getByText('CUSTOM TOOLS')).toBeTruthy()
     expect(await screen.findByText('dir_size')).toBeTruthy()
     expect(screen.getByText('Build tool')).toBeTruthy()
+  })
+
+  it('renders blackout privacy toggle', async () => {
+    render(<SettingsPanel {...baseProps} />)
+    expect(screen.getByText(/Blackout Mode/)).toBeTruthy()
   })
 })

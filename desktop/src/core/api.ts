@@ -368,6 +368,22 @@ export async function deleteCustomTool(name: string): Promise<{ success?: boolea
   return fetchApi(`/tools/custom/${encodeURIComponent(name)}`, { method: 'DELETE' })
 }
 
+/* ─── Privacy (blackout mode) API ─────────────────────────────── */
+
+export interface PrivacyStatus {
+  enabled: boolean
+  local_provider: string
+  blocked_tools: string[]
+}
+
+export async function getPrivacyStatus(): Promise<PrivacyStatus> {
+  return fetchApi('/privacy')
+}
+
+export async function setPrivacy(enabled: boolean): Promise<PrivacyStatus> {
+  return fetchApi('/privacy', { method: 'POST', body: JSON.stringify({ enabled }) })
+}
+
 /* ─── Diary API ───────────────────────────────────────────────── */
 
 export async function getDiaryRecent(): Promise<{ days: DiaryDay[] }> {

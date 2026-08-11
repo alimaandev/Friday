@@ -5,6 +5,9 @@ from providers.registry import get_provider_class, list_providers
 
 
 def get_provider(name: str | None = None):
+    from core.blackout import resolve_provider
+
+    name = resolve_provider(name)
     if name is None:
         name = get_active_provider()
     cls = get_provider_class(name)

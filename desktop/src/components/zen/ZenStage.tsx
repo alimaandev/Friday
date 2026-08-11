@@ -1,9 +1,10 @@
-import { memo, useRef, useEffect } from 'react'
+import { memo, useRef, useEffect, useState } from 'react'
 import type { Message, OrbState, AutopilotRun } from '../../types'
 import { OrbCore } from './OrbCore'
 import { ZenInput } from './ZenInput'
 import { MessageBubble } from '../chat/MessageBubble'
 import { BrainView } from '../autopilot/BrainView'
+import { ShareMoment } from './ShareMoment'
 
 interface ZenStageProps {
   orbState: OrbState
@@ -25,6 +26,8 @@ interface ZenStageProps {
   handsFree?: boolean
   ambientActive?: boolean
   onToggleHandsFree?: () => void
+  persona?: string
+  greeting?: string
   temperature?: number | null
   location?: string
   time?: string
@@ -52,6 +55,8 @@ export const ZenStage = memo(function ZenStage({
   handsFree = false,
   ambientActive = false,
   onToggleHandsFree,
+  persona = 'friday',
+  greeting = 'FRIDAY',
   temperature = null,
   location = '',
   time = '',
@@ -60,6 +65,7 @@ export const ZenStage = memo(function ZenStage({
 }: ZenStageProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const lastContent = messages[messages.length - 1]?.content
+  const [momentOpen, setMomentOpen] = useState(false)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -83,6 +89,19 @@ export const ZenStage = memo(function ZenStage({
           )}
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setMomentOpen(true)}
+            className="flex items-center gap-1.5 text-[10px] font-mono tracking-widest px-2.5 py-1 rounded-md transition-all duration-200 hover:bg-white/[.06]"
+            style={{ color: '#606068', border: '1px solid rgba(255,255,255,0.08)' }}
+            title="Capture a Friday moment"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="7" width="18" height="13" rx="2" />
+              <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <circle cx="12" cy="13" r="3" />
+            </svg>
+            MOMENT
+          </button>
           {onToggleHandsFree && voiceInputSupported && (
             <button
               onClick={onToggleHandsFree}
@@ -160,6 +179,16 @@ export const ZenStage = memo(function ZenStage({
         isVoiceSupported={voiceInputSupported}
         voiceLanguage={voiceLanguage}
         onCycleLanguage={onCycleLanguage}
+      />
+
+      <ShareMoment
+        open={momentOpen}
+        onClose={() => setMomentOpen(false)}
+        orbState={orbState}
+        persona={persona}
+        message={lastContent || ''}
+        time={time}
+        greeting={greeting}
       />
     </div>
   )

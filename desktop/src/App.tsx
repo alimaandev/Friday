@@ -1023,6 +1023,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
             handsFree={handsFree}
             ambientActive={ambientActive}
             onToggleHandsFree={handleToggleHandsFree}
+            persona={persona}
             temperature={weather?.temperature ?? null}
             location={weather?.location ?? ''}
             time={now}

@@ -29,13 +29,13 @@ class ComputerControl:
             import pyautogui
 
             self._pyautogui = pyautogui
-        except ImportError:
-            logger.warn("pyautogui not installed — mouse/keyboard control disabled")
+        except Exception:
+            logger.warn("pyautogui not available — mouse/keyboard control disabled")
         try:
             import win32gui
 
             self._win32gui = win32gui
-        except ImportError:
+        except Exception:
             self._win32gui = None
 
     @property

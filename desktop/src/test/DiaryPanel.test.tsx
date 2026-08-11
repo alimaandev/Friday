@@ -73,7 +73,7 @@ describe('DiaryPanel', () => {
     await screen.findByText('2026-08-10')
     rerender(<DiaryPanel refreshToken={1} />)
     await waitFor(() => {
-      expect(getDiaryRecent.mock.calls.length).toBe(2)
+      expect(mockedRecent.mock.calls.length).toBe(2)
     })
   })
 })

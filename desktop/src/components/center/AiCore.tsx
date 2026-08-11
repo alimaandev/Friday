@@ -110,7 +110,7 @@ function generateNodePaths(count: number): NodePath[] {
 }
 
 /* ─── JarvisOrb ─── */
-function JarvisOrb({ orbState, handPosition, voiceActivity }: { orbState: OrbState; handPosition: { x: number; y: number } | null; voiceActivity?: boolean }) {
+export function JarvisOrb({ orbState, handPosition, voiceActivity }: { orbState: OrbState; handPosition: { x: number; y: number } | null; voiceActivity?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<THREE.Scene | null>(null)
   const camRef = useRef<THREE.PerspectiveCamera | null>(null)

@@ -24,6 +24,7 @@ const SettingsPanel = lazy(() => import('./components/settings/SettingsPanel').t
 import { streamChat, checkHealth, getSessions, createSession, deleteSession, getOutputDir, setOutputDir, getGoogleAuth, getNews, getWeather, getStocks, getGithubTrending, getEarthquakes, getCrypto, getSpace, getCve, getScreen, getMemory, deleteMemory, getCalendarEvents, getEmailInbox, getEmailUnread, connectEventSource, getAutomations, toggleAutomation, deleteAutomation, triggerAutomation, analyzeVisionImage, getVisionScreen, resolveApproval, streamAutopilot } from './core/api'
 import type { ServerEvent } from './core/api'
 import { BrainView } from './components/autopilot/BrainView'
+import { ZenStage } from './components/zen/ZenStage'
 import type { AutopilotRun, AutopilotStepStatus } from './types'
 
 let msgId = 0
@@ -64,7 +65,8 @@ const [visionCameraResult, setVisionCameraResult] = useState<{ description: stri
 const [visionAnalyzing, setVisionAnalyzing] = useState(false)
 const [holodeckExpanded, setHolodeckExpanded] = useState(true)
 const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(null)
-const [autopilotRun, setAutopilotRun] = useState<AutopilotRun | null>(null)
+  const [autopilotRun, setAutopilotRun] = useState<AutopilotRun | null>(null)
+  const [now, setNow] = useState(() => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }))
 
   // ─── Fine-grained Zustand selectors (before any hooks that use them) ───
   const sessions = useStore(s => s.sessions)
@@ -74,6 +76,7 @@ const [autopilotRun, setAutopilotRun] = useState<AutopilotRun | null>(null)
   const voiceLanguage = useStore(s => s.voiceLanguage)
   const persona = useStore(s => s.persona)
   const metricsState = useStore(s => s.metrics)
+  const zen = useStore(s => s.zen)
   const active = useStore(s => {
     const found = s.sessions.find(ses => ses.id === s.activeSessionId)
     return found || s.sessions[0]
@@ -456,6 +459,11 @@ const [autopilotRun, setAutopilotRun] = useState<AutopilotRun | null>(null)
     resolveApproval(requestId, allowed).catch(() => {})
   }, [])
 
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })), 1000)
+    return () => clearInterval(id)
+  }, [])
+
   // ─── Power-user keyboard shortcuts ───
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -469,7 +477,7 @@ const [autopilotRun, setAutopilotRun] = useState<AutopilotRun | null>(null)
         setSettingsOpen(true)
       } else if (e.key === 'b' && !e.shiftKey) {
         e.preventDefault()
-        setSidebarOpen(o => !o)
+        state.toggleZen()
       }
     }
     window.addEventListener('keydown', handleKey)
@@ -846,6 +854,7 @@ const [autopilotRun, setAutopilotRun] = useState<AutopilotRun | null>(null)
 
   const commandActions = [
     { id: 'new-session', label: 'New session', action: handleNewSession },
+    { id: 'toggle-zen', label: zen ? 'Exit zen mode (dashboard)' : 'Enter zen mode', action: () => state.toggleZen() },
     { id: 'toggle-sidebar', label: 'Toggle sessions sidebar', action: () => setSidebarOpen(o => !o) },
 
     { id: 'toggle-camera', label: 'Gesture control', action: toggleCamera },
@@ -968,6 +977,38 @@ const [autopilotRun, setAutopilotRun] = useState<AutopilotRun | null>(null)
       )}
 
       <div className="relative flex flex-col h-full" style={{ zIndex: 10 }}>
+        {zen ? (
+          <ZenStage
+            orbState={orb}
+            metrics={{
+              latency: metricsState.latency,
+              model: metricsState.model,
+              provider: metricsState.provider,
+              memory: metricsState.memory,
+              tokenUsage: metricsState.tokenUsage,
+            }}
+            messages={active.messages}
+            autopilotRun={autopilotRun}
+            onSend={sendMessage}
+            onStop={handleStop}
+            onRegenerate={handleRegenerate}
+            loading={loading}
+            voiceInputSupported={voiceInputSupported}
+            voiceStatus={voiceInputStatus}
+            voiceInterim={interimTranscript}
+            voiceLanguage={voiceLanguage}
+            onVoiceStart={() => { exitAmbient(); cancelAutoRestart(); resetTranscript(); startVoiceInput(voiceLanguage) }}
+            onVoiceStop={() => { cancelAutoRestart(); return stopVoiceInput() }}
+            onCycleLanguage={handleCycleLanguage}
+            onToggleDashboard={() => state.toggleZen()}
+            temperature={weather?.temperature ?? null}
+            location={weather?.location ?? ''}
+            time={now}
+            handPosition={handPosition}
+            voiceActivity={voiceInputStatus === 'listening' || voiceOutputStatus === 'speaking'}
+          />
+        ) : (
+        <>
         <StatusRibbon
           systemInfo={systemInfo}
           latency={metricsState.latency}
@@ -1116,6 +1157,8 @@ const [autopilotRun, setAutopilotRun] = useState<AutopilotRun | null>(null)
             />
           </Suspense>
         </div>
+        </>
+        )}
       </div>
 
       <Suspense fallback={null}>

@@ -185,6 +185,39 @@ class TestMemory:
         assert data["success"] is True
 
 
+class TestKnowledgeGraph:
+    async def test_knowledge_list(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/knowledge", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "entities" in data
+
+    async def test_knowledge_store_requires_text(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/knowledge", json={}, headers=headers)
+        assert resp.status_code == 422
+
+    async def test_knowledge_store_and_query(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/knowledge", json={"text": "the beta orb and Sarah"}, headers=headers)
+            data = await resp.get_json()
+            assert resp.status_code == 200
+            assert data["count"] >= 0
+
+            resp2 = await client.post("/api/v1/knowledge/query", json={"term": "sarah"}, headers=headers)
+            data2 = await resp2.get_json()
+        assert resp2.status_code == 200
+        assert any(r["name"].lower() == "sarah" for r in data2["results"])
+
+    async def test_knowledge_continuity(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/knowledge/continuity", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "continuity" in data
+
+
 class TestAutomations:
     async def test_list_automations_empty(self, app, headers):
         async with app.test_client() as client:

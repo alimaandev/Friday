@@ -258,6 +258,12 @@ async def chat():
                     )
                 except Exception:
                     pass
+                try:
+                    from core.knowledge import get_knowledge_graph
+
+                    get_knowledge_graph().store(user_input)
+                except Exception:
+                    pass
                 loop.call_soon_threadsafe(queue.put_nowait, None)
 
         executor.submit(_run)
@@ -843,6 +849,50 @@ async def memory_search():
     memory = get_memory_manager()
     results = memory.search(query, top_k)
     return jsonify({"results": results, "count": len(results)})
+
+
+# ─── Knowledge Graph ─────────────────────────────────────────────
+@app.route(f"{API_PREFIX}/knowledge", methods=["GET"])
+@require_auth
+async def knowledge_list():
+    from core.knowledge import get_knowledge_graph
+
+    data = get_knowledge_graph().all()
+    return jsonify(data)
+
+
+@app.route(f"{API_PREFIX}/knowledge", methods=["POST"])
+@require_auth
+async def knowledge_store():
+    body = await request.get_json() or {}
+    text = body.get("text", "")
+    if not isinstance(text, str) or not text.strip():
+        return jsonify({"error": "text is required"}), 422
+    from core.knowledge import get_knowledge_graph
+
+    added = get_knowledge_graph().store(text)
+    return jsonify({"added": added, "count": len(added)})
+
+
+@app.route(f"{API_PREFIX}/knowledge/query", methods=["POST"])
+@require_auth
+async def knowledge_query():
+    body = await request.get_json() or {}
+    term = body.get("term", "")
+    if not isinstance(term, str) or not term.strip():
+        return jsonify({"results": [], "count": 0})
+    from core.knowledge import get_knowledge_graph
+
+    results = get_knowledge_graph().query(term)
+    return jsonify({"results": results, "count": len(results)})
+
+
+@app.route(f"{API_PREFIX}/knowledge/continuity", methods=["GET"])
+@require_auth
+async def knowledge_continuity():
+    from core.knowledge import get_knowledge_graph
+
+    return jsonify({"continuity": get_knowledge_graph().continuity()})
 
 
 # ─── Google Auth ─────────────────────────────────────────────────

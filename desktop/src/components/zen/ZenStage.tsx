@@ -28,6 +28,7 @@ interface ZenStageProps {
   onToggleHandsFree?: () => void
   persona?: string
   greeting?: string
+  continuity?: string
   temperature?: number | null
   location?: string
   time?: string
@@ -57,6 +58,7 @@ export const ZenStage = memo(function ZenStage({
   onToggleHandsFree,
   persona = 'friday',
   greeting = 'FRIDAY',
+  continuity = '',
   temperature = null,
   location = '',
   time = '',
@@ -154,6 +156,15 @@ export const ZenStage = memo(function ZenStage({
       </div>
 
       {/* Chat below the orb */}
+      {messages.length === 0 && continuity && (
+        <div className="w-full max-w-[720px] mx-auto px-8 pb-2 flex justify-center">
+          <div className="text-[11px] leading-relaxed text-center px-4 py-2 rounded-xl glass animate-fade-slide-up"
+            style={{ color: '#a0a0a8', border: '1px solid rgba(255,255,255,0.06)', borderLeft: '1px solid rgba(255,255,255,0.15)' }}
+          >
+            {continuity}
+          </div>
+        </div>
+      )}
       {messages.length > 0 && (
         <div className="w-full max-w-[720px] mx-auto flex-1 min-h-0 overflow-y-auto space-y-6 px-8 pb-4">
           {messages.map((m, idx) => (

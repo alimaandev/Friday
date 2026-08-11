@@ -78,4 +78,16 @@ describe('ZenStage', () => {
     render(<ZenStage {...baseProps} ambientActive handsFree />)
     expect(screen.getByText('AMBIENT')).toBeTruthy()
   })
+
+  it('shows continuity hint when no messages yet', () => {
+    render(<ZenStage {...baseProps} continuity="Context from previous sessions — you last worked on: Friday." />)
+    expect(screen.getByText(/you last worked on: Friday/)).toBeTruthy()
+  })
+
+  it('does not show continuity once messages exist', () => {
+    render(<ZenStage {...baseProps} continuity="Context from previous sessions" messages={[
+      { id: 'u1', role: 'user', content: 'hi' },
+    ]} />)
+    expect(screen.queryByText(/Context from previous sessions/)).toBeNull()
+  })
 })

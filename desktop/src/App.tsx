@@ -21,7 +21,7 @@ import { toast } from './core/ToastStore'
 const IntelligencePanel = lazy(() => import('./components/sidebar/IntelligencePanel').then(m => ({ default: m.IntelligencePanel })))
 const CommandPalette = lazy(() => import('./components/command/CommandPalette').then(m => ({ default: m.CommandPalette })))
 const SettingsPanel = lazy(() => import('./components/settings/SettingsPanel').then(m => ({ default: m.SettingsPanel })))
-import { streamChat, checkHealth, getSessions, createSession, deleteSession, getOutputDir, setOutputDir, getGoogleAuth, getNews, getWeather, getStocks, getGithubTrending, getEarthquakes, getCrypto, getSpace, getCve, getScreen, getMemory, deleteMemory, getCalendarEvents, getEmailInbox, getEmailUnread, connectEventSource, getAutomations, toggleAutomation, deleteAutomation, triggerAutomation, analyzeVisionImage, getVisionScreen, resolveApproval, streamAutopilot } from './core/api'
+import { streamChat, checkHealth, getSessions, createSession, deleteSession, getOutputDir, setOutputDir, getGoogleAuth, getNews, getWeather, getStocks, getGithubTrending, getEarthquakes, getCrypto, getSpace, getCve, getScreen, getMemory, deleteMemory, getCalendarEvents, getEmailInbox, getEmailUnread, connectEventSource, getAutomations, toggleAutomation, deleteAutomation, triggerAutomation, analyzeVisionImage, getVisionScreen, resolveApproval, streamAutopilot, getKnowledgeContinuity } from './core/api'
 import type { ServerEvent } from './core/api'
 import { BrainView } from './components/autopilot/BrainView'
 import { ZenStage } from './components/zen/ZenStage'
@@ -67,6 +67,7 @@ const [holodeckExpanded, setHolodeckExpanded] = useState(true)
 const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(null)
   const [autopilotRun, setAutopilotRun] = useState<AutopilotRun | null>(null)
   const [now, setNow] = useState(() => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }))
+  const [continuity, setContinuity] = useState('')
 
   // ─── Fine-grained Zustand selectors (before any hooks that use them) ───
   const sessions = useStore(s => s.sessions)
@@ -371,8 +372,8 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
           }
         }
         await fetchRemaining()
-        if (!cancelled) setDataLoaded(true)
-      } catch {
+        getKnowledgeContinuity().then(d => { if (!cancelled) setContinuity(d.continuity || '') }).catch(() => {})
+        if (!cancelled) setDataLoaded(true)      } catch {
         if (!cancelled) {
           setBackendOnline(false)
           toast('error', 'Could not reach Friday backend. Is the API server running?')
@@ -1024,6 +1025,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
             ambientActive={ambientActive}
             onToggleHandsFree={handleToggleHandsFree}
             persona={persona}
+            continuity={continuity}
             temperature={weather?.temperature ?? null}
             location={weather?.location ?? ''}
             time={now}

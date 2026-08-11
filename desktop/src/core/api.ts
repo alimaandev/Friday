@@ -252,6 +252,39 @@ export async function deleteMemory(entryId: string) {
   return fetchApi(`/memory/${encodeURIComponent(entryId)}`, { method: 'DELETE' })
 }
 
+/* ─── Knowledge graph API ─────────────────────────────────────── */
+
+export interface KnowledgeEntity {
+  name: string
+  type: string
+  mentions: number
+  source?: string
+  first_seen?: number
+  last_seen?: number
+}
+
+export async function getKnowledge(): Promise<{ entities: KnowledgeEntity[]; count: number }> {
+  return fetchApi('/knowledge')
+}
+
+export async function storeKnowledge(text: string): Promise<{ added: KnowledgeEntity[]; count: number }> {
+  return fetchApi('/knowledge', {
+    method: 'POST',
+    body: JSON.stringify({ text }),
+  })
+}
+
+export async function queryKnowledge(term: string): Promise<{ results: KnowledgeEntity[]; count: number }> {
+  return fetchApi('/knowledge/query', {
+    method: 'POST',
+    body: JSON.stringify({ term }),
+  })
+}
+
+export async function getKnowledgeContinuity(): Promise<{ continuity: string }> {
+  return fetchApi('/knowledge/continuity')
+}
+
 /* ─── Diary API ───────────────────────────────────────────────── */
 
 export async function getDiaryRecent(): Promise<{ days: DiaryDay[] }> {

@@ -1,6 +1,10 @@
 import argparse
+import os
 import shutil
+import subprocess
 import sys
+import time
+import webbrowser
 
 from agent.core import Agent
 from browser import close_browser
@@ -35,7 +39,14 @@ def main():
     parser.add_argument(
         "--no-confirm", action="store_true", help="Skip confirmation prompts for destructive tool calls"
     )
+    parser.add_argument(
+        "--ui", action="store_true", help="Launch the full desktop UI (API server + frontend dev server)"
+    )
     args = parser.parse_args()
+
+    if args.ui:
+        _launch_ui()
+        return
 
     if sys.platform == "win32":
         sys.stdout.reconfigure(encoding="utf-8")
@@ -57,6 +68,51 @@ def main():
         _repl_loop(agent)
     finally:
         close_browser()
+
+
+def _launch_ui():
+    """P6 — single-command start: boot API server + frontend dev server together."""
+    root = os.path.dirname(os.path.abspath(__file__))
+    desktop = os.path.join(root, "desktop")
+
+    print_colored(BANNER, "36")
+    print_colored("─" * get_terminal_width(), "90")
+    print_colored("Launching Friday desktop UI…  (Ctrl+C to stop everything)", "33")
+    print_colored("─" * get_terminal_width(), "90")
+
+    procs: list[subprocess.Popen] = []
+
+    api_cmd = [sys.executable, os.path.join(desktop, "api_server.py")]
+    front_cmd = ["npm", "run", "dev"]
+
+    if sys.platform == "win32":
+        api_cmd = [sys.executable, os.path.join(desktop, "api_server.py")]
+        front_cmd = ["cmd", "/c", "npm", "run", "dev"]
+
+    try:
+        api = subprocess.Popen(api_cmd, cwd=desktop)
+        procs.append(api)
+        time.sleep(2.0)
+
+        front = subprocess.Popen(front_cmd, cwd=desktop, creationflags=subprocess.CREATE_NEW_CONSOLE if sys.platform == "win32" else 0)
+        procs.append(front)
+
+        time.sleep(5.0)
+        webbrowser.open("http://localhost:5173")
+
+        while True:
+            time.sleep(1.0)
+            if all(p.poll() is not None for p in procs):
+                break
+    except KeyboardInterrupt:
+        print_colored("\nShutting down Friday UI…", "33")
+    finally:
+        for p in procs:
+            if p.poll() is None:
+                try:
+                    p.terminate()
+                except Exception:
+                    pass
 
 
 def _repl_loop(agent: Agent):

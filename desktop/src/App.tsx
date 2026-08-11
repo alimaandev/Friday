@@ -25,6 +25,7 @@ import { streamChat, checkHealth, getSessions, createSession, deleteSession, get
 import type { ServerEvent } from './core/api'
 import { BrainView } from './components/autopilot/BrainView'
 import { ZenStage } from './components/zen/ZenStage'
+import { Onboarding } from './components/zen/Onboarding'
 import type { AutopilotRun, AutopilotStepStatus } from './types'
 
 let msgId = 0
@@ -70,6 +71,9 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
   const [continuity, setContinuity] = useState('')
   const [computerReady, setComputerReady] = useState(false)
   const [computerStatus, setComputerStatus] = useState<{ platform: string; mouse_keyboard: boolean; window_management: boolean } | null>(null)
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try { return localStorage.getItem('friday_onboarded') !== '1' } catch { return true }
+  })
 
   // ─── Fine-grained Zustand selectors (before any hooks that use them) ───
   const sessions = useStore(s => s.sessions)
@@ -1005,41 +1009,49 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
 
       <div className="relative flex flex-col h-full" style={{ zIndex: 10 }}>
         {zen ? (
-          <ZenStage
-            orbState={orb}
-            metrics={{
-              latency: metricsState.latency,
-              model: metricsState.model,
-              provider: metricsState.provider,
-              memory: metricsState.memory,
-              tokenUsage: metricsState.tokenUsage,
-            }}
-            messages={active.messages}
-            autopilotRun={autopilotRun}
-            onSend={sendMessage}
-            onStop={handleStop}
-            onRegenerate={handleRegenerate}
-            loading={loading}
-            voiceInputSupported={voiceInputSupported}
-            voiceStatus={voiceInputStatus}
-            voiceInterim={interimTranscript}
-            voiceLanguage={voiceLanguage}
-            onVoiceStart={() => { exitAmbient(); cancelAutoRestart(); resetTranscript(); startVoiceInput(voiceLanguage) }}
-            onVoiceStop={() => { cancelAutoRestart(); return stopVoiceInput() }}
-            onCycleLanguage={handleCycleLanguage}
-            onToggleDashboard={() => state.toggleZen()}
-            handsFree={handsFree}
-            ambientActive={ambientActive}
-            onToggleHandsFree={handleToggleHandsFree}
-            persona={persona}
-            continuity={continuity}
+          <div className="relative h-full">
+            <ZenStage
+              orbState={orb}
+              metrics={{
+                latency: metricsState.latency,
+                model: metricsState.model,
+                provider: metricsState.provider,
+                memory: metricsState.memory,
+                tokenUsage: metricsState.tokenUsage,
+              }}
+              messages={active.messages}
+              autopilotRun={autopilotRun}
+              onSend={sendMessage}
+              onStop={handleStop}
+              onRegenerate={handleRegenerate}
+              loading={loading}
+              voiceInputSupported={voiceInputSupported}
+              voiceStatus={voiceInputStatus}
+              voiceInterim={interimTranscript}
+              voiceLanguage={voiceLanguage}
+              onVoiceStart={() => { exitAmbient(); cancelAutoRestart(); resetTranscript(); startVoiceInput(voiceLanguage) }}
+              onVoiceStop={() => { cancelAutoRestart(); return stopVoiceInput() }}
+              onCycleLanguage={handleCycleLanguage}
+              onToggleDashboard={() => state.toggleZen()}
+              handsFree={handsFree}
+              ambientActive={ambientActive}
+              onToggleHandsFree={handleToggleHandsFree}
+              persona={persona}
+              continuity={continuity}
             computerReady={computerReady}
             temperature={weather?.temperature ?? null}
             location={weather?.location ?? ''}
             time={now}
             handPosition={handPosition}
             voiceActivity={voiceInputStatus === 'listening' || voiceOutputStatus === 'speaking'}
-          />
+            />
+            {showOnboarding && (
+              <Onboarding
+                onDismiss={() => setShowOnboarding(false)}
+                onSuggest={text => sendMessage(text)}
+              />
+            )}
+          </div>
         ) : (
         <>
         <StatusRibbon

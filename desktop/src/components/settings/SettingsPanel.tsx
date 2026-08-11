@@ -1,4 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { MarketplacePlugin } from '../../core/api'
+import { getPlugins, installPlugin, uninstallPlugin } from '../../core/api'
 
 interface SettingsPanelProps {
   onClose: () => void
@@ -36,6 +38,24 @@ export function SettingsPanel({
   onSetPersona,
 }: SettingsPanelProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const [plugins, setPlugins] = useState<MarketplacePlugin[] | null>(null)
+  const [pluginMsg, setPluginMsg] = useState('')
+
+  useEffect(() => {
+    getPlugins().then(setPlugins).catch(() => setPlugins([]))
+  }, [])
+
+  const handleInstall = async (name: string) => {
+    const res = await installPlugin(name)
+    setPluginMsg(res.error || res.message || '')
+    setPlugins(await getPlugins().catch(() => []))
+  }
+
+  const handleUninstall = async (name: string) => {
+    const res = await uninstallPlugin(name)
+    setPluginMsg(res.error || res.message || '')
+    setPlugins(await getPlugins().catch(() => []))
+  }
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -178,6 +198,39 @@ export function SettingsPanel({
               </button>
             )}
           </div>
+
+          {/* Section: Plugins */}
+          <div className="text-[10px] tracking-[0.15em] py-2" style={{ color: '#555' }}>PLUGINS</div>
+          {pluginMsg && <div className="text-[11px] py-1" style={{ color: '#00a8ff' }}>{pluginMsg}</div>}
+          {plugins === null && <div className="text-xs py-3" style={{ color: '#666' }}>Loading…</div>}
+          {(plugins ?? []).map(p => (
+            <div key={p.name} className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div className="min-w-0">
+                <span className="text-sm" style={{ color: '#ccc' }}>{p.name}</span>
+                {p.builtin && <span className="ml-2 text-[10px] uppercase tracking-wider" style={{ color: '#555' }}>builtin</span>}
+                {p.description && <div className="text-[11px] truncate" style={{ color: '#666' }}>{p.description}</div>}
+              </div>
+              {p.builtin ? (
+                <span className="text-[10px] uppercase tracking-wider" style={{ color: '#4ade80' }}>active</span>
+              ) : p.installed ? (
+                <button
+                  onClick={() => handleUninstall(p.name)}
+                  className="px-3 py-1 rounded-lg text-xs transition-all hover:bg-white/[.05]"
+                  style={{ color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' }}
+                >
+                  Remove
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleInstall(p.name)}
+                  className="px-3 py-1 rounded-lg text-xs transition-all hover:bg-white/[.05]"
+                  style={{ color: '#00a8ff', border: '1px solid rgba(0,168,255,0.2)' }}
+                >
+                  Install
+                </button>
+              )}
+            </div>
+          ))}
 
           {/* Section: About */}
           <div className="text-[10px] tracking-[0.15em] py-2" style={{ color: '#555' }}>ABOUT</div>

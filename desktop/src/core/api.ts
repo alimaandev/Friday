@@ -322,6 +322,29 @@ export async function getComputerSummary(): Promise<ComputerSummary> {
   return fetchApi('/computer/summary')
 }
 
+/* ─── Plugin marketplace API ───────────────────────────────────── */
+
+export interface MarketplacePlugin {
+  name: string
+  builtin: boolean
+  installed: boolean
+  enabled: boolean
+  description: string
+}
+
+export async function getPlugins(): Promise<MarketplacePlugin[]> {
+  const res = await fetchApi<{ plugins: MarketplacePlugin[] }>('/plugins')
+  return res.plugins
+}
+
+export async function installPlugin(name: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  return fetchApi('/plugins/install', { method: 'POST', body: JSON.stringify({ name }) })
+}
+
+export async function uninstallPlugin(name: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  return fetchApi('/plugins/uninstall', { method: 'POST', body: JSON.stringify({ name }) })
+}
+
 /* ─── Diary API ───────────────────────────────────────────────── */
 
 export async function getDiaryRecent(): Promise<{ days: DiaryDay[] }> {

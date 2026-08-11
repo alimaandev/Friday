@@ -243,6 +243,26 @@ class TestComputerControl:
         assert "windows" in data
 
 
+class TestPluginMarketplace:
+    async def test_list_plugins(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/plugins", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "plugins" in data
+        assert len(data["plugins"]) > 0
+
+    async def test_install_missing_plugin(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/plugins/install", headers=headers, json={"name": "__nope__"})
+        assert resp.status_code == 404
+
+    async def test_install_requires_name(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/plugins/install", headers=headers, json={})
+        assert resp.status_code == 422
+
+
 class TestAutomations:
     async def test_list_automations_empty(self, app, headers):
         async with app.test_client() as client:

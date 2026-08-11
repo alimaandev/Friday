@@ -919,6 +919,44 @@ async def computer_summary():
     return jsonify(get_computer_control().desktop_summary())
 
 
+@app.route(f"{API_PREFIX}/plugins", methods=["GET"])
+@require_auth
+async def list_plugins():
+    from core.plugin_store import list_marketplace
+
+    return jsonify({"plugins": list_marketplace()})
+
+
+@app.route(f"{API_PREFIX}/plugins/install", methods=["POST"])
+@require_auth
+async def install_plugin_api():
+    data = await request.get_json() or {}
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "name is required"}), 422
+    from core.plugin_store import install_plugin
+
+    result = install_plugin(name)
+    if not result.get("success"):
+        return jsonify(result), 404
+    return jsonify(result)
+
+
+@app.route(f"{API_PREFIX}/plugins/uninstall", methods=["POST"])
+@require_auth
+async def uninstall_plugin_api():
+    data = await request.get_json() or {}
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "name is required"}), 422
+    from core.plugin_store import uninstall_plugin
+
+    result = uninstall_plugin(name)
+    if not result.get("success"):
+        return jsonify(result), 404
+    return jsonify(result)
+
+
 # ─── Google Auth ─────────────────────────────────────────────────
 @app.route(f"{API_PREFIX}/auth/google")
 @require_auth

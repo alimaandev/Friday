@@ -991,6 +991,35 @@ async def delete_custom_tool(name: str):
     return jsonify({"success": True})
 
 
+@app.route(f"{API_PREFIX}/rag/ingest", methods=["POST"])
+@require_auth
+async def rag_ingest():
+    data = await request.get_json() or {}
+    title = (data.get("title") or "untitled").strip()
+    text = (data.get("text") or "").strip()
+    if not text:
+        return jsonify({"error": "text is required"}), 422
+    from core.rag import ingest_document
+
+    result = ingest_document(title, text, source="api")
+    if result.get("error"):
+        return jsonify(result), 422
+    return jsonify(result), 201
+
+
+@app.route(f"{API_PREFIX}/rag/search", methods=["POST"])
+@require_auth
+async def rag_search():
+    data = await request.get_json() or {}
+    query = (data.get("query") or "").strip()
+    if not query:
+        return jsonify({"error": "query is required"}), 422
+    from core.rag import retrieve
+
+    top_k = int(data.get("top_k") or 5)
+    return jsonify(retrieve(query, top_k=top_k))
+
+
 # ─── Google Auth ─────────────────────────────────────────────────
 @app.route(f"{API_PREFIX}/auth/google")
 @require_auth

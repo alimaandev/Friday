@@ -29,6 +29,8 @@ class TestRegistry:
             "list_windows",
             "close_app",
             "desktop_summary",
+            "ingest_document",
+            "rag_search",
         ]:
             assert tool in tmap, f"{tool} missing"
 

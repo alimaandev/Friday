@@ -277,6 +277,18 @@ class TestCustomTools:
         assert resp.status_code == 422
 
 
+class TestRag:
+    async def test_search_requires_query(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/rag/search", headers=headers, json={})
+        assert resp.status_code == 422
+
+    async def test_ingest_requires_text(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/rag/ingest", headers=headers, json={"title": "x"})
+        assert resp.status_code == 422
+
+
 class TestAutomations:
     async def test_list_automations_empty(self, app, headers):
         async with app.test_client() as client:

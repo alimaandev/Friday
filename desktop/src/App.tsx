@@ -77,6 +77,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
   const persona = useStore(s => s.persona)
   const metricsState = useStore(s => s.metrics)
   const zen = useStore(s => s.zen)
+  const handsFree = useStore(s => s.handsFree)
   const active = useStore(s => {
     const found = s.sessions.find(ses => ses.id === s.activeSessionId)
     return found || s.sessions[0]
@@ -174,6 +175,23 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
     setAmbientActive(true)
     startVoiceInput(voiceLanguage, true)
   }, [cancelAutoRestart, resetTranscript, startVoiceInput, voiceLanguage])
+
+  // Auto-enter ambient listening when hands-free mode is enabled
+  useEffect(() => {
+    if (handsFree && voiceInputSupported && !ambientActive) {
+      enterAmbient()
+    }
+  }, [handsFree, voiceInputSupported, ambientActive, enterAmbient])
+
+  const handleToggleHandsFree = useCallback(() => {
+    const next = !handsFree
+    state.setHandsFree(next)
+    if (next) {
+      enterAmbient()
+    } else {
+      exitAmbient()
+    }
+  }, [handsFree, enterAmbient, exitAmbient])
 
   // Auto-send transcript in ambient mode when recognition goes idle
   useEffect(() => {
@@ -855,6 +873,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
   const commandActions = [
     { id: 'new-session', label: 'New session', action: handleNewSession },
     { id: 'toggle-zen', label: zen ? 'Exit zen mode (dashboard)' : 'Enter zen mode', action: () => state.toggleZen() },
+    { id: 'toggle-handsfree', label: handsFree ? 'Disable hands-free listening' : 'Enable hands-free listening', action: handleToggleHandsFree },
     { id: 'toggle-sidebar', label: 'Toggle sessions sidebar', action: () => setSidebarOpen(o => !o) },
 
     { id: 'toggle-camera', label: 'Gesture control', action: toggleCamera },
@@ -1001,6 +1020,9 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
             onVoiceStop={() => { cancelAutoRestart(); return stopVoiceInput() }}
             onCycleLanguage={handleCycleLanguage}
             onToggleDashboard={() => state.toggleZen()}
+            handsFree={handsFree}
+            ambientActive={ambientActive}
+            onToggleHandsFree={handleToggleHandsFree}
             temperature={weather?.temperature ?? null}
             location={weather?.location ?? ''}
             time={now}

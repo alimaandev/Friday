@@ -66,4 +66,16 @@ describe('ZenStage', () => {
     fireEvent.click(screen.getByTitle('Toggle dashboard (⌘B)'))
     expect(baseProps.onToggleDashboard).toHaveBeenCalled()
   })
+
+  it('toggles hands-free listening', () => {
+    const onToggle = vi.fn()
+    render(<ZenStage {...baseProps} handsFree={false} onToggleHandsFree={onToggle} />)
+    fireEvent.click(screen.getByTitle(/Hands-free listening off/))
+    expect(onToggle).toHaveBeenCalled()
+  })
+
+  it('shows AMBIENT badge when ambient is active', () => {
+    render(<ZenStage {...baseProps} ambientActive handsFree />)
+    expect(screen.getByText('AMBIENT')).toBeTruthy()
+  })
 })

@@ -22,6 +22,9 @@ interface ZenStageProps {
   onVoiceStop: () => string
   onCycleLanguage: () => void
   onToggleDashboard: () => void
+  handsFree?: boolean
+  ambientActive?: boolean
+  onToggleHandsFree?: () => void
   temperature?: number | null
   location?: string
   time?: string
@@ -46,6 +49,9 @@ export const ZenStage = memo(function ZenStage({
   onVoiceStop,
   onCycleLanguage,
   onToggleDashboard,
+  handsFree = false,
+  ambientActive = false,
+  onToggleHandsFree,
   temperature = null,
   location = '',
   time = '',
@@ -67,15 +73,45 @@ export const ZenStage = memo(function ZenStage({
           <span className="text-[13px] font-thin tracking-[0.3em] uppercase" style={{ color: '#a0a0a8' }}>
             Friday
           </span>
+          {ambientActive && (
+            <span
+              className="text-[9px] font-mono tracking-widest px-1.5 py-0.5 rounded animate-fade-in"
+              style={{ color: '#fff', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}
+            >
+              AMBIENT
+            </span>
+          )}
         </div>
-        <button
-          onClick={onToggleDashboard}
-          className="text-[10px] font-mono tracking-widest px-2 py-1 rounded-md transition-all duration-200 hover:bg-white/[.04]"
-          style={{ color: '#606068' }}
-          title="Toggle dashboard (⌘B)"
-        >
-          {location ? `${location} · ` : ''}⌘B
-        </button>
+        <div className="flex items-center gap-2">
+          {onToggleHandsFree && voiceInputSupported && (
+            <button
+              onClick={onToggleHandsFree}
+              className="flex items-center gap-1.5 text-[10px] font-mono tracking-widest px-2.5 py-1 rounded-md transition-all duration-200 hover:bg-white/[.06]"
+              style={{
+                color: handsFree ? '#000' : '#606068',
+                background: handsFree ? 'rgba(255,255,255,0.95)' : 'transparent',
+                border: `1px solid ${handsFree ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                boxShadow: handsFree ? '0 0 12px rgba(255,255,255,0.25)' : 'none',
+              }}
+              title={handsFree ? 'Hands-free listening on — click to disable' : 'Hands-free listening off — click to enable (auto-speaks replies)'}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+              </svg>
+              {handsFree ? 'HANDS-FREE' : 'LISTEN'}
+            </button>
+          )}
+          <button
+            onClick={onToggleDashboard}
+            className="text-[10px] font-mono tracking-widest px-2 py-1 rounded-md transition-all duration-200 hover:bg-white/[.04]"
+            style={{ color: '#606068' }}
+            title="Toggle dashboard (⌘B)"
+          >
+            {location ? `${location} · ` : ''}⌘B
+          </button>
+        </div>
       </div>
 
       {/* Orb — always full-size, owns the stage */}

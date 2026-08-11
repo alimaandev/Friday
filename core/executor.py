@@ -140,6 +140,14 @@ class Executor:
 
     def _execute_with_confirmation(self, func_name: str, args: dict, handler) -> "Generator[dict, None, dict]":
         """Run permission checks and, if required, a confirmation gate before the handler."""
+        try:
+            from core.blackout import is_tool_blocked
+
+            if is_tool_blocked(func_name):
+                return {"error": f"Blocked by blackout mode — '{func_name}' needs network access"}
+        except ImportError:
+            pass
+
         perm = get_permission_manager().check_tool(func_name, args)
         if not perm.get("allowed"):
             return {"error": f"Blocked by security policy: {perm.get('reason', 'denied')}"}

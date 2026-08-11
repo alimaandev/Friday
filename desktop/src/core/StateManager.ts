@@ -14,6 +14,8 @@ interface AppState {
   persona: string
   loading: boolean
   metrics: SystemMetrics
+  zen: boolean
+  handsFree: boolean
 }
 
 const DEFAULT_METRICS: SystemMetrics = {
@@ -38,6 +40,8 @@ const initialState: AppState = {
   persona: (() => { try { return localStorage.getItem('friday_persona') || 'friday' } catch { return 'friday' } })(),
   loading: false,
   metrics: DEFAULT_METRICS,
+  zen: (() => { try { return (localStorage.getItem('friday_ui_zen') || '1') !== '0' } catch { return true } })(),
+  handsFree: (() => { try { return localStorage.getItem('friday_hands_free') === '1' } catch { return false } })(),
 }
 
 export const useStore = create<AppState>()(() => initialState)
@@ -87,6 +91,24 @@ class StateManager {
   setPersona(key: string) {
     useStore.setState({ persona: key })
     try { localStorage.setItem('friday_persona', key) } catch {}
+  }
+
+  setZen(zen: boolean) {
+    useStore.setState({ zen })
+    try { localStorage.setItem('friday_ui_zen', zen ? '1' : '0') } catch {}
+  }
+
+  toggleZen() {
+    this.setZen(!useStore.getState().zen)
+  }
+
+  setHandsFree(v: boolean) {
+    useStore.setState({ handsFree: v })
+    try { localStorage.setItem('friday_hands_free', v ? '1' : '0') } catch {}
+  }
+
+  toggleHandsFree() {
+    this.setHandsFree(!useStore.getState().handsFree)
   }
 }
 

@@ -20,6 +20,43 @@ def _get_system1():
 
 _TRANSIENT_ERRORS = ["timeout", "not found", "connection", "rate limit"]
 
+_DESKTOP_GOAL_MARKERS = (
+    "organiz",
+    "organise",
+    "clean up",
+    "tidy",
+    "declutter",
+    "desktop",
+    "arrange window",
+    "manage my apps",
+    "close window",
+    "focus window",
+    "open app",
+)
+
+
+def _is_desktop_goal(goal: str) -> bool:
+    lowered = goal.lower()
+    return any(marker in lowered for marker in _DESKTOP_GOAL_MARKERS)
+
+
+def _desktop_context() -> str:
+    try:
+        from core.computer import get_computer_control
+
+        summary = get_computer_control().desktop_summary()
+        windows = [w["title"] for w in summary.get("windows", [])][:15]
+        return (
+            "CURRENT DESKTOP STATE\n"
+            f"- Platform: {summary['available'].get('platform')}\n"
+            f"- Mouse/keyboard: {'yes' if summary['available'].get('mouse_keyboard') else 'no'}\n"
+            f"- Window management: {'yes' if summary['available'].get('window_management') else 'no'}\n"
+            f"- Open windows: {', '.join(windows) if windows else 'none detected'}\n"
+            "Use desktop_summary, list_windows, open_app, focus_window, close_app to organize."
+        )
+    except Exception as e:  # noqa: BLE001
+        return f"Desktop snapshot unavailable: {e}"
+
 
 class Agent:
     def __init__(self, language="english", persona=None, confirm_enabled=True):
@@ -108,3 +145,24 @@ class Agent:
             memory.store_conversation_memory(user_input, final)
 
         yield {"type": "done", "content": final or "Done.", "final": True}
+
+    def run_autopilot(self, goal: str, workspace: str | None = None):
+        """Run a goal through the Autopilot loop (plan -> ordered steps -> verify).
+
+        Yields executor events interleaved with ``autopilot`` orchestration
+        events for the brain-view UI.
+        """
+        from core.autopilot import Autopilot
+
+        context = list(self.messages)
+        if _is_desktop_goal(goal):
+            context.append({"role": "system", "content": _desktop_context()})
+
+        auto = Autopilot(
+            planner=self._planner,
+            llm_provider=llm_chat,
+            tool_map=get_tool_map(),
+            tool_definitions=get_tool_definitions(),
+            workspace=workspace or self._output_dir,
+        )
+        yield from auto.run(goal, context=context)

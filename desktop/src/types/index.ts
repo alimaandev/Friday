@@ -152,6 +152,16 @@ export interface MemoryData {
   key_count: number
 }
 
+export interface DiaryDay {
+  date: string
+  excerpt: string
+}
+
+export interface DiaryPage {
+  date: string
+  content: string
+}
+
 export interface CveItem {
   id: string
   severity: string
@@ -180,6 +190,33 @@ export interface ApprovalRequest {
   id: string
   tool: string
   args?: Record<string, unknown>
+}
+
+export type AutopilotStepStatus = 'pending' | 'running' | 'completed' | 'failed' | 'skipped'
+
+export interface AutopilotStep {
+  id: string
+  description: string
+  tool?: string | null
+  status: AutopilotStepStatus
+  result?: unknown
+  error?: string | null
+}
+
+export interface AutopilotVerification {
+  verified: boolean
+  mode: string
+  detail?: string
+}
+
+export type AutopilotPhase = 'idle' | 'planning' | 'running' | 'done' | 'aborted'
+
+export interface AutopilotRun {
+  goal: string
+  phase: AutopilotPhase
+  steps: AutopilotStep[]
+  stats?: { total: number; completed: number; failed: number; skipped: number }
+  abortedReason?: string
 }
 
 export interface Automation {

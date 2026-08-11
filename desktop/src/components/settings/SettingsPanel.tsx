@@ -1,4 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { MarketplacePlugin, CustomTool } from '../../core/api'
+import { getPlugins, installPlugin, uninstallPlugin, getCustomTools, createCustomTool, deleteCustomTool, getPrivacyStatus, setPrivacy } from '../../core/api'
 
 interface SettingsPanelProps {
   onClose: () => void
@@ -36,6 +38,50 @@ export function SettingsPanel({
   onSetPersona,
 }: SettingsPanelProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const [plugins, setPlugins] = useState<MarketplacePlugin[] | null>(null)
+  const [pluginMsg, setPluginMsg] = useState('')
+  const [customTools, setCustomTools] = useState<CustomTool[] | null>(null)
+  const [toolDesc, setToolDesc] = useState('')
+  const [toolMsg, setToolMsg] = useState('')
+  const [toolBusy, setToolBusy] = useState(false)
+  const [blackout, setBlackout] = useState(false)
+
+  useEffect(() => {
+    getPlugins().then(setPlugins).catch(() => setPlugins([]))
+    getCustomTools().then(setCustomTools).catch(() => setCustomTools([]))
+    getPrivacyStatus().then(s => setBlackout(s.enabled)).catch(() => {})
+  }, [])
+
+  const handleInstall = async (name: string) => {
+    const res = await installPlugin(name)
+    setPluginMsg(res.error || res.message || '')
+    setPlugins(await getPlugins().catch(() => []))
+  }
+
+  const handleUninstall = async (name: string) => {
+    const res = await uninstallPlugin(name)
+    setPluginMsg(res.error || res.message || '')
+    setPlugins(await getPlugins().catch(() => []))
+  }
+
+  const handleCreateTool = async () => {
+    if (!toolDesc.trim()) return
+    setToolBusy(true)
+    setToolMsg('')
+    const res = await createCustomTool(toolDesc)
+    setToolBusy(false)
+    if (res.error) setToolMsg(`Error: ${res.error}`)
+    else {
+      setToolMsg(`Built tool "${res.tool?.name}"`)
+      setToolDesc('')
+    }
+    setCustomTools(await getCustomTools().catch(() => []))
+  }
+
+  const handleDeleteTool = async (name: string) => {
+    await deleteCustomTool(name)
+    setCustomTools(await getCustomTools().catch(() => []))
+  }
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -178,6 +224,86 @@ export function SettingsPanel({
               </button>
             )}
           </div>
+
+          {/* Section: Plugins */}
+          <div className="text-[10px] tracking-[0.15em] py-2" style={{ color: '#555' }}>PLUGINS</div>
+          {pluginMsg && <div className="text-[11px] py-1" style={{ color: '#00a8ff' }}>{pluginMsg}</div>}
+          {plugins === null && <div className="text-xs py-3" style={{ color: '#666' }}>Loading…</div>}
+          {(plugins ?? []).map(p => (
+            <div key={p.name} className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div className="min-w-0">
+                <span className="text-sm" style={{ color: '#ccc' }}>{p.name}</span>
+                {p.builtin && <span className="ml-2 text-[10px] uppercase tracking-wider" style={{ color: '#555' }}>builtin</span>}
+                {p.description && <div className="text-[11px] truncate" style={{ color: '#666' }}>{p.description}</div>}
+              </div>
+              {p.builtin ? (
+                <span className="text-[10px] uppercase tracking-wider" style={{ color: '#4ade80' }}>active</span>
+              ) : p.installed ? (
+                <button
+                  onClick={() => handleUninstall(p.name)}
+                  className="px-3 py-1 rounded-lg text-xs transition-all hover:bg-white/[.05]"
+                  style={{ color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' }}
+                >
+                  Remove
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleInstall(p.name)}
+                  className="px-3 py-1 rounded-lg text-xs transition-all hover:bg-white/[.05]"
+                  style={{ color: '#00a8ff', border: '1px solid rgba(0,168,255,0.2)' }}
+                >
+                  Install
+                </button>
+              )}
+            </div>
+          ))}
+
+          {/* Section: Privacy */}
+          <div className="text-[10px] tracking-[0.15em] py-2" style={{ color: '#555' }}>PRIVACY</div>
+          {toggleRow('Blackout Mode (local-only, no outbound)', blackout, () => {
+            setPrivacy(!blackout).then(s => setBlackout(s.enabled)).catch(() => {})
+          })}
+          {blackout && <div className="text-[11px] py-2" style={{ color: '#4ade80' }}>Local-only — network tools blocked, Ollama provider.</div>}
+
+          {/* Section: Custom Tools */}
+          <div className="text-[10px] tracking-[0.15em] py-2" style={{ color: '#555' }}>CUSTOM TOOLS</div>
+          <div className="py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+            <textarea
+              value={toolDesc}
+              onChange={e => setToolDesc(e.target.value)}
+              placeholder="Describe a tool, e.g. 'a tool that downloads the latest image from a URL and saves it'"
+              rows={3}
+              className="w-full rounded-lg px-3 py-2 text-xs resize-none outline-none"
+              style={{ background: 'rgba(255,255,255,0.04)', color: '#ccc', border: '1px solid rgba(255,255,255,0.08)' }}
+            />
+            <button
+              onClick={handleCreateTool}
+              disabled={toolBusy || !toolDesc.trim()}
+              className="mt-2 px-3 py-1.5 rounded-lg text-xs transition-all disabled:opacity-40"
+              style={{ color: '#00a8ff', border: '1px solid rgba(0,168,255,0.2)' }}
+            >
+              {toolBusy ? 'Building…' : 'Build tool'}
+            </button>
+            {toolMsg && <div className="mt-2 text-[11px]" style={{ color: toolMsg.startsWith('Error') ? '#f87171' : '#4ade80' }}>{toolMsg}</div>}
+          </div>
+          {customTools !== null && customTools.length === 0 && (
+            <div className="text-[11px] py-2" style={{ color: '#666' }}>No custom tools yet.</div>
+          )}
+          {(customTools ?? []).map(t => (
+            <div key={t.name} className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div className="min-w-0">
+                <span className="text-sm" style={{ color: '#ccc' }}>{t.name}</span>
+                <div className="text-[11px] truncate" style={{ color: '#666' }}>{t.description}</div>
+              </div>
+              <button
+                onClick={() => handleDeleteTool(t.name)}
+                className="px-3 py-1 rounded-lg text-xs transition-all hover:bg-white/[.05]"
+                style={{ color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' }}
+              >
+                Delete
+              </button>
+            </div>
+          ))}
 
           {/* Section: About */}
           <div className="text-[10px] tracking-[0.15em] py-2" style={{ color: '#555' }}>ABOUT</div>

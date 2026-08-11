@@ -185,6 +185,127 @@ class TestMemory:
         assert data["success"] is True
 
 
+class TestKnowledgeGraph:
+    async def test_knowledge_list(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/knowledge", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "entities" in data
+
+    async def test_knowledge_store_requires_text(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/knowledge", json={}, headers=headers)
+        assert resp.status_code == 422
+
+    async def test_knowledge_store_and_query(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/knowledge", json={"text": "the beta orb and Sarah"}, headers=headers)
+            data = await resp.get_json()
+            assert resp.status_code == 200
+            assert data["count"] >= 0
+
+            resp2 = await client.post("/api/v1/knowledge/query", json={"term": "sarah"}, headers=headers)
+            data2 = await resp2.get_json()
+        assert resp2.status_code == 200
+        assert any(r["name"].lower() == "sarah" for r in data2["results"])
+
+    async def test_knowledge_continuity(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/knowledge/continuity", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "continuity" in data
+
+
+class TestComputerControl:
+    async def test_computer_status(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/computer/status", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "platform" in data
+        assert "mouse_keyboard" in data
+
+    async def test_computer_windows(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/computer/windows", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "windows" in data
+
+    async def test_computer_summary(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/computer/summary", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "available" in data
+        assert "windows" in data
+
+
+class TestPluginMarketplace:
+    async def test_list_plugins(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/plugins", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "plugins" in data
+        assert len(data["plugins"]) > 0
+
+    async def test_install_missing_plugin(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/plugins/install", headers=headers, json={"name": "__nope__"})
+        assert resp.status_code == 404
+
+    async def test_install_requires_name(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/plugins/install", headers=headers, json={})
+        assert resp.status_code == 422
+
+
+class TestCustomTools:
+    async def test_list_custom_tools(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/tools/custom", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "tools" in data
+
+    async def test_create_requires_description(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/tools/custom", headers=headers, json={})
+        assert resp.status_code == 422
+
+
+class TestRag:
+    async def test_search_requires_query(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/rag/search", headers=headers, json={})
+        assert resp.status_code == 422
+
+    async def test_ingest_requires_text(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/rag/ingest", headers=headers, json={"title": "x"})
+        assert resp.status_code == 422
+
+
+class TestPrivacy:
+    async def test_privacy_status(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/privacy", headers=headers)
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert "enabled" in data
+        assert "local_provider" in data
+
+    async def test_privacy_toggle(self, app, headers):
+        async with app.test_client() as client:
+            resp = await client.post("/api/v1/privacy", headers=headers, json={"enabled": True})
+            data = await resp.get_json()
+        assert resp.status_code == 200
+        assert data["enabled"] is True
+
+
 class TestAutomations:
     async def test_list_automations_empty(self, app, headers):
         async with app.test_client() as client:
@@ -356,9 +477,7 @@ class TestApprovals:
 
         request_id = get_approval_registry().request("delete_file", {"path": "x"})
         async with app.test_client() as client:
-            resp = await client.post(
-                f"/api/v1/approvals/{request_id}", json={"allowed": True}, headers=headers
-            )
+            resp = await client.post(f"/api/v1/approvals/{request_id}", json={"allowed": True}, headers=headers)
             data = await resp.get_json()
         assert resp.status_code == 200
         assert data["allowed"] is True

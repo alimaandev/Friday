@@ -11,7 +11,7 @@ import sys
 import time
 import uuid
 import xml.etree.ElementTree as ET
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from functools import wraps
 from pathlib import Path
 
@@ -25,6 +25,7 @@ from quart_cors import cors
 from agent.core import Agent
 from core.automations import get_automation_engine
 from core.briefing import BriefingEngine
+from core.diary import get_diary
 from core.logger import get_metrics
 from core.memory import get_memory_manager
 from core.proactive import CalendarMonitor, EmailMonitor, ProactiveMonitor, ScreenMonitor, SystemMonitor
@@ -163,6 +164,7 @@ discover_plugins()
 
 _agents: dict[str, Agent] = {}
 _proactive: ProactiveMonitor | None = None
+_diary = get_diary()
 
 
 def get_proactive() -> ProactiveMonitor:
@@ -240,12 +242,28 @@ async def chat():
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
         def _run():
+            last_text = ""
             try:
                 for event in agent.run(user_input):
+                    last_text = event.get("content", last_text)
                     loop.call_soon_threadsafe(queue.put_nowait, event)
             except Exception as e:
                 loop.call_soon_threadsafe(queue.put_nowait, {"type": "done", "content": f"Error: {e}", "final": True})
             finally:
+                try:
+                    _diary.record(
+                        title=(user_input.strip() or "Chat")[:160],
+                        body=(last_text.strip() or "_no response_")[:500],
+                        kind="conversation",
+                    )
+                except Exception:
+                    pass
+                try:
+                    from core.knowledge import get_knowledge_graph
+
+                    get_knowledge_graph().store(user_input)
+                except Exception:
+                    pass
                 loop.call_soon_threadsafe(queue.put_nowait, None)
 
         executor.submit(_run)
@@ -257,6 +275,66 @@ async def chat():
                 yield json.dumps(event, ensure_ascii=False) + "\n"
         except TimeoutError:
             yield json.dumps({"type": "done", "content": "Request timed out", "final": True}) + "\n"
+        finally:
+            executor.shutdown(wait=False)
+
+    return Response(generate(), mimetype="text/event-stream")
+
+
+# ─── Autopilot ────────────────────────────────────────────────────
+@app.route(f"{API_PREFIX}/autopilot", methods=["POST"])
+@require_auth
+async def autopilot():
+    """Stream an autonomous multi-task run: plan -> ordered steps -> verify."""
+    data = await request.get_json() or {}
+    goal = data.get("goal", "")
+    if not goal:
+        return jsonify({"error": "goal is required"}), 422
+    session_id = data.get("session_id", "default")
+    workspace = data.get("workspace") or os.getenv("FRIDAY_WORKSPACE")
+    if workspace:
+        err = validate_output_path(workspace)
+        if err:
+            return jsonify({"error": err}), 422
+    agent = _get_agent(session_id)
+
+    async def generate():
+        loop = asyncio.get_event_loop()
+        queue: asyncio.Queue = asyncio.Queue()
+        import concurrent.futures
+
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+        def _run():
+            last_text = ""
+            try:
+                for event in agent.run_autopilot(goal, workspace):
+                    last_text = event.get("content", last_text)
+                    loop.call_soon_threadsafe(queue.put_nowait, event)
+            except Exception as e:
+                loop.call_soon_threadsafe(
+                    queue.put_nowait, {"type": "done", "content": f"Autopilot error: {e}", "final": True}
+                )
+            finally:
+                try:
+                    _diary.record(
+                        title=(goal.strip() or "Autopilot run")[:160],
+                        body=(last_text.strip() or "_run finished_")[:500],
+                        kind="autopilot",
+                    )
+                except Exception:
+                    pass
+                loop.call_soon_threadsafe(queue.put_nowait, None)
+
+        executor.submit(_run)
+        try:
+            while True:
+                event = await asyncio.wait_for(queue.get(), timeout=600)
+                if event is None:
+                    break
+                yield json.dumps(event, ensure_ascii=False) + "\n"
+        except TimeoutError:
+            yield json.dumps({"type": "done", "content": "Autopilot timed out", "final": True}) + "\n"
         finally:
             executor.shutdown(wait=False)
 
@@ -773,6 +851,193 @@ async def memory_search():
     return jsonify({"results": results, "count": len(results)})
 
 
+# ─── Knowledge Graph ─────────────────────────────────────────────
+@app.route(f"{API_PREFIX}/knowledge", methods=["GET"])
+@require_auth
+async def knowledge_list():
+    from core.knowledge import get_knowledge_graph
+
+    data = get_knowledge_graph().all()
+    return jsonify(data)
+
+
+@app.route(f"{API_PREFIX}/knowledge", methods=["POST"])
+@require_auth
+async def knowledge_store():
+    body = await request.get_json() or {}
+    text = body.get("text", "")
+    if not isinstance(text, str) or not text.strip():
+        return jsonify({"error": "text is required"}), 422
+    from core.knowledge import get_knowledge_graph
+
+    added = get_knowledge_graph().store(text)
+    return jsonify({"added": added, "count": len(added)})
+
+
+@app.route(f"{API_PREFIX}/knowledge/query", methods=["POST"])
+@require_auth
+async def knowledge_query():
+    body = await request.get_json() or {}
+    term = body.get("term", "")
+    if not isinstance(term, str) or not term.strip():
+        return jsonify({"results": [], "count": 0})
+    from core.knowledge import get_knowledge_graph
+
+    results = get_knowledge_graph().query(term)
+    return jsonify({"results": results, "count": len(results)})
+
+
+@app.route(f"{API_PREFIX}/knowledge/continuity", methods=["GET"])
+@require_auth
+async def knowledge_continuity():
+    from core.knowledge import get_knowledge_graph
+
+    return jsonify({"continuity": get_knowledge_graph().continuity()})
+
+
+@app.route(f"{API_PREFIX}/computer/status", methods=["GET"])
+@require_auth
+async def computer_status():
+    from core.computer import get_computer_control
+
+    return jsonify(get_computer_control().available)
+
+
+@app.route(f"{API_PREFIX}/computer/windows", methods=["GET"])
+@require_auth
+async def computer_windows():
+    from core.computer import get_computer_control
+
+    return jsonify(get_computer_control().list_windows())
+
+
+@app.route(f"{API_PREFIX}/computer/summary", methods=["GET"])
+@require_auth
+async def computer_summary():
+    from core.computer import get_computer_control
+
+    return jsonify(get_computer_control().desktop_summary())
+
+
+@app.route(f"{API_PREFIX}/plugins", methods=["GET"])
+@require_auth
+async def list_plugins():
+    from core.plugin_store import list_marketplace
+
+    return jsonify({"plugins": list_marketplace()})
+
+
+@app.route(f"{API_PREFIX}/plugins/install", methods=["POST"])
+@require_auth
+async def install_plugin_api():
+    data = await request.get_json() or {}
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "name is required"}), 422
+    from core.plugin_store import install_plugin
+
+    result = install_plugin(name)
+    if not result.get("success"):
+        return jsonify(result), 404
+    return jsonify(result)
+
+
+@app.route(f"{API_PREFIX}/plugins/uninstall", methods=["POST"])
+@require_auth
+async def uninstall_plugin_api():
+    data = await request.get_json() or {}
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "name is required"}), 422
+    from core.plugin_store import uninstall_plugin
+
+    result = uninstall_plugin(name)
+    if not result.get("success"):
+        return jsonify(result), 404
+    return jsonify(result)
+
+
+@app.route(f"{API_PREFIX}/tools/custom", methods=["GET"])
+@require_auth
+async def list_custom_tools():
+    from core.custom_tools import list_custom_tools
+
+    return jsonify({"tools": list_custom_tools()})
+
+
+@app.route(f"{API_PREFIX}/tools/custom", methods=["POST"])
+@require_auth
+async def create_custom_tool():
+    data = await request.get_json() or {}
+    description = (data.get("description") or "").strip()
+    if not description:
+        return jsonify({"error": "description is required"}), 422
+    from core.custom_tools import create_custom_tool
+
+    try:
+        tool = create_custom_tool(description)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 422
+    return jsonify({"tool": tool}), 201
+
+
+@app.route(f"{API_PREFIX}/tools/custom/<name>", methods=["DELETE"])
+@require_auth
+async def delete_custom_tool(name: str):
+    from core.custom_tools import delete_custom_tool
+
+    if not delete_custom_tool(name):
+        return jsonify({"error": f"Custom tool '{name}' not found"}), 404
+    return jsonify({"success": True})
+
+
+@app.route(f"{API_PREFIX}/rag/ingest", methods=["POST"])
+@require_auth
+async def rag_ingest():
+    data = await request.get_json() or {}
+    title = (data.get("title") or "untitled").strip()
+    text = (data.get("text") or "").strip()
+    if not text:
+        return jsonify({"error": "text is required"}), 422
+    from core.rag import ingest_document
+
+    result = ingest_document(title, text, source="api")
+    if result.get("error"):
+        return jsonify(result), 422
+    return jsonify(result), 201
+
+
+@app.route(f"{API_PREFIX}/rag/search", methods=["POST"])
+@require_auth
+async def rag_search():
+    data = await request.get_json() or {}
+    query = (data.get("query") or "").strip()
+    if not query:
+        return jsonify({"error": "query is required"}), 422
+    from core.rag import retrieve
+
+    top_k = int(data.get("top_k") or 5)
+    return jsonify(retrieve(query, top_k=top_k))
+
+
+@app.route(f"{API_PREFIX}/privacy", methods=["GET"])
+@require_auth
+async def privacy_status():
+    from core.blackout import get_blackout_status
+
+    return jsonify(get_blackout_status())
+
+
+@app.route(f"{API_PREFIX}/privacy", methods=["POST"])
+@require_auth
+async def privacy_set():
+    data = await request.get_json() or {}
+    enabled = bool(data.get("enabled"))
+    from core.blackout import set_blackout
+
+    return jsonify(set_blackout(enabled))
+
+
 # ─── Google Auth ─────────────────────────────────────────────────
 @app.route(f"{API_PREFIX}/auth/google")
 @require_auth
@@ -965,12 +1230,58 @@ async def _push_briefing():
                         "summary": briefing.summary,
                         "sections": briefing.sections,
                         "greeting": briefing.greeting,
+                        "yesterday": _diary.morning_note(),
                     },
                 )
                 last_briefing_date = today
         except Exception:
             pass
         await asyncio.sleep(300)
+
+
+# ─── Diary ────────────────────────────────────────────────────────
+@app.route(f"{API_PREFIX}/diary")
+@require_auth
+async def get_diary_page():
+    day = request.args.get("date")
+    if day:
+        try:
+            from datetime import date as date_cls
+
+            date_cls.fromisoformat(day)
+        except ValueError:
+            return jsonify({"error": "invalid date"}), 422
+    return jsonify({"date": day or str(date.today()), "content": _diary.read(date.fromisoformat(day) if day else None)})
+
+
+@app.route(f"{API_PREFIX}/diary/recent")
+@require_auth
+async def get_diary_recent():
+    return jsonify({"days": _diary.recent()})
+
+
+@app.route(f"{API_PREFIX}/diary/nightly", methods=["POST"])
+@require_auth
+async def post_diary_nightly():
+    path = _diary.write_day_entry()
+    return jsonify({"path": path, "success": True})
+
+
+async def _push_nightly_digest():
+    await asyncio.sleep(15)
+    last_write = None
+    while True:
+        try:
+            today = datetime.now(UTC).date()
+            if last_write != today:
+                today_page = _diary.read()
+                if "nightly digest" not in today_page.lower():
+                    _diary.write_day_entry()
+                    await _broadcaster.broadcast("diary", {"date": today.isoformat(), "status": "written"})
+                last_write = today
+        except Exception:
+            pass
+        await asyncio.sleep(3600)
 
 
 # ─── Automations ─────────────────────────────────────────────────
@@ -1283,6 +1594,13 @@ if __name__ == "__main__":
 
     SentenceEngine.start_background_load()
 
+    import os as _os
+
+    if _os.environ.get("FRIDAY_HOTKEY", "1") not in ("0", "false", "no"):
+        from core.hotkey import start_hotkey_listener
+
+        start_hotkey_listener()
+
     import hypercorn.asyncio
     from hypercorn.config import Config
 
@@ -1296,6 +1614,7 @@ if __name__ == "__main__":
     loop.create_task(_proactive_loop())
     loop.create_task(_push_metrics())
     loop.create_task(_push_briefing())
+    loop.create_task(_push_nightly_digest())
     loop.create_task(_push_automations())
     loop.create_task(_push_vision())
     loop.create_task(_push_system_info())

@@ -3,6 +3,7 @@ import type { MemoryData, NewsItem, WeatherData, SystemInfo, Earthquake, CryptoD
 import { WEATHER_CODES } from '../../types'
 import { SkeletonSection } from '../common/Skeleton'
 import { MemoryPanel } from './MemoryPanel'
+import { DiaryPanel } from './DiaryPanel'
 import { ScreenPanel } from './ScreenPanel'
 import { CalendarPanel } from './CalendarPanel'
 import { EmailPanel } from './EmailPanel'
@@ -37,6 +38,8 @@ interface IntelligencePanelProps {
   memoryData?: MemoryData | null
   onMemoryDelete?: (id: string) => void
   screenData?: ScreenData | null
+  computerStatus?: { platform: string; mouse_keyboard: boolean; window_management: boolean } | null
+  onRefreshComputer?: () => void
   calendarEvents?: CalendarEvent[]
   calendarAuth?: string
   emailMessages?: EmailMessage[]
@@ -61,6 +64,7 @@ interface IntelligencePanelProps {
   holodeckGestureOpenness?: number
   holodeckExpanded?: boolean
   onHolodeckToggle?: () => void
+  diaryRefreshToken?: number
 }
 
 const timeAgo = (dateStr: string) => {
@@ -383,13 +387,14 @@ function PanelCell({ children, index = 0 }: { children: React.ReactNode; index?:
 
 export const IntelligencePanel = memo(function IntelligencePanel({
   news, weather, stocks, repos, systemInfo, recentTools, loading,
-  earthquakes, crypto, space, cve, clocks, memoryData, onMemoryDelete, screenData,
+  earthquakes, crypto, space, cve, clocks, memoryData, onMemoryDelete, screenData, computerStatus, onRefreshComputer,
   calendarEvents, calendarAuth, emailMessages, emailUnread, emailAuth,
   onCalendarConnect, onEmailConnect,
   briefing, onPlayBriefing, voiceOutputEnabled,
   automations, onAutomationToggle, onAutomationDelete, onAutomationTrigger,
   visionScreenResult, visionCameraResult, onVisionCaptureCamera, onVisionCaptureScreen, visionAnalyzing,
   holodeckMetrics, holodeckGesturePosition, holodeckGestureOpenness, holodeckExpanded, onHolodeckToggle,
+  diaryRefreshToken,
 }: IntelligencePanelProps) {
   return (
     <div
@@ -453,7 +458,7 @@ export const IntelligencePanel = memo(function IntelligencePanel({
         )}
         {screenData !== undefined && (
           <div className="mt-4">
-            <ScreenPanel data={screenData} loading={loading} />
+            <ScreenPanel data={screenData} loading={loading} computerStatus={computerStatus} onRefreshComputer={onRefreshComputer} />
           </div>
         )}
         {memoryData !== undefined && (
@@ -471,6 +476,9 @@ export const IntelligencePanel = memo(function IntelligencePanel({
             />
           </div>
         )}
+        <div className="mt-4">
+          <DiaryPanel refreshToken={diaryRefreshToken} />
+        </div>
         <div className="mt-4">
           <VisionPanel
             screenResult={visionScreenResult || null}

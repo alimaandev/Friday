@@ -13,3 +13,7 @@ class LocalStorageMock {
 if (!globalThis.localStorage) {
   globalThis.localStorage = new LocalStorageMock()
 }
+
+if (!HTMLElement.prototype.scrollIntoView) {
+  HTMLElement.prototype.scrollIntoView = () => {}
+}

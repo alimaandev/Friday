@@ -1,5 +1,6 @@
 import { memo, useRef, useEffect, useState } from 'react'
 import { HolodeckScene } from './HolodeckScene'
+import { HolodeckCards } from './HolodeckCards'
 import type { HolodeckMetrics } from './HolodeckScene'
 
 interface HolodeckPanelProps {
@@ -93,9 +94,12 @@ export const HolodeckPanel = memo(function HolodeckPanel({
             <span style={{ color: '#22c55e' }}>{metrics.tokenUsage}t</span>
           </div>
 
+          {/* Holodeck v2: floating draggable cards */}
+          {ready && <HolodeckCards metrics={metrics} gestureOpenness={gestureOpenness} />}
+
           {/* Gesture hint */}
           {gesturePosition && (
-            <div className="absolute bottom-2 right-2 text-[9px]" style={{ color: '#444' }}>
+            <div className="absolute bottom-2 left-2 text-[9px]" style={{ color: '#444' }}>
               ✋ gesture control active
             </div>
           )}

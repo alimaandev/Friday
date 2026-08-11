@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import os
 import pkgutil
 from typing import Any
 
@@ -32,9 +33,48 @@ def discover_plugins():
     _PLUGIN_INSTANCES.clear()
 
     _scan_package("plugins.builtins")
+    _scan_community_packages()
     _scan_tools_fallback()
+    try:
+        from core.custom_tools import register_custom_tools
+
+        register_custom_tools()
+    except Exception as e:  # noqa: BLE001
+        warn(f"Custom tool registration skipped: {e}")
 
     info(f"Tool discovery complete: {len(_TOOL_MAP)} tools, {len(_TOOL_DEFINITIONS)} definitions")
+
+
+def _scan_community_packages():
+    """Load community plugins that are present in the install manifest."""
+    try:
+        from core.plugin_store import _MANIFEST_PATH, _load_manifest
+
+        if not os.path.exists(_MANIFEST_PATH):
+            return
+        installed = {e.get("name") for e in _load_manifest()}
+
+        try:
+            pkg = importlib.import_module("plugins.community")
+            path = getattr(pkg, "__path__", None)
+        except ImportError:
+            return
+        if not path:
+            return
+
+        import pkgutil
+
+        for importer, modname, is_pkg in pkgutil.walk_packages(path, "plugins.community."):
+            base = modname.rsplit(".", 1)[-1]
+            if base not in installed:
+                continue
+            try:
+                mod = importlib.import_module(modname)
+                _register_plugins_from_module(mod)
+            except Exception as e:  # noqa: BLE001
+                warn(f"Failed to load community plugin {modname}: {e}")
+    except Exception as e:  # noqa: BLE001
+        warn(f"Community plugin scan skipped: {e}")
 
 
 def _scan_package(package_name: str):

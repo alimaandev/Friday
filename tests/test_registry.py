@@ -21,6 +21,16 @@ class TestRegistry:
             "recall",
             "ask_user",
             "get_system_info",
+            "open_app",
+            "type_text",
+            "click_mouse",
+            "focus_window",
+            "get_cursor",
+            "list_windows",
+            "close_app",
+            "desktop_summary",
+            "ingest_document",
+            "rag_search",
         ]:
             assert tool in tmap, f"{tool} missing"
 

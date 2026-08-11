@@ -21,8 +21,12 @@ import { toast } from './core/ToastStore'
 const IntelligencePanel = lazy(() => import('./components/sidebar/IntelligencePanel').then(m => ({ default: m.IntelligencePanel })))
 const CommandPalette = lazy(() => import('./components/command/CommandPalette').then(m => ({ default: m.CommandPalette })))
 const SettingsPanel = lazy(() => import('./components/settings/SettingsPanel').then(m => ({ default: m.SettingsPanel })))
-import { streamChat, checkHealth, getSessions, createSession, deleteSession, getOutputDir, setOutputDir, getGoogleAuth, getNews, getWeather, getStocks, getGithubTrending, getEarthquakes, getCrypto, getSpace, getCve, getScreen, getMemory, deleteMemory, getCalendarEvents, getEmailInbox, getEmailUnread, connectEventSource, getAutomations, toggleAutomation, deleteAutomation, triggerAutomation, analyzeVisionImage, getVisionScreen, resolveApproval } from './core/api'
+import { streamChat, checkHealth, getSessions, createSession, deleteSession, getOutputDir, setOutputDir, getGoogleAuth, getNews, getWeather, getStocks, getGithubTrending, getEarthquakes, getCrypto, getSpace, getCve, getScreen, getMemory, deleteMemory, getCalendarEvents, getEmailInbox, getEmailUnread, connectEventSource, getAutomations, toggleAutomation, deleteAutomation, triggerAutomation, analyzeVisionImage, getVisionScreen, resolveApproval, streamAutopilot, getKnowledgeContinuity, getComputerStatus, getPrivacyStatus } from './core/api'
 import type { ServerEvent } from './core/api'
+import { BrainView } from './components/autopilot/BrainView'
+import { ZenStage } from './components/zen/ZenStage'
+import { Onboarding } from './components/zen/Onboarding'
+import type { AutopilotRun, AutopilotStepStatus } from './types'
 
 let msgId = 0
 const nextId = () => `m${++msgId}`
@@ -55,13 +59,22 @@ function App() {
   const [sseConnected, setSseConnected] = useState(false)
   const [alerts, setAlerts] = useState<ProactiveAlert[]>([])
   const [settingsOpen, setSettingsOpen] = useState(false)
-const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; greeting: string } | null>(null)
+const [briefing, setBriefing] = useState<{ summary: string; sections: string[]; greeting: string; yesterday?: string } | null>(null)
 const [automations, setAutomations] = useState<Automation[]>([])
 const [visionScreenResult, setVisionScreenResult] = useState<{ description: string; text: string | null; timestamp: number } | null>(null)
 const [visionCameraResult, setVisionCameraResult] = useState<{ description: string; text: string | null; timestamp: number } | null>(null)
 const [visionAnalyzing, setVisionAnalyzing] = useState(false)
 const [holodeckExpanded, setHolodeckExpanded] = useState(true)
 const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(null)
+  const [autopilotRun, setAutopilotRun] = useState<AutopilotRun | null>(null)
+  const [now, setNow] = useState(() => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }))
+  const [continuity, setContinuity] = useState('')
+  const [computerReady, setComputerReady] = useState(false)
+  const [computerStatus, setComputerStatus] = useState<{ platform: string; mouse_keyboard: boolean; window_management: boolean } | null>(null)
+  const [blackout, setBlackout] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try { return localStorage.getItem('friday_onboarded') !== '1' } catch { return true }
+  })
 
   // ─── Fine-grained Zustand selectors (before any hooks that use them) ───
   const sessions = useStore(s => s.sessions)
@@ -71,6 +84,8 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
   const voiceLanguage = useStore(s => s.voiceLanguage)
   const persona = useStore(s => s.persona)
   const metricsState = useStore(s => s.metrics)
+  const zen = useStore(s => s.zen)
+  const handsFree = useStore(s => s.handsFree)
   const active = useStore(s => {
     const found = s.sessions.find(ses => ses.id === s.activeSessionId)
     return found || s.sessions[0]
@@ -169,6 +184,23 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
     startVoiceInput(voiceLanguage, true)
   }, [cancelAutoRestart, resetTranscript, startVoiceInput, voiceLanguage])
 
+  // Auto-enter ambient listening when hands-free mode is enabled
+  useEffect(() => {
+    if (handsFree && voiceInputSupported && !ambientActive) {
+      enterAmbient()
+    }
+  }, [handsFree, voiceInputSupported, ambientActive, enterAmbient])
+
+  const handleToggleHandsFree = useCallback(() => {
+    const next = !handsFree
+    state.setHandsFree(next)
+    if (next) {
+      enterAmbient()
+    } else {
+      exitAmbient()
+    }
+  }, [handsFree, enterAmbient, exitAmbient])
+
   // Auto-send transcript in ambient mode when recognition goes idle
   useEffect(() => {
     if (!ambientActiveRef.current) return
@@ -258,6 +290,9 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
         case 'briefing':
           setBriefing(ev.data)
           break
+        case 'diary':
+          setDiaryRefreshToken(t => t + 1)
+          break
         case 'automation_run':
           setAutomations(prev => prev.map(a =>
             a.id === ev.data.id ? { ...a, last_run: ev.data.timestamp, last_status: ev.data.status, run_count: a.run_count + 1 } : a
@@ -344,8 +379,14 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
           }
         }
         await fetchRemaining()
-        if (!cancelled) setDataLoaded(true)
-      } catch {
+        getKnowledgeContinuity().then(d => { if (!cancelled) setContinuity(d.continuity || '') }).catch(() => {})
+        getComputerStatus().then(d => {
+          if (cancelled) return
+          setComputerReady(Boolean(d.mouse_keyboard && d.window_management))
+          setComputerStatus(d)
+        }).catch(() => {})
+        getPrivacyStatus().then(d => { if (!cancelled) setBlackout(d.enabled) }).catch(() => {})
+        if (!cancelled) setDataLoaded(true)      } catch {
         if (!cancelled) {
           setBackendOnline(false)
           toast('error', 'Could not reach Friday backend. Is the API server running?')
@@ -362,6 +403,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
 
   const [memoryData, setMemoryData] = useState<MemoryData | null>(null)
   const [screenData, setScreenData] = useState<ScreenData | null>(null)
+  const [diaryRefreshToken, setDiaryRefreshToken] = useState(0)
   const [calendarAuth, setCalendarAuth] = useState('')
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([])
   const [emailAuth, setEmailAuth] = useState('')
@@ -449,6 +491,11 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
     resolveApproval(requestId, allowed).catch(() => {})
   }, [])
 
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })), 1000)
+    return () => clearInterval(id)
+  }, [])
+
   // ─── Power-user keyboard shortcuts ───
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -462,7 +509,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
         setSettingsOpen(true)
       } else if (e.key === 'b' && !e.shiftKey) {
         e.preventDefault()
-        setSidebarOpen(o => !o)
+        state.toggleZen()
       }
     }
     window.addEventListener('keydown', handleKey)
@@ -474,6 +521,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
   const handleStop = useCallback(() => {
     abortRef.current?.abort()
     abortRef.current = null
+    setAutopilotRun(null)
     state.setLoading(false)
     state.updateMessages(msgs => msgs.map(m => m.streaming ? { ...m, streaming: false } : m))
     state.setOrb('idle')
@@ -497,10 +545,82 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
     state.setLoading(true)
     state.setOrb('thinking')
 
+    const trimmed = text.trim()
+    const isAuto =
+      /^\/autopilot\b/i.test(trimmed) ||
+      (/^autopilot\s*[-:،]?\s/i.test(trimmed) && trimmed.replace(/^autopilot\s*[-:،]?\s?/i, '').trim().length > 0)
+    const goal = isAuto ? trimmed.replace(/^\/autopilot\b/i, '').replace(/^autopilot\s*[-:،]?\s?/i, '').trim() : ''
+
+    if (isAuto && goal.length === 0) {
+      state.setLoading(false)
+      abortRef.current = null
+      setAutopilotRun(null)
+      state.setOrb('idle')
+      return
+    }
+
     state.updateMessages(msgs => [...msgs, { id: nextId(), role: 'user', content: text }])
 
     const aid = nextId()
     state.updateMessages(msgs => [...msgs, { id: aid, role: 'assistant', content: '', streaming: true, toolCalls: [] }])
+
+    if (isAuto) {
+      setAutopilotRun({ goal, phase: 'planning', steps: [] })
+    }
+
+    const applyAutoEvent = (ev: any) => {
+      setAutopilotRun(prev => {
+        const base = prev ?? { goal: ev.goal ?? '', phase: 'planning' as const, steps: [] as AutopilotRun['steps'] }
+        switch (ev.event) {
+          case 'plan':
+            return {
+              ...base,
+              goal: ev.goal ?? base.goal,
+              phase: 'running' as const,
+              steps: (ev.tasks || []).map((t: any) => ({
+                id: t.id,
+                description: t.description,
+                tool: t.tool,
+                status: 'pending' as AutopilotStepStatus,
+                error: null,
+              })),
+            }
+          case 'step_start':
+            return {
+              ...base,
+              phase: 'running' as const,
+              steps: base.steps.map(s => (s.id === ev.task.id ? { ...s, status: 'running' as AutopilotStepStatus } : s)),
+            }
+          case 'step_done':
+            return {
+              ...base,
+              steps: base.steps.map(s =>
+                s.id === ev.task.id
+                  ? {
+                    ...s,
+                    status: (ev.task.status === 'failed' ? 'failed' : 'completed') as AutopilotStepStatus,
+                    result: ev.task.result,
+                    error: ev.task.error,
+                  }
+                  : s,
+              ),
+            }
+          case 'step_skipped':
+            return {
+              ...base,
+              steps: base.steps.map(s =>
+                s.id === ev.task.id ? { ...s, status: 'skipped' as AutopilotStepStatus } : s,
+              ),
+            }
+          case 'aborted':
+            return { ...base, phase: 'aborted' as const, abortedReason: ev.reason }
+          case 'done':
+            return { ...base, phase: 'done' as const, stats: ev.stats }
+          default:
+            return base
+        }
+      })
+    }
 
     let acc = ''
     let lastFlush = 0
@@ -510,7 +630,59 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
       state.updateMessages(msgs => msgs.map(m => m.id === aid ? { ...m, content: acc } : m))
     }
 
-    const chatController = streamChat(
+    const stream = isAuto
+      ? streamAutopilot(
+        { goal, session_id: activeSessionId },
+        (ev) => {
+          if (ev.type === 'autopilot') {
+            applyAutoEvent(ev)
+            return
+          }
+          switch (ev.type) {
+            case 'tokens':
+              acc += ev.content
+              if (performance.now() - lastFlush >= TOKEN_THROTTLE) flushTokens()
+              break
+            case 'tool_result':
+              flushTokens()
+              state.updateMessages(msgs => msgs.map(m =>
+                m.id === aid ? { ...m, toolCalls: [...(m.toolCalls || []), ...(ev.tools || [])] } : m
+              ))
+              state.setOrb('executing')
+              break
+            case 'requires_confirmation':
+              setPendingApproval({ id: ev.request_id, tool: ev.tool, args: ev.args })
+              state.setOrb('idle')
+              break
+            case 'done':
+              flushTokens()
+              if (ev.final) {
+                state.updateMessages(msgs => msgs.map(m =>
+                  m.id === aid ? { ...m, content: ev.content || acc, streaming: false } : m
+                ))
+                state.setOrb('idle')
+              }
+              break
+          }
+        },
+        (err) => {
+          const isNetwork = err?.message?.includes('network') || err?.status === 0
+          if (isNetwork) setBackendOnline(false)
+          setAutopilotRun(prev => prev ? { ...prev, phase: 'aborted', abortedReason: err?.message || 'error' } : prev)
+          state.updateMessages(msgs => msgs.map(m =>
+            m.id === aid ? { ...m, content: isNetwork
+              ? 'Backend offline — start `python api_server.py` on port 8080'
+              : `Error: ${err.message || JSON.stringify(err)}`, streaming: false } : m
+          ))
+          state.setOrb('error')
+          setTimeout(() => state.setOrb('idle'), 2000)
+        },
+        () => {
+          state.setLoading(false)
+          abortRef.current = null
+        },
+      )
+      : streamChat(
       { message: text, session_id: activeSessionId, persona },
       (ev) => {
         switch (ev.type) {
@@ -579,7 +751,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
         abortRef.current = null
       },
     )
-    abortRef.current = chatController
+    abortRef.current = stream
   }, [loading, activeSessionId, persona])
 
   // Stable ref for handleSend so effects always have the latest version
@@ -714,6 +886,8 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
 
   const commandActions = [
     { id: 'new-session', label: 'New session', action: handleNewSession },
+    { id: 'toggle-zen', label: zen ? 'Exit zen mode (dashboard)' : 'Enter zen mode', action: () => state.toggleZen() },
+    { id: 'toggle-handsfree', label: handsFree ? 'Disable hands-free listening' : 'Enable hands-free listening', action: handleToggleHandsFree },
     { id: 'toggle-sidebar', label: 'Toggle sessions sidebar', action: () => setSidebarOpen(o => !o) },
 
     { id: 'toggle-camera', label: 'Gesture control', action: toggleCamera },
@@ -836,6 +1010,53 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
       )}
 
       <div className="relative flex flex-col h-full" style={{ zIndex: 10 }}>
+        {zen ? (
+          <div className="relative h-full">
+            <ZenStage
+              orbState={orb}
+              metrics={{
+                latency: metricsState.latency,
+                model: metricsState.model,
+                provider: metricsState.provider,
+                memory: metricsState.memory,
+                tokenUsage: metricsState.tokenUsage,
+              }}
+              messages={active.messages}
+              autopilotRun={autopilotRun}
+              onSend={sendMessage}
+              onStop={handleStop}
+              onRegenerate={handleRegenerate}
+              loading={loading}
+              voiceInputSupported={voiceInputSupported}
+              voiceStatus={voiceInputStatus}
+              voiceInterim={interimTranscript}
+              voiceLanguage={voiceLanguage}
+              onVoiceStart={() => { exitAmbient(); cancelAutoRestart(); resetTranscript(); startVoiceInput(voiceLanguage) }}
+              onVoiceStop={() => { cancelAutoRestart(); return stopVoiceInput() }}
+              onCycleLanguage={handleCycleLanguage}
+              onToggleDashboard={() => state.toggleZen()}
+              handsFree={handsFree}
+              ambientActive={ambientActive}
+              onToggleHandsFree={handleToggleHandsFree}
+              persona={persona}
+              continuity={continuity}
+            computerReady={computerReady}
+            blackout={blackout}
+            temperature={weather?.temperature ?? null}
+            location={weather?.location ?? ''}
+            time={now}
+            handPosition={handPosition}
+            voiceActivity={voiceInputStatus === 'listening' || voiceOutputStatus === 'speaking'}
+            />
+            {showOnboarding && (
+              <Onboarding
+                onDismiss={() => setShowOnboarding(false)}
+                onSuggest={text => sendMessage(text)}
+              />
+            )}
+          </div>
+        ) : (
+        <>
         <StatusRibbon
           systemInfo={systemInfo}
           latency={metricsState.latency}
@@ -869,20 +1090,23 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
           <main className="flex-1 flex flex-col min-w-0">
             <div className="flex-1 flex flex-col items-center relative min-h-0">
               <div className="w-full max-w-[720px] flex-1 flex flex-col">
-                <AiCore
-                  orbState={orb}
-                  metrics={{
-                    latency: metricsState.latency,
-                    model: metricsState.model,
-                    provider: metricsState.provider,
-                    memory: metricsState.memory,
-                    tokenUsage: metricsState.tokenUsage,
-                  }}
-                  onCommand={sendMessage}
-                  hasMessages={active.messages.length > 0}
-                  handPosition={handPosition}
-                  voiceActivity={voiceInputStatus === 'listening' || voiceOutputStatus === 'speaking'}
-                />
+                <div className={`relative flex flex-col min-h-0 ${autopilotRun ? 'flex-1' : ''}`}>
+                  <AiCore
+                    orbState={orb}
+                    metrics={{
+                      latency: metricsState.latency,
+                      model: metricsState.model,
+                      provider: metricsState.provider,
+                      memory: metricsState.memory,
+                      tokenUsage: metricsState.tokenUsage,
+                    }}
+                    onCommand={sendMessage}
+                    hasMessages={!autopilotRun && active.messages.length > 0}
+                    handPosition={handPosition}
+                    voiceActivity={voiceInputStatus === 'listening' || voiceOutputStatus === 'speaking'}
+                  />
+                  {autopilotRun && <BrainView run={autopilotRun} size={320} />}
+                </div>
 
                 {active.messages.length > 0 && (
                   <div className="w-full flex-1 overflow-y-auto space-y-6 px-8 pb-4">
@@ -949,6 +1173,10 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
               memoryData={memoryData}
               onMemoryDelete={handleDeleteMemory}
               screenData={screenData}
+              computerStatus={computerStatus}
+              onRefreshComputer={() => {
+                getComputerStatus().then(d => { setComputerReady(Boolean(d.mouse_keyboard && d.window_management)); setComputerStatus(d) }).catch(() => {})
+              }}
               calendarEvents={calendarEvents}
               calendarAuth={calendarAuth}
               emailMessages={emailMessages}
@@ -977,9 +1205,12 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
               holodeckGestureOpenness={openness ?? undefined}
               holodeckExpanded={holodeckExpanded}
               onHolodeckToggle={() => setHolodeckExpanded(e => !e)}
+              diaryRefreshToken={diaryRefreshToken}
             />
           </Suspense>
         </div>
+        </>
+        )}
       </div>
 
       <Suspense fallback={null}>

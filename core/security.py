@@ -18,6 +18,15 @@ DESTRUCTIVE_PATTERNS: list[str] = [
     "> /dev/",
 ]
 
+_CONTROL_TOOLS: set[str] = {
+    "open_app",
+    "focus_window",
+    "type_text",
+    "press_key",
+    "click_mouse",
+    "close_app",
+}
+
 
 @dataclass
 class PermissionRule:
@@ -163,6 +172,8 @@ class PermissionManager:
         return {"allowed": True}
 
     def _looks_destructive(self, name: str, args: dict | None) -> bool:
+        if name in _CONTROL_TOOLS:
+            return True
         for key in ("path", "file", "src", "destination", "command", "cmd"):
             if not args or key not in args:
                 continue

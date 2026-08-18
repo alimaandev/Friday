@@ -47,7 +47,7 @@ class ComputerControl:
             "note": "pip install pyautogui pywin32 to enable full desktop control",
         }
 
-    # ─── Windows ──────────────────────────────────────────────────
+    # ──────────────── Windows ──────────────────────────────────────────────────
 
     def list_windows(self) -> dict:
         if self._win32gui is None:
@@ -104,11 +104,18 @@ class ComputerControl:
             return {"success": True, "window": title}
         return {"success": False, "error": f"No visible window matched '{title}'"}
 
-    # ─── Cross-platform launch ────────────────────────────────────
+    # ──────────────── Cross-platform launch ───────────────────────────────────
 
     def open_app(self, app: str) -> dict:
         """Open an app by name/path. Uses `start` on Windows, `open` on macOS, else search PATH."""
         if _IS_WINDOWS:
+            resolved = shutil.which(app)
+            if resolved:
+                try:
+                    os.startfile(resolved)  # type: ignore[attr-defined]
+                    return {"success": True, "app": app, "method": "os.startfile"}
+                except Exception:
+                    pass
             try:
                 os.startfile(app)  # type: ignore[attr-defined]
                 return {"success": True, "app": app, "method": "os.startfile"}
@@ -128,7 +135,7 @@ class ComputerControl:
             return {"success": True, "app": app, "method": "PATH"}
         return {"success": False, "error": f"Could not launch '{app}'"}
 
-    # ─── Mouse & keyboard (pyautogui) ─────────────────────────────
+    # ──────────────── Mouse & keyboard (pyautogui) ───────────────────────────
 
     def click(self, x: int, y: int, button: str = "left", clicks: int = 1) -> dict:
         if self._pyautogui is None:
@@ -154,7 +161,7 @@ class ComputerControl:
         x, y = self._pyautogui.position()
         return {"success": True, "x": x, "y": y}
 
-    # ─── Screen ───────────────────────────────────────────────────
+    # ──────────────── Screen ──────────────────────────────────────────────────
 
     def screen_size(self) -> dict:
         if self._pyautogui is None:
@@ -162,7 +169,7 @@ class ComputerControl:
         w, h = self._pyautogui.size()
         return {"success": True, "width": w, "height": h}
 
-    # ─── Desktop summary (drives the autopilot "organize" goal) ──
+    # ──────────────── Desktop summary (drives the autopilot "organize" goal) ──
 
     def desktop_summary(self) -> dict:
         """Snapshot of the current desktop: status, open windows, screen size.

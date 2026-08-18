@@ -13,15 +13,14 @@
   <a href="#quick-start">Quick Start</a> •
   <a href="#configuration">Configuration</a> •
   <a href="#gesture-controls">Gesture Controls</a> •
-  <a href="#project-structure">Project Structure</a>
+  <a href="#project-structure">Project Structure</a> •
+  <a href="#screenshots">Screenshots</a>
 </p>
 
 <br>
 
 <p align="center">
-  <img src="https://placeholder.pics/svg/800x450/0D0D0D/D4A040/friday%20dashboard" alt="Friday Dashboard" width="800">
-  <br>
-  <em>— replace with your actual screenshot or GIF —</em>
+  <img src="public/Dash_Board.png" alt="Friday Dashboard" width="800">
 </p>
 
 <br>
@@ -68,12 +67,6 @@ npm run dev
 > Opens at `http://localhost:5173`. Done.
 
 <br>
-
-<p align="center">
-  <img src="https://placeholder.pics/svg/800x300/0D0D0D/666666/quick%20start%20terminal%20screenshot" alt="Terminal" width="600">
-  <br>
-  <em>— terminal screenshot placeholder —</em>
-</p>
 
 <br>
 
@@ -175,13 +168,12 @@ desktop/
 ## Screenshots
 
 <p align="center">
-  <img src="https://placeholder.pics/svg/600x380/0D0D0D/D4A040/main%20dashboard" width="400" alt="Dashboard">
-  <img src="https://placeholder.pics/svg/600x380/0D0D0D/D4A040/chat%20view" width="400" alt="Chat">
+  <img src="public/Dash_Board.png" width="400" alt="Dashboard">
+  <img src="public/chatview.png" width="400" alt="Chat">
   <br>
-  <img src="https://placeholder.pics/svg/600x380/0D0D0D/D4A040/intelligence%20panel" width="400" alt="Intelligence Panel">
-  <img src="https://placeholder.pics/svg/600x380/0D0D0D/D4A040/command%20palette" width="400" alt="Command Palette">
+  <img src="public/intelligence.png" width="400" alt="Intelligence Panel">
+  <img src="public/command_palatte.png" width="400" alt="Command Palette">
   <br>
-  <em>— replace placeholder SVGs with actual screenshots —</em>
 </p>
 
 <br>

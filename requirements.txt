@@ -14,4 +14,4 @@ pyautogui>=0.9.54
 pytest>=9.0.0
 pytest-cov>=7.1.0
 pytest-asyncio>=1.0.0
-ruff>=0.16.1
+ruff>=0.16.2

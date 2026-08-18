@@ -1,3 +1,6 @@
+import os
+import shutil
+
 from core.computer import ComputerControl
 from core.security import get_permission_manager
 
@@ -14,6 +17,42 @@ def test_open_app_missing_binary_returns_error():
     cc = ComputerControl()
     result = cc.open_app("__definitely_not_a_real_app_xyz__")
     assert "success" in result
+
+
+def test_open_app_windows_resolves_binary(monkeypatch):
+    cc = ComputerControl()
+    monkeypatch.setattr("core.computer._IS_WINDOWS", True)
+
+    started = []
+
+    def fake_startfile(path):
+        started.append(path)
+
+    monkeypatch.setattr(os, "startfile", fake_startfile, raising=False)
+    monkeypatch.setattr(shutil, "which", lambda cmd: r"C:\Windows\System32\notepad.exe" if cmd == "notepad" else None)
+
+    result = cc.open_app("notepad")
+    assert result["success"] is True
+    assert result["method"] == "os.startfile"
+    assert started == [r"C:\Windows\System32\notepad.exe"]
+
+
+def test_open_app_windows_fallback_unresolved(monkeypatch):
+    cc = ComputerControl()
+    monkeypatch.setattr("core.computer._IS_WINDOWS", True)
+
+    started = []
+
+    def fake_startfile(path):
+        started.append(path)
+
+    monkeypatch.setattr(os, "startfile", fake_startfile, raising=False)
+    monkeypatch.setattr(shutil, "which", lambda cmd: None)
+
+    result = cc.open_app("custom_app")
+    assert result["success"] is True
+    assert result["method"] == "os.startfile"
+    assert started == ["custom_app"]
 
 
 def test_type_text_without_pyautogui_is_graceful(monkeypatch):

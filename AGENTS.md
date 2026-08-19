@@ -18,6 +18,11 @@ pip install -r requirements.txt
 python -m pytest tests/ -v
 python -m pytest tests/ -v --cov
 
+# CI enforces a coverage gate: the main suite must stay above 50%
+# (tests/test_api_server.py is run separately against desktop/ and gated at 40%).
+python -m pytest tests/ --cov --cov-fail-under=50 --ignore=tests/test_api_server.py
+python -m pytest tests/test_api_server.py --cov=desktop --cov-fail-under=40
+
 # Lint
 ruff check .
 ruff format --check .

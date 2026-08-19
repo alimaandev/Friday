@@ -475,7 +475,7 @@ Everything is tested and linted — CI runs both suites on every pull request.
 ```bash
 pip install -r requirements.txt
 python -m pytest tests/ -v          # 270+ tests
-python -m pytest tests/ --cov       # with coverage report
+python -m pytest tests/ --cov       # with coverage report (CI enforces a 50% gate)
 ruff check .                        # lint
 ruff format --check .               # format check
 ```

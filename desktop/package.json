@@ -23,7 +23,7 @@
     "react-dom": "^19.2.7",
     "tailwindcss": "^4.3.3",
     "three": "^0.185.1",
-    "zustand": "^5.0.14"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",

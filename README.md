@@ -42,6 +42,10 @@
     <b><a href="README.ur.md">اردو</a></b>
     ·
     <b><a href="README.hi.md">हिन्दी</a></b>
+    ·
+    <b><a href="README.es.md">Español</a></b>
+    ·
+    <b><a href="README.fr.md">Français</a></b>
   </p>
 </div>
 

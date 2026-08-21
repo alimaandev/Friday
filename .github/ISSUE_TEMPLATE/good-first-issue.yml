@@ -1,0 +1,58 @@
+name: Good First Issue
+description: Claim a curated task for new contributors
+title: "Claim: "
+labels: ["good first issue", "help wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for picking up a **good first issue**! 🎉
+
+        This template helps you claim the task and track your progress.
+
+  - type: dropdown
+    id: issue
+    attributes:
+      label: Which issue are you claiming?
+      description: Select from the current good-first-issue list
+      options:
+        - "#101 — Add --port CLI flag to configure the API server port"
+        - "#102 — Expose available tools via GET /api/v1/tools endpoint"
+        - "#103 — Add loading skeleton state to VisionPanel while analyzing"
+        - "#104 — Add a 'Clear Chat' button to the chat input area"
+        - "#105 — Add copy-to-clipboard button on code blocks in MarkdownBlock"
+        - "#106 — Add unit tests for ThemeEngine"
+        - "#107 — Add Ctrl+K / Cmd+K shortcut to open the Command Palette"
+        - "#108 — Add 'About' info to Settings: app version and build info"
+        - "#109 — Add German translation of the README (README.de.md)"
+        - "#110 — Add a loading state to ScreenPanel screenshot refresh"
+        - "#111 — Add API tests for the alerts endpoint"
+        - "#112 — Add a 'Copy Screenshot' / download button to ScreenPanel"
+        - "Other (specify in Additional Context)"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I've read the issue and understand the acceptance criteria
+          required: true
+        - label: I've run the project locally (`python main.py --ui` / `npm run dev`)
+          required: true
+        - label: I'll comment on the issue to claim it before starting
+          required: true
+
+  - type: textarea
+    id: approach
+    attributes:
+      label: Your approach (optional)
+      description: Briefly describe how you plan to tackle this (helps avoid duplicate work)
+      placeholder: "I'll add a --port arg to main.py's argparse, pass it to the api_server.py subprocess, and add a test in test_main.py"
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Questions, notes, or anything else maintainers should know

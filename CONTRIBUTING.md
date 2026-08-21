@@ -5,6 +5,7 @@ Thanks for your interest in contributing! Friday is an open-source AI command ce
 **Table of Contents**
 
 - [Code of Conduct](#code-of-conduct)
+- [Your First Contribution](#your-first-contribution) ← Start here if you're new!
 - [Quick Start for Contributors](#quick-start-for-contributors)
 - [Development Setup](#development-setup)
 - [Project Architecture](#project-architecture)
@@ -22,7 +23,24 @@ This project and everyone participating in it is governed by the [Contributor Co
 
 ---
 
-## Quick Start for Contributors
+## Your First Contribution
+
+**Welcome!** If you've never contributed to Friday (or any open-source project), this section is for you.
+
+### 1. Find a task
+
+Browse the [`good first issue`](https://github.com/alimaandev/Friday/labels/good%20first%20issue) label — these are tasks curated for newcomers with:
+- Clear scope (usually 1–3 files)
+- File pointers and acceptance criteria
+- Tests to write or pass
+
+### 2. Claim the issue
+
+- Click the issue you want
+- Comment: *"I'd like to work on this — assigning to me"*
+- A maintainer will assign you (or you can self-assign if you have write access)
+
+### 3. Run the project locally
 
 ```bash
 # 1. Fork the repo on GitHub
@@ -48,6 +66,63 @@ npm run dev
 ```
 
 Open `http://localhost:5173` in your browser. The backend runs on `http://localhost:8080`.
+
+> **Tip:** If port 8080 is in use, run with `python main.py --ui --port 9090` (see [#101](https://github.com/alimaandev/Friday/issues/101)).
+
+### 4. Make your change
+
+- Keep the change small and focused
+- Follow the [coding guidelines](#coding-guidelines)
+- Add/update tests (see [Testing](#testing))
+
+### 5. Verify locally
+
+```bash
+# Backend tests
+python -m pytest tests/ -v
+
+# TypeScript check
+cd desktop && npx tsc --noEmit
+
+# Production build
+cd desktop && npm run build
+```
+
+### 6. Open a PR
+
+```bash
+git push origin feat/your-feature-name
+```
+
+Then open a pull request on GitHub against `main`. Include:
+- What changed and why
+- Screenshots for UI changes
+- Link to the issue: `Closes #123`
+
+A maintainer will review within 24–48 hours. 🎉
+
+---
+
+## Quick Start for Contributors
+
+*Already ran the project once? Use this condensed checklist:*
+
+```bash
+# 1. Sync with upstream
+git checkout main
+git fetch upstream
+git merge upstream/main
+
+# 2. Create feature branch
+git checkout -b feat/your-feature-name
+
+# 3. Make changes, then verify:
+python -m pytest tests/ -v
+cd desktop && npx tsc --noEmit && npm run build
+
+# 4. Push & open PR
+git push origin feat/your-feature-name
+```
 
 ---
 
@@ -314,8 +389,8 @@ Labels you might see on issues:
 
 ## Tips for First-Time Contributors
 
-- **Look for [`good first issue`](https://github.com/alimaandev/Friday/labels/good%20first%20issue) labels** — these are tasks curated for newcomers
-- **Comment on the issue** before starting work so others know you're taking it
+- **Start with [Your First Contribution](#your-first-contribution)** — it walks you through the full flow
+- **Look for [`good first issue`](https://github.com/alimaandev/Friday/labels/good%20first%20issue) labels** — curated for newcomers
 - **Run the app locally first** — seeing it work helps you understand the codebase
 - **Start small** — a typo fix, a test improvement, or a CSS tweak is a great first PR
 - **Don't hesitate to ask questions** — open a discussion or comment on the issue

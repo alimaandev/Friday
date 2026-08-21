@@ -46,6 +46,8 @@
     <b><a href="README.es.md">Español</a></b>
     ·
     <b><a href="README.fr.md">Français</a></b>
+    ·
+    <b><a href="README.de.md">Deutsch</a></b>
   </p>
 </div>
 
@@ -576,18 +578,22 @@ Track progress on the [project board](https://github.com/users/alimaandev/projec
 
 We welcome contributions of all sizes — from typo fixes to new features.
 
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feat/amazing`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push (`git push origin feat/amazing`)
-5. Open a Pull Request
+### Quick start
 
-Check out [open issues](https://github.com/alimaandev/Friday/issues) — especially ones labelled [`good first issue`](https://github.com/alimaandev/Friday/labels/good%20first%20issue).
+1. **Read the guide** → [Your First Contribution](CONTRIBUTING.md#your-first-contribution) walks you through the full flow
+2. **Pick a task** → Browse the [Good First Issues project](https://github.com/users/alimaandev/projects/3) or the [`good first issue` label](https://github.com/alimaandev/Friday/labels/good%20first%20issue)
+3. **Claim it** → Comment on the issue so others know you're on it
+4. **Run locally** → `python main.py --ui` (backend) + `npm run dev` (frontend)
+5. **Open a PR** → We'll review fast and guide you through any changes
 
 ### Recent contributions
 
 | Contributor | Contribution |
 |-------------|-------------|
+| [@mingmaaa](https://github.com/mingmaaa) | Spanish & French README translations |
+| [@ravindharann](https://github.com/ravindharann) | Dashboard & UI screenshots |
+| [@kaminimangal](https://github.com/kaminimangal) | RAG markdown/txt file ingestion (in progress) |
+| [@rookepoole](https://github.com/rookepoole) | Windows `open_app` PATH resolution |
 | [@surajthedev](https://github.com/surajthedev) | Async persistence for long-term memory |
 | [@NikhilVedak](https://github.com/NikhilVedak) | API route versioning with `/api/v1` prefix |
 | [@MasRama](https://github.com/MasRama) | Cleaned up unused CSS and animation classes |

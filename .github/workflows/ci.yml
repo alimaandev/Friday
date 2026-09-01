@@ -47,7 +47,7 @@ jobs:
           python -m pytest tests/test_api_server.py -q --cov=desktop --cov-report=term --cov-fail-under=40
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           files: ./coverage.xml
           flags: backend

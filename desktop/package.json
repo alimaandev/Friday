@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",
-    "@testing-library/react": "^16.3.2",
+    "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.4",
     "@types/highlight.js": "^10.1.0",
     "@types/node": "^26.1.2",

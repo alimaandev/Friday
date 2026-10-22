@@ -7,7 +7,7 @@ yfinance>=1.6.0
 sentence-transformers>=5.7.0
 requests>=2.34.2
 pyttsx3>=2.99
-pillow>=12.3.0
+pillow>=13.0.0
 pyautogui>=0.9.54
 
 # Development
